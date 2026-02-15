@@ -1,0 +1,261 @@
+// SkillSpill — Prisma Schema
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum Role {
+  TALENT
+  RECRUITER
+  ADMIN
+}
+
+enum ExperienceLevel {
+  JUNIOR
+  MID
+  SENIOR
+  STAFF
+}
+
+enum ApplicationStatus {
+  PENDING
+  REVIEWED
+  SHORTLISTED
+  REJECTED
+  ACCEPTED
+}
+
+enum BountyStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+// ─────────────────────────────────────────────
+// USER (shared auth for both talent & recruiter)
+// ─────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  username      String?   @unique
+  passwordHash  String
+  role          Role
+  fullName      String
+  avatarUrl     String?
+  emailVerified Boolean   @default(false)
+  isActive      Boolean   @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  talentProfile    TalentProfile?
+  recruiterProfile RecruiterProfile?
+  sessions         Session[]
+  notifications    Notification[]
+
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────
+// SESSION (JWT / token management)
+// ─────────────────────────────────────────────
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  token        String   @unique
+  expiresAt    DateTime
+  ipAddress    String?
+  userAgent    String?  @db.Text
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+// ─────────────────────────────────────────────
+// TALENT PROFILE
+// ─────────────────────────────────────────────
+
+model TalentProfile {
+  id              String          @id @default(cuid())
+  userId          String          @unique
+  bio             String?         @db.Text
+  experienceLevel ExperienceLevel?
+  portfolioUrl    String?
+  linkedinUrl     String?
+  resumeUrl       String?
+  githubUsername   String?
+  githubConnected Boolean         @default(false)
+  githubRepos     Int             @default(0)
+  githubStars     Int             @default(0)
+  isAvailable     Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  // Relations
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skills       TalentSkill[]
+  projectLinks TalentProject[]
+  applications BountyApplication[]
+
+  @@map("talent_profiles")
+}
+
+model TalentSkill {
+  id              String @id @default(cuid())
+  talentProfileId String
+  skillName       String
+  isVerified      Boolean @default(false)
+
+  talentProfile TalentProfile @relation(fields: [talentProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([talentProfileId, skillName])
+  @@index([skillName])
+  @@map("talent_skills")
+}
+
+model TalentProject {
+  id              String @id @default(cuid())
+  talentProfileId String
+  url             String
+  title           String?
+  description     String? @db.Text
+
+  talentProfile TalentProfile @relation(fields: [talentProfileId], references: [id], onDelete: Cascade)
+
+  @@index([talentProfileId])
+  @@map("talent_projects")
+}
+
+// ─────────────────────────────────────────────
+// RECRUITER PROFILE
+// ─────────────────────────────────────────────
+
+model RecruiterProfile {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  jobTitle       String?
+  companyName    String
+  companyWebsite String?
+  companySize    String?
+  location       String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  user       User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  industries RecruiterIndustry[]
+  bounties   Bounty[]
+
+  @@map("recruiter_profiles")
+}
+
+model RecruiterIndustry {
+  id                 String @id @default(cuid())
+  recruiterProfileId String
+  industryName       String
+
+  recruiterProfile RecruiterProfile @relation(fields: [recruiterProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([recruiterProfileId, industryName])
+  @@map("recruiter_industries")
+}
+
+// ─────────────────────────────────────────────
+// BOUNTIES (job postings / challenges)
+// ─────────────────────────────────────────────
+
+model Bounty {
+  id                 String       @id @default(cuid())
+  recruiterProfileId String
+  title              String
+  description        String       @db.Text
+  requirements       String?      @db.Text
+  reward             Decimal?     @db.Decimal(10, 2)
+  currency           String       @default("USD")
+  status             BountyStatus @default(OPEN)
+  deadline           DateTime?
+  maxApplicants      Int?
+  isRemote           Boolean      @default(true)
+  location           String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  // Relations
+  recruiterProfile RecruiterProfile    @relation(fields: [recruiterProfileId], references: [id], onDelete: Cascade)
+  skills           BountySkill[]
+  applications     BountyApplication[]
+
+  @@index([recruiterProfileId])
+  @@index([status])
+  @@map("bounties")
+}
+
+model BountySkill {
+  id        String @id @default(cuid())
+  bountyId  String
+  skillName String
+
+  bounty Bounty @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+
+  @@unique([bountyId, skillName])
+  @@map("bounty_skills")
+}
+
+model BountyApplication {
+  id              String            @id @default(cuid())
+  bountyId        String
+  talentProfileId String
+  status          ApplicationStatus @default(PENDING)
+  coverLetter     String?           @db.Text
+  submissionUrl   String?
+  appliedAt       DateTime          @default(now())
+  reviewedAt      DateTime?
+
+  bounty        Bounty        @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+  talentProfile TalentProfile @relation(fields: [talentProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([bountyId, talentProfileId])
+  @@index([talentProfileId])
+  @@index([status])
+  @@map("bounty_applications")
+}
+
+// ─────────────────────────────────────────────
+// NOTIFICATIONS
+// ─────────────────────────────────────────────
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  title     String
+  message   String    @db.Text
+  type      String    @default("info")
+  isRead    Boolean   @default(false)
+  link      String?
+  readAt    DateTime?
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}

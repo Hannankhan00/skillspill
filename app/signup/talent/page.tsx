@@ -12,7 +12,7 @@ function useRipple() {
         const x = e.clientX - rect.left - size / 2;
         const y = e.clientY - rect.top - size / 2;
         const ripple = document.createElement("span");
-        ripple.style.cssText = `position:absolute;border-radius:50%;background:rgba(255,255,255,0.35);width:${size}px;height:${size}px;left:${x}px;top:${y}px;transform:scale(0);animation:ripple-expand 0.6s ease-out forwards;pointer-events:none;`;
+        ripple.style.cssText = `position:absolute;border-radius:50%;background:rgba(255,255,255,0.3);width:${size}px;height:${size}px;left:${x}px;top:${y}px;transform:scale(0);animation:ripple-expand 0.6s ease-out forwards;pointer-events:none;`;
         el.style.position = "relative";
         el.style.overflow = "hidden";
         el.appendChild(ripple);
@@ -41,6 +41,7 @@ const IconFileText = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill
 const IconTerminal = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 17 10 11 4 5" /><line x1="12" y1="19" x2="20" y2="19" /></svg>);
 const IconStar = () => (<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>);
 const IconSend = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>);
+const IconBolt = () => (<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>);
 
 /* ───────────── Constants ───────────── */
 const STEPS = [
@@ -70,11 +71,11 @@ function ParticlesCanvas() {
         let animationId: number; const particles: Particle[] = [];
         const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
         resize(); window.addEventListener("resize", resize);
-        for (let i = 0; i < 40; i++) particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, vx: (Math.random() - 0.5) * 0.2, vy: (Math.random() - 0.5) * 0.2, size: Math.random() * 1.5 + 0.5, opacity: Math.random() * 0.3 + 0.05 });
+        for (let i = 0; i < 35; i++) particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, vx: (Math.random() - 0.5) * 0.15, vy: (Math.random() - 0.5) * 0.15, size: Math.random() * 1.2 + 0.4, opacity: Math.random() * 0.2 + 0.03 });
         const draw = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             particles.forEach((p) => { p.x += p.vx; p.y += p.vy; if (p.x < 0) p.x = canvas.width; if (p.x > canvas.width) p.x = 0; if (p.y < 0) p.y = canvas.height; if (p.y > canvas.height) p.y = 0; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fillStyle = `rgba(60, 249, 26, ${p.opacity})`; ctx.fill(); });
-            for (let i = 0; i < particles.length; i++) for (let j = i + 1; j < particles.length; j++) { const dx = particles[i].x - particles[j].x; const dy = particles[i].y - particles[j].y; const dist = Math.sqrt(dx * dx + dy * dy); if (dist < 120) { ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.strokeStyle = `rgba(60, 249, 26, ${0.03 * (1 - dist / 120)})`; ctx.lineWidth = 0.5; ctx.stroke(); } }
+            for (let i = 0; i < particles.length; i++) for (let j = i + 1; j < particles.length; j++) { const dx = particles[i].x - particles[j].x; const dy = particles[i].y - particles[j].y; const dist = Math.sqrt(dx * dx + dy * dy); if (dist < 100) { ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.strokeStyle = `rgba(60, 249, 26, ${0.02 * (1 - dist / 100)})`; ctx.lineWidth = 0.5; ctx.stroke(); } }
             animationId = requestAnimationFrame(draw);
         };
         draw();
@@ -118,6 +119,12 @@ export default function TalentSignup() {
 
     const mono = { fontFamily: "var(--font-jetbrains-mono), monospace" };
 
+    /* ── Shared styles (matching login page) ── */
+    const cardCls = "bg-[#0D0D12]/80 backdrop-blur-xl border border-white/[0.07] rounded-2xl shadow-[0_0_80px_rgba(60,249,26,0.04),0_4px_30px_rgba(0,0,0,0.5)]";
+    const inputWrap = (hasError: boolean) =>
+        `flex items-center bg-[#1A1A24] border rounded-xl transition-all duration-200 focus-within:border-[#3CF91A]/50 focus-within:shadow-[0_0_0_3px_rgba(60,249,26,0.08)] ${hasError ? "border-[#FF003C]/50" : "border-white/[0.07]"}`;
+    const inputCls = "flex-1 min-w-0 bg-transparent border-none text-white py-3 px-4 text-sm outline-none placeholder:text-[#444]";
+
     const updateForm = (field: keyof FormData, value: FormData[keyof FormData]) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
         if (errors[field]) setErrors((prev) => { const n = { ...prev }; delete n[field]; return n; });
@@ -158,84 +165,54 @@ export default function TalentSignup() {
     };
 
     const addCustomSkill = () => { const s = formData.customSkill.trim(); if (s && !formData.selectedSkills.includes(s)) setFormData((prev) => ({ ...prev, selectedSkills: [...prev.selectedSkills, s], customSkill: "" })); };
-
     const simulateGithubConnect = () => { updateForm("githubConnected", true); updateForm("githubUsername", formData.username || "dev_user"); updateForm("githubRepos", 47); updateForm("githubStars", 234); };
-
     const addProjectLink = () => setFormData((prev) => ({ ...prev, projectLinks: [...prev.projectLinks, ""] }));
     const updateProjectLink = (i: number, v: string) => setFormData((prev) => { const l = [...prev.projectLinks]; l[i] = v; return { ...prev, projectLinks: l }; });
     const removeProjectLink = (i: number) => setFormData((prev) => ({ ...prev, projectLinks: prev.projectLinks.filter((_, idx) => idx !== i) }));
-
     const handleVerificationInput = (i: number, v: string) => { if (v.length > 1) v = v.slice(-1); if (v && !/^\d$/.test(v)) return; const c = [...verificationCode]; c[i] = v; setVerificationCode(c); if (v && i < 5) codeRefs.current[i + 1]?.focus(); };
     const handleVerificationKeyDown = (i: number, e: React.KeyboardEvent) => { if (e.key === "Backspace" && !verificationCode[i] && i > 0) codeRefs.current[i - 1]?.focus(); };
 
     const progressPercent = ((currentStep + 1) / STEPS.length) * 100;
 
-    /* ── Reusable terminal input wrapper ── */
-    const inputBox = (hasError: boolean) =>
-        `input-terminal flex items-center rounded-lg transition-all ${hasError ? "input-terminal-error" : ""}`;
-
-    const inputCls = "flex-1 min-w-0 bg-transparent border-none text-white py-3 px-4 text-[0.95rem] outline-none placeholder:text-[#555]";
-
-    /* Label component */
-    const Label = ({ icon, text, optional }: { icon: React.ReactNode; text: string; optional?: boolean }) => (
-        <label className="flex items-center gap-1.5 text-xs font-semibold text-[#3CF91A]/70 uppercase tracking-wider" style={mono}>
-            {icon} {text} {optional && <span className="font-normal text-[#555] normal-case tracking-normal">(optional)</span>}
-        </label>
-    );
-
     /* ═══════ STEPS ═══════ */
-
     const renderPersonalInfo = () => (
-        <div className="flex flex-col gap-6" key="personal">
-            <div className="mb-2">
-                <h2 className="text-2xl font-bold mb-1">Initialize <span className="text-[#3CF91A]">Profile</span></h2>
-                <p className="text-sm text-[#888]">Phase 1: Sync your core identity with the SkillSpill network.</p>
+        <div className="flex flex-col gap-5" key="personal">
+            <div className="mb-1">
+                <h2 className="text-xl font-bold text-white mb-1">Initialize <span className="text-[#3CF91A]">Profile</span></h2>
+                <p className="text-xs text-[#666]" style={mono}>Sync your core identity with the SkillSpill network.</p>
             </div>
-
-            <div className="flex flex-col gap-2">
-                <Label icon={<IconUser />} text="Full Name" />
-                <div className={inputBox(!!errors.fullName)}>
-                    <input type="text" className={inputCls} style={mono} placeholder="John 'Zero' Doe" value={formData.fullName} onChange={(e) => updateForm("fullName", e.target.value)} id="input-fullname" />
-                </div>
+            <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-bold text-white flex items-center gap-1.5"><IconUser /> Full Name</label>
+                <div className={inputWrap(!!errors.fullName)}><input type="text" className={inputCls} style={mono} placeholder="John Doe" value={formData.fullName} onChange={(e) => updateForm("fullName", e.target.value)} id="input-fullname" /></div>
                 {errors.fullName && <span className="text-xs text-[#FF003C]" style={mono}>{errors.fullName}</span>}
             </div>
-
-            <div className="flex flex-col gap-2">
-                <Label icon={<IconMail />} text="Secure Email" />
-                <div className={inputBox(!!errors.email)}>
-                    <input type="email" className={inputCls} style={mono} placeholder="identity@mesh.net" value={formData.email} onChange={(e) => updateForm("email", e.target.value)} id="input-email" />
-                </div>
+            <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-bold text-white flex items-center gap-1.5"><IconMail /> Secure Email</label>
+                <div className={inputWrap(!!errors.email)}><input type="email" className={inputCls} style={mono} placeholder="identity@mesh.net" value={formData.email} onChange={(e) => updateForm("email", e.target.value)} id="input-email" /></div>
                 {errors.email && <span className="text-xs text-[#FF003C]" style={mono}>{errors.email}</span>}
             </div>
-
-            <div className="flex flex-col gap-2">
-                <Label icon={<IconAtSign />} text="Hacker Alias" />
-                <div className={inputBox(!!errors.username)}>
-                    <span className="pl-4 text-[#3CF91A] font-semibold text-[0.95rem]" style={mono}>@</span>
+            <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-bold text-white flex items-center gap-1.5"><IconAtSign /> Hacker Alias</label>
+                <div className={inputWrap(!!errors.username)}>
+                    <span className="pl-4 text-[#3CF91A] font-semibold text-sm" style={mono}>@</span>
                     <input type="text" className={`${inputCls} pl-1`} style={mono} placeholder="neophyte_42" value={formData.username} onChange={(e) => updateForm("username", e.target.value)} id="input-username" />
                 </div>
                 {errors.username && <span className="text-xs text-[#FF003C]" style={mono}>{errors.username}</span>}
-                <span className="text-xs text-[#555]">This will be your unique identifier across the platform.</span>
             </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-2">
-                    <Label icon={<IconLock />} text="Password" />
-                    <div className={inputBox(!!errors.password)}>
+                <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-bold text-white flex items-center gap-1.5"><IconLock /> Password</label>
+                    <div className={inputWrap(!!errors.password)}>
                         <input type={showPassword ? "text" : "password"} className={inputCls} style={mono} placeholder="••••••••••" value={formData.password} onChange={(e) => updateForm("password", e.target.value)} id="input-password" />
-                        <button type="button" className="bg-transparent border-none text-[#555] px-3 py-2 cursor-pointer hover:text-[#3CF91A] transition-colors flex items-center" onClick={() => setShowPassword(!showPassword)} id="toggle-password">
-                            {showPassword ? <IconBroadcast /> : <IconRadarScan />}
-                        </button>
+                        <button type="button" className="bg-transparent border-none text-[#555] px-3 py-2 cursor-pointer hover:text-[#3CF91A] transition-colors flex items-center" onClick={() => setShowPassword(!showPassword)}>{showPassword ? <IconBroadcast /> : <IconRadarScan />}</button>
                     </div>
                     {errors.password && <span className="text-xs text-[#FF003C]" style={mono}>{errors.password}</span>}
                 </div>
-                <div className="flex flex-col gap-2">
-                    <Label icon={<IconLock />} text="Confirm" />
-                    <div className={inputBox(!!errors.confirmPassword)}>
+                <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-bold text-white flex items-center gap-1.5"><IconLock /> Confirm</label>
+                    <div className={inputWrap(!!errors.confirmPassword)}>
                         <input type={showConfirmPassword ? "text" : "password"} className={inputCls} style={mono} placeholder="••••••••••" value={formData.confirmPassword} onChange={(e) => updateForm("confirmPassword", e.target.value)} id="input-confirm-password" />
-                        <button type="button" className="bg-transparent border-none text-[#555] px-3 py-2 cursor-pointer hover:text-[#3CF91A] transition-colors flex items-center" onClick={() => setShowConfirmPassword(!showConfirmPassword)} id="toggle-confirm-password">
-                            {showConfirmPassword ? <IconBroadcast /> : <IconRadarScan />}
-                        </button>
+                        <button type="button" className="bg-transparent border-none text-[#555] px-3 py-2 cursor-pointer hover:text-[#3CF91A] transition-colors flex items-center" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>{showConfirmPassword ? <IconBroadcast /> : <IconRadarScan />}</button>
                     </div>
                     {errors.confirmPassword && <span className="text-xs text-[#FF003C]" style={mono}>{errors.confirmPassword}</span>}
                 </div>
@@ -244,117 +221,94 @@ export default function TalentSignup() {
     );
 
     const renderSkills = () => (
-        <div className="flex flex-col gap-6" key="skills">
-            <div className="mb-2">
-                <h2 className="text-2xl font-bold mb-1">Skill <span className="text-[#3CF91A]">Assessment</span></h2>
-                <p className="text-sm text-[#888]">Phase 2: Declare your tech stack. Our AI will verify against your code.</p>
+        <div className="flex flex-col gap-5" key="skills">
+            <div className="mb-1">
+                <h2 className="text-xl font-bold text-white mb-1">Skill <span className="text-[#3CF91A]">Assessment</span></h2>
+                <p className="text-xs text-[#666]" style={mono}>Declare your tech stack. Our AI will verify against your code.</p>
             </div>
-
-            <div className="flex flex-col gap-2">
-                <Label icon={<IconStar />} text="Experience Level" />
+            <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-bold text-white flex items-center gap-1.5"><IconStar /> Experience Level</label>
                 {errors.experienceLevel && <span className="text-xs text-[#FF003C]" style={mono}>{errors.experienceLevel}</span>}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {EXPERIENCE_LEVELS.map((l) => (
-                        <button key={l.value} onClick={(e) => { ripple(e); updateForm("experienceLevel", l.value); }} className={`rounded-xl p-4 text-left cursor-pointer transition-all duration-200 flex flex-col gap-1 border ${formData.experienceLevel === l.value ? "border-[#3CF91A] bg-[#3CF91A]/[0.08] shadow-[0_0_15px_rgba(60,249,26,0.15)]" : "border-white/10 bg-white/[0.03] hover:border-[#3CF91A]/30"}`} id={`exp-${l.value}`}>
+                        <button key={l.value} onClick={(e) => { ripple(e); updateForm("experienceLevel", l.value); }}
+                            className={`rounded-xl p-3.5 text-left cursor-pointer transition-all duration-200 flex flex-col gap-0.5 border ${formData.experienceLevel === l.value ? "border-[#3CF91A]/50 bg-[#3CF91A]/[0.06] shadow-[0_0_15px_rgba(60,249,26,0.1)]" : "border-white/[0.07] bg-[#1A1A24] hover:border-[#3CF91A]/30"}`}>
                             <span className={`text-sm font-bold ${formData.experienceLevel === l.value ? "text-[#3CF91A]" : "text-white"}`}>{l.label}</span>
-                            <span className="text-xs text-[#888]">{l.desc}</span>
+                            <span className="text-xs text-[#666]">{l.desc}</span>
                         </button>
                     ))}
                 </div>
             </div>
-
-            <div className="flex flex-col gap-2">
-                <Label icon={<IconCode />} text="Tech Stack" />
+            <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-bold text-white flex items-center gap-1.5"><IconCode /> Tech Stack</label>
                 {errors.skills && <span className="text-xs text-[#FF003C]" style={mono}>{errors.skills}</span>}
-
                 {formData.selectedSkills.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
                         {formData.selectedSkills.map((s) => (
-                            <span key={s} className="inline-flex items-center gap-1 px-3 py-1.5 rounded bg-[#3CF91A]/15 border border-[#3CF91A]/50 text-[#3CF91A] text-xs shadow-[0_0_8px_rgba(60,249,26,0.1)]" style={mono}>
-                                {s}
-                                <button className="bg-transparent border-none text-inherit cursor-pointer p-0 opacity-60 hover:opacity-100 flex items-center" onClick={() => toggleSkill(s)}><IconX /></button>
+                            <span key={s} className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#3CF91A]/10 border border-[#3CF91A]/40 text-[#3CF91A] text-xs" style={mono}>
+                                {s} <button className="bg-transparent border-none text-inherit cursor-pointer p-0 opacity-60 hover:opacity-100 flex items-center" onClick={() => toggleSkill(s)}><IconX /></button>
                             </span>
                         ))}
                     </div>
                 )}
-
                 <div className="flex gap-2">
-                    <div className={`${inputBox(false)} flex-1`}>
-                        <input type="text" className={inputCls} style={mono} placeholder="Add custom skill..." value={formData.customSkill} onChange={(e) => updateForm("customSkill", e.target.value)} onKeyDown={(e) => e.key === "Enter" && addCustomSkill()} id="input-custom-skill" />
-                    </div>
-                    <button onClick={(e) => { ripple(e); addCustomSkill(); }} className="w-10 h-10 flex items-center justify-center bg-[#3CF91A]/10 border border-[#3CF91A]/40 rounded-lg text-[#3CF91A] cursor-pointer hover:bg-[#3CF91A]/20 hover:shadow-[0_0_10px_rgba(60,249,26,0.2)] transition-all shrink-0" id="btn-add-skill"><IconPlus /></button>
+                    <div className={`${inputWrap(false)} flex-1`}><input type="text" className={inputCls} style={mono} placeholder="Add custom skill..." value={formData.customSkill} onChange={(e) => updateForm("customSkill", e.target.value)} onKeyDown={(e) => e.key === "Enter" && addCustomSkill()} id="input-custom-skill" /></div>
+                    <button onClick={(e) => { ripple(e); addCustomSkill(); }} className="w-10 h-10 flex items-center justify-center bg-[#3CF91A]/10 border border-[#3CF91A]/30 rounded-xl text-[#3CF91A] cursor-pointer hover:bg-[#3CF91A]/20 transition-all shrink-0"><IconPlus /></button>
                 </div>
-
-                <div className="flex flex-wrap gap-1.5 mt-2">
+                <div className="flex flex-wrap gap-1.5 mt-1">
                     {POPULAR_SKILLS.map((s) => (
-                        <button key={s} onClick={(e) => { ripple(e); toggleSkill(s); }} className={`inline-flex items-center px-3 py-1.5 rounded text-xs border cursor-pointer transition-all duration-200 ${formData.selectedSkills.includes(s) ? "bg-[#3CF91A]/15 border-[#3CF91A]/50 text-[#3CF91A] shadow-[0_0_8px_rgba(60,249,26,0.1)]" : "bg-white/[0.03] border-white/10 text-[#888] hover:border-[#3CF91A]/30 hover:text-[#3CF91A]/80"}`} style={mono} id={`skill-${s.toLowerCase().replace(/[^a-z0-9]/g, "-")}`}>
+                        <button key={s} onClick={(e) => { ripple(e); toggleSkill(s); }}
+                            className={`px-2.5 py-1 rounded text-xs border cursor-pointer transition-all duration-200 ${formData.selectedSkills.includes(s) ? "bg-[#3CF91A]/10 border-[#3CF91A]/40 text-[#3CF91A]" : "bg-[#1A1A24] border-white/[0.07] text-[#666] hover:border-[#3CF91A]/30 hover:text-[#3CF91A]/80"}`} style={mono}>
                             {s}
                         </button>
                     ))}
                 </div>
             </div>
-
-            <div className="flex flex-col gap-2">
-                <Label icon={<IconFileText />} text="Bio" optional />
-                <div className={inputBox(false)}>
-                    <textarea className={`${inputCls} resize-y min-h-20 leading-relaxed`} placeholder="Tell us about your coding journey..." value={formData.bio} onChange={(e) => updateForm("bio", e.target.value)} rows={3} id="input-bio" />
-                </div>
+            <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-bold text-white flex items-center gap-1.5"><IconFileText /> Bio <span className="font-normal text-[#555] text-xs">(optional)</span></label>
+                <div className={inputWrap(false)}><textarea className={`${inputCls} resize-y min-h-20 leading-relaxed`} placeholder="Tell us about your coding journey..." value={formData.bio} onChange={(e) => updateForm("bio", e.target.value)} rows={3} id="input-bio" /></div>
                 <span className="text-xs text-[#555]" style={mono}>{formData.bio.length}/300</span>
             </div>
         </div>
     );
 
     const renderGithub = () => (
-        <div className="flex flex-col gap-6" key="github">
-            <div className="mb-2">
-                <h2 className="text-2xl font-bold mb-1">GitHub <span className="text-[#3CF91A]">Sync</span></h2>
-                <p className="text-sm text-[#888]">Phase 3: Connect your GitHub to let our AI verify your real coding skills.</p>
+        <div className="flex flex-col gap-5" key="github">
+            <div className="mb-1">
+                <h2 className="text-xl font-bold text-white mb-1">GitHub <span className="text-[#3CF91A]">Sync</span></h2>
+                <p className="text-xs text-[#666]" style={mono}>Connect your GitHub to let our AI verify your real coding skills.</p>
             </div>
-
             {!formData.githubConnected ? (
-                <div className="flex flex-col items-center text-center gap-5 py-4">
-                    <div className="w-[70px] h-[70px] rounded-full bg-white/5 border border-[#3CF91A]/20 flex items-center justify-center text-white animate-glow-pulse"><IconGithub /></div>
-                    <h3 className="text-xl font-bold">Link Your <span className="text-[#3CF91A]">Repository Hub</span></h3>
-                    <p className="text-[#888] text-sm max-w-[400px] leading-relaxed">We analyze your public repos, contribution patterns, and code quality to build your verified skill matrix.</p>
-                    <ul className="list-none p-0 m-0 flex flex-col gap-2.5 text-left w-full max-w-[380px]">
-                        {["Repository analysis & language detection", "Contribution frequency & consistency tracking", "Code quality scoring via AI", "Open source contribution recognition"].map((t) => (
-                            <li key={t} className="flex items-center gap-2.5 text-[#aaa] text-sm"><span className="text-[#3CF91A] shrink-0"><IconCheck /></span> {t}</li>
+                <div className="flex flex-col items-center text-center gap-4 py-4">
+                    <div className="w-16 h-16 rounded-full bg-[#1A1A24] border border-white/[0.07] flex items-center justify-center text-white"><IconGithub /></div>
+                    <h3 className="text-lg font-bold text-white">Link Your <span className="text-[#3CF91A]">Repository Hub</span></h3>
+                    <p className="text-[#666] text-sm max-w-[380px]">We analyze your public repos, contribution patterns, and code quality to build your verified skill matrix.</p>
+                    <ul className="list-none p-0 m-0 flex flex-col gap-2 text-left w-full max-w-[360px]">
+                        {["Repository analysis & language detection", "Contribution frequency & consistency", "Code quality scoring via AI", "Open source recognition"].map((t) => (
+                            <li key={t} className="flex items-center gap-2 text-[#888] text-sm"><span className="text-[#3CF91A] shrink-0"><IconCheck /></span> {t}</li>
                         ))}
                     </ul>
-                    <button onClick={(e) => { ripple(e); simulateGithubConnect(); }} className="flex items-center gap-3 px-8 py-3.5 bg-[#24292e] text-white border border-white/15 rounded-xl font-bold cursor-pointer hover:bg-[#2d3339] hover:border-[#3CF91A]/30 hover:-translate-y-0.5 transition-all" id="btn-connect-github">
-                        <span className="w-5 h-5"><IconGithub /></span> Connect GitHub Account
+                    <button onClick={(e) => { ripple(e); simulateGithubConnect(); }} className="flex items-center gap-3 px-8 py-3.5 bg-[#1A1A24] text-white border border-white/[0.07] rounded-xl font-bold cursor-pointer hover:border-[#3CF91A]/30 hover:-translate-y-0.5 transition-all" id="btn-connect-github">
+                        <IconGithub /> Connect GitHub
                     </button>
-                    <button onClick={(e) => { ripple(e); goToStep(3); }} className="bg-transparent border-none text-[#555] text-sm cursor-pointer hover:text-[#3CF91A] transition-colors p-2" id="btn-skip-github">Skip for now →</button>
+                    <button onClick={(e) => { ripple(e); goToStep(3); }} className="bg-transparent border-none text-[#555] text-sm cursor-pointer hover:text-[#3CF91A] transition-colors p-2">Skip for now →</button>
                 </div>
             ) : (
                 <div className="flex flex-col items-center gap-5">
                     <div className="flex items-center gap-4 text-left w-full">
-                        <div className="w-[50px] h-[50px] rounded-full bg-[#3CF91A]/10 border-2 border-[#3CF91A] flex items-center justify-center text-[#3CF91A] shrink-0 shadow-neon-green">
-                            <span className="w-[22px] h-[22px]"><IconGithub /></span>
-                        </div>
+                        <div className="w-12 h-12 rounded-full bg-[#3CF91A]/10 border-2 border-[#3CF91A] flex items-center justify-center text-[#3CF91A] shrink-0"><IconGithub /></div>
                         <div>
-                            <h3 className="text-base font-bold text-[#3CF91A] flex items-center gap-2 m-0">
-                                <span className="w-2 h-2 rounded-full bg-[#3CF91A] shadow-[0_0_6px_rgba(60,249,26,0.8)]" />
-                                Connected Successfully
-                            </h3>
-                            <p className="text-[#888] text-sm mt-0.5" style={mono}>@{formData.githubUsername}</p>
+                            <h3 className="text-sm font-bold text-[#3CF91A] flex items-center gap-2 m-0"><span className="w-2 h-2 rounded-full bg-[#3CF91A] shadow-[0_0_6px_rgba(60,249,26,0.8)]" /> Connected</h3>
+                            <p className="text-[#666] text-sm mt-0.5" style={mono}>@{formData.githubUsername}</p>
                         </div>
                     </div>
-
                     <div className="grid grid-cols-3 gap-3 w-full">
                         {[{ n: formData.githubRepos, l: "Repos" }, { n: formData.githubStars, l: "Stars" }, { n: "1.2k", l: "Commits" }].map((s) => (
-                            <div key={s.l} className="glass-card rounded-xl p-4 flex flex-col items-center gap-1">
-                                <span className="text-2xl font-extrabold text-[#3CF91A] drop-shadow-[0_0_8px_rgba(60,249,26,0.4)]" style={mono}>{s.n}</span>
-                                <span className="text-[0.65rem] text-[#888] uppercase tracking-wider">{s.l}</span>
+                            <div key={s.l} className="bg-[#1A1A24] border border-white/[0.07] rounded-xl p-4 flex flex-col items-center gap-1">
+                                <span className="text-2xl font-extrabold text-[#3CF91A]" style={mono}>{s.n}</span>
+                                <span className="text-[0.6rem] text-[#666] uppercase tracking-wider">{s.l}</span>
                             </div>
                         ))}
-                    </div>
-
-                    <div className="w-full">
-                        <div className="w-full h-[3px] bg-white/[0.08] rounded overflow-hidden mb-3">
-                            <div className="w-3/5 h-full bg-gradient-to-r from-[#3CF91A] to-[#A855F7] rounded animate-scanning-pulse" />
-                        </div>
-                        <span className="text-xs text-[#888] flex items-center gap-1.5" style={mono}><IconTerminal /> AI analysis queued — completing after registration</span>
                     </div>
                 </div>
             )}
@@ -362,42 +316,34 @@ export default function TalentSignup() {
     );
 
     const renderPortfolio = () => (
-        <div className="flex flex-col gap-6" key="portfolio">
-            <div className="mb-2">
-                <h2 className="text-2xl font-bold mb-1">Portfolio <span className="text-[#3CF91A]">Hub</span></h2>
-                <p className="text-sm text-[#888]">Phase 4: Showcase your best work and external presence.</p>
+        <div className="flex flex-col gap-5" key="portfolio">
+            <div className="mb-1">
+                <h2 className="text-xl font-bold text-white mb-1">Portfolio <span className="text-[#3CF91A]">Hub</span></h2>
+                <p className="text-xs text-[#666]" style={mono}>Showcase your best work and external presence.</p>
             </div>
-
-            <div className="flex flex-col gap-2">
-                <Label icon={<IconGlobe />} text="Portfolio Website" optional />
-                <div className={inputBox(false)}><input type="url" className={inputCls} style={mono} placeholder="https://your-portfolio.dev" value={formData.portfolioUrl} onChange={(e) => updateForm("portfolioUrl", e.target.value)} id="input-portfolio" /></div>
+            <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-bold text-white flex items-center gap-1.5"><IconGlobe /> Portfolio Website <span className="font-normal text-[#555] text-xs">(optional)</span></label>
+                <div className={inputWrap(false)}><input type="url" className={inputCls} style={mono} placeholder="https://your-portfolio.dev" value={formData.portfolioUrl} onChange={(e) => updateForm("portfolioUrl", e.target.value)} id="input-portfolio" /></div>
             </div>
-
-            <div className="flex flex-col gap-2">
-                <Label icon={<IconLink />} text="LinkedIn" optional />
-                <div className={inputBox(false)}><input type="url" className={inputCls} style={mono} placeholder="https://linkedin.com/in/your-profile" value={formData.linkedinUrl} onChange={(e) => updateForm("linkedinUrl", e.target.value)} id="input-linkedin" /></div>
+            <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-bold text-white flex items-center gap-1.5"><IconLink /> LinkedIn <span className="font-normal text-[#555] text-xs">(optional)</span></label>
+                <div className={inputWrap(false)}><input type="url" className={inputCls} style={mono} placeholder="https://linkedin.com/in/you" value={formData.linkedinUrl} onChange={(e) => updateForm("linkedinUrl", e.target.value)} id="input-linkedin" /></div>
             </div>
-
-            <div className="flex flex-col gap-2">
-                <Label icon={<IconCode />} text="Project Links" optional />
+            <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-bold text-white flex items-center gap-1.5"><IconCode /> Project Links <span className="font-normal text-[#555] text-xs">(optional)</span></label>
                 {formData.projectLinks.map((link, i) => (
-                    <div key={i} className="flex gap-2 mb-2">
-                        <div className={`${inputBox(false)} flex-1`}><input type="url" className={inputCls} style={mono} placeholder={`https://project-${i + 1}.example.com`} value={link} onChange={(e) => updateProjectLink(i, e.target.value)} id={`input-project-${i}`} /></div>
-                        {formData.projectLinks.length > 1 && (
-                            <button onClick={(e) => { ripple(e); removeProjectLink(i); }} className="w-10 h-10 flex items-center justify-center bg-[#FF003C]/10 border border-[#FF003C]/40 rounded-lg text-[#FF003C] cursor-pointer hover:bg-[#FF003C]/20 transition-all shrink-0"><IconX /></button>
-                        )}
+                    <div key={i} className="flex gap-2 mb-1">
+                        <div className={`${inputWrap(false)} flex-1`}><input type="url" className={inputCls} style={mono} placeholder={`https://project-${i + 1}.example.com`} value={link} onChange={(e) => updateProjectLink(i, e.target.value)} /></div>
+                        {formData.projectLinks.length > 1 && (<button onClick={(e) => { ripple(e); removeProjectLink(i); }} className="w-10 h-10 flex items-center justify-center bg-[#FF003C]/10 border border-[#FF003C]/30 rounded-xl text-[#FF003C] cursor-pointer hover:bg-[#FF003C]/20 transition-all shrink-0"><IconX /></button>)}
                     </div>
                 ))}
-                {formData.projectLinks.length < 5 && (
-                    <button onClick={(e) => { ripple(e); addProjectLink(); }} className="flex items-center gap-1.5 py-2 bg-transparent border-none text-[#3CF91A] text-sm font-semibold cursor-pointer hover:opacity-80 transition-opacity" id="btn-add-project"><IconPlus /> Add another project</button>
-                )}
+                {formData.projectLinks.length < 5 && (<button onClick={(e) => { ripple(e); addProjectLink(); }} className="flex items-center gap-1.5 py-2 bg-transparent border-none text-[#3CF91A] text-sm font-semibold cursor-pointer hover:opacity-80"><IconPlus /> Add project</button>)}
             </div>
-
-            <div className="flex flex-col gap-2">
-                <Label icon={<IconUpload />} text="Resume / CV" optional />
-                <div className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-[#3CF91A]/20 rounded-xl bg-[#3CF91A]/[0.02] cursor-pointer text-[#555] hover:border-[#3CF91A]/50 hover:bg-[#3CF91A]/[0.04] hover:shadow-[0_0_20px_rgba(60,249,26,0.05)] transition-all" id="upload-resume">
+            <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-bold text-white flex items-center gap-1.5"><IconUpload /> Resume / CV <span className="font-normal text-[#555] text-xs">(optional)</span></label>
+                <div className="flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed border-white/[0.07] rounded-xl bg-[#1A1A24] cursor-pointer text-[#555] hover:border-[#3CF91A]/30 hover:bg-[#3CF91A]/[0.02] transition-all">
                     <IconUpload />
-                    <p className="text-sm text-[#aaa] m-0">Drag & drop your file here, or <span className="text-[#3CF91A] underline">browse</span></p>
+                    <p className="text-sm text-[#888] m-0">Drag & drop or <span className="text-[#3CF91A] underline">browse</span></p>
                     <p className="text-xs text-[#555] m-0">PDF, DOC up to 10MB</p>
                 </div>
             </div>
@@ -405,31 +351,28 @@ export default function TalentSignup() {
     );
 
     const renderVerification = () => (
-        <div className="flex flex-col gap-6" key="verify">
-            <div className="mb-2">
-                <h2 className="text-2xl font-bold mb-1">Final <span className="text-[#3CF91A]">Verification</span></h2>
-                <p className="text-sm text-[#888]">Verify your identity and activate your profile.</p>
+        <div className="flex flex-col gap-5" key="verify">
+            <div className="mb-1">
+                <h2 className="text-xl font-bold text-white mb-1">Final <span className="text-[#3CF91A]">Verification</span></h2>
+                <p className="text-xs text-[#666]" style={mono}>Verify your identity and activate your profile.</p>
             </div>
-
-            <div className="flex flex-col items-center text-center gap-4 py-6">
-                <div className="w-12 h-12 rounded-full bg-[#3CF91A]/10 border border-[#3CF91A]/30 flex items-center justify-center text-[#3CF91A] animate-glow-pulse"><IconMail /></div>
-                <h3 className="text-lg font-bold m-0">Email <span className="text-[#3CF91A]">Verification</span></h3>
-                <p className="text-sm text-[#888] m-0">We&apos;ve sent a 6-digit code to <strong className="text-[#3CF91A]">{formData.email || "your email"}</strong></p>
-
-                <div className="flex gap-2 sm:gap-2.5 justify-center" id="verification-code">
+            <div className="flex flex-col items-center text-center gap-3 py-4">
+                <div className="w-12 h-12 rounded-xl bg-[#3CF91A]/10 border border-[#3CF91A]/25 flex items-center justify-center text-[#3CF91A]"><IconMail /></div>
+                <h3 className="text-lg font-bold text-white m-0">Email <span className="text-[#3CF91A]">Verification</span></h3>
+                <p className="text-sm text-[#666] m-0">We&apos;ve sent a 6-digit code to <strong className="text-[#3CF91A]">{formData.email || "your email"}</strong></p>
+                <div className="flex gap-2 justify-center mt-2" id="verification-code">
                     {verificationCode.map((digit, i) => (
                         <input key={i} ref={(el) => { codeRefs.current[i] = el; }} type="text" inputMode="numeric" maxLength={1}
-                            className="w-10 h-12 sm:w-11 sm:h-13 text-center text-xl font-bold bg-white/5 border border-[#3CF91A]/20 rounded-lg text-[#3CF91A] outline-none focus:border-[#3CF91A] focus:shadow-[0_0_10px_rgba(60,249,26,0.2)] transition-all"
-                            style={mono} value={digit} onChange={(e) => handleVerificationInput(i, e.target.value)} onKeyDown={(e) => handleVerificationKeyDown(i, e)} id={`code-${i}`} />
+                            className="w-11 h-14 text-center text-xl font-bold bg-[#1A1A24] border border-white/[0.07] rounded-xl text-[#3CF91A] outline-none focus:border-[#3CF91A]/50 focus:shadow-[0_0_0_3px_rgba(60,249,26,0.08)] transition-all"
+                            style={mono} value={digit} onChange={(e) => handleVerificationInput(i, e.target.value)} onKeyDown={(e) => handleVerificationKeyDown(i, e)} />
                     ))}
                 </div>
-                <button onClick={ripple} className="bg-transparent border-none text-[#555] text-sm cursor-pointer" id="btn-resend-code">Didn&apos;t receive code? <span className="text-[#3CF91A] font-semibold">Resend</span></button>
+                <button onClick={ripple} className="bg-transparent border-none text-[#555] text-sm cursor-pointer">Didn&apos;t receive code? <span className="text-[#3CF91A] font-semibold">Resend</span></button>
             </div>
-
             {/* Summary */}
-            <div className="glass-card rounded-xl p-5">
-                <h3 className="text-xs font-bold text-[#3CF91A]/60 uppercase tracking-wider flex items-center gap-2 mb-4" style={mono}><IconTerminal /> Registration Summary</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="bg-[#1A1A24] border border-white/[0.07] rounded-xl p-5">
+                <h3 className="text-xs font-bold text-[#3CF91A]/60 uppercase tracking-wider flex items-center gap-2 mb-3" style={mono}><IconTerminal /> Registration Summary</h3>
+                <div className="grid grid-cols-2 gap-2">
                     {[
                         { l: "Name", v: formData.fullName || "—" },
                         { l: "Username", v: `@${formData.username || "—"}` },
@@ -438,21 +381,16 @@ export default function TalentSignup() {
                         { l: "Skills", v: `${formData.selectedSkills.length} selected` },
                         { l: "GitHub", v: formData.githubConnected ? "Connected" : "Not connected" },
                     ].map((item) => (
-                        <div key={item.l} className="flex flex-col gap-0.5">
-                            <span className="text-[0.65rem] text-[#555] uppercase tracking-wider" style={mono}>{item.l}</span>
-                            <span className="text-sm text-white flex items-center gap-1">
-                                {item.l === "GitHub" && formData.githubConnected && <span className="w-2 h-2 rounded-full bg-[#3CF91A] shadow-[0_0_6px_rgba(60,249,26,0.8)]" />}
-                                {item.v}
-                            </span>
+                        <div key={item.l} className="flex flex-col">
+                            <span className="text-[0.6rem] text-[#555] uppercase tracking-wider" style={mono}>{item.l}</span>
+                            <span className="text-sm text-white">{item.v}</span>
                         </div>
                     ))}
                 </div>
             </div>
-
-            {/* Terms */}
-            <label className="flex items-start gap-3 cursor-pointer text-sm text-[#888] leading-relaxed" id="terms-checkbox">
+            <label className="flex items-start gap-2.5 cursor-pointer text-sm text-[#888] leading-relaxed">
                 <input type="checkbox" className="hidden peer" checked={formData.agreedToTerms} onChange={(e) => updateForm("agreedToTerms", e.target.checked)} />
-                <span className="w-[18px] h-[18px] border border-[#3CF91A]/30 rounded shrink-0 mt-0.5 transition-all peer-checked:bg-[#3CF91A] peer-checked:border-[#3CF91A] peer-checked:shadow-[0_0_8px_rgba(60,249,26,0.3)] relative after:content-['✓'] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:text-black after:text-[0.65rem] after:font-black after:opacity-0 peer-checked:after:opacity-100" />
+                <span className="w-[16px] h-[16px] border border-[#3CF91A]/30 rounded shrink-0 mt-0.5 transition-all peer-checked:bg-[#3CF91A] peer-checked:border-[#3CF91A] relative after:content-['✓'] after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:text-black after:text-[0.6rem] after:font-black after:opacity-0 peer-checked:after:opacity-100" />
                 <span>I agree to the <a href="#" className="text-[#3CF91A] underline">Terms of Service</a> and <a href="#" className="text-[#3CF91A] underline">Privacy Policy</a></span>
             </label>
         </div>
@@ -461,90 +399,80 @@ export default function TalentSignup() {
     const stepRenderers = [renderPersonalInfo, renderSkills, renderGithub, renderPortfolio, renderVerification];
 
     return (
-        <div className="relative w-full min-h-screen overflow-hidden">
+        <div className="relative w-full min-h-screen overflow-hidden flex flex-col items-center px-4 py-10">
             <style>{`@keyframes ripple-expand { to { transform: scale(1); opacity: 0; } }`}</style>
             <ParticlesCanvas />
 
-            {/* ─── NAVBAR ─── */}
-            <nav className="fixed top-0 left-0 w-full h-20 z-50 flex items-center justify-center px-4 md:px-8 bg-[#050505]/90 backdrop-blur-xl border-b border-[#3CF91A]/10" id="signup-nav">
-                <div className="w-full max-w-[1200px] flex items-center justify-between">
-                    <a href="/" className="flex items-center gap-2 no-underline font-bold text-xl text-white" id="logo">
-                        <span className="text-[#3CF91A] text-2xl drop-shadow-[0_0_8px_rgba(60,249,26,0.5)]">◆</span>
-                        <span>SkillSpill</span>
-                    </a>
-                    <div className="flex items-center gap-4">
-                        <a href="/login" className="text-white no-underline font-semibold text-sm border border-white/10 px-4 py-2 rounded-lg hover:border-[#3CF91A]/50 hover:text-[#3CF91A] transition-all" id="btn-signin">Sign In</a>
-                        <a href="#" className="text-[#888] no-underline font-semibold text-sm hover:text-[#3CF91A] transition-colors" id="btn-help">Help</a>
-                    </div>
+            {/* Ambient green glows */}
+            <div className="fixed top-[15%] left-[20%] w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(60,249,26,0.05)_0%,transparent_70%)] pointer-events-none" />
+            <div className="fixed bottom-[10%] right-[15%] w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(60,249,26,0.04)_0%,transparent_70%)] pointer-events-none" />
+
+            {/* ─── LOGO ─── */}
+            <div className="relative z-10 flex items-center gap-3 mb-8 mt-4" id="signup-logo">
+                <div className="w-10 h-10 rounded-xl bg-[#3CF91A] flex items-center justify-center text-black shadow-[0_0_20px_rgba(60,249,26,0.4),0_0_60px_rgba(60,249,26,0.15)]">
+                    <IconBolt />
                 </div>
-            </nav>
+                <span className="text-2xl font-bold text-white tracking-tight">SkillSpill</span>
+            </div>
 
-            {/* ─── MAIN ─── */}
-            <main className="relative z-10 flex justify-center pt-28 pb-16 px-3 sm:px-6 min-h-screen">
-                <div className="w-full max-w-[640px] flex flex-col gap-6">
+            {/* ─── MAIN CARD ─── */}
+            <div className={`relative z-10 w-full max-w-[520px] ${cardCls}`} id="signup-card">
+                <div className="p-6 sm:p-8">
 
-                    {/* Progress Header */}
-                    <div className="glass-card flex items-center justify-between p-4 sm:p-5 rounded-xl" id="progress-header">
-                        <div className="flex-1 min-w-0">
-                            <span className="text-[0.65rem] text-[#3CF91A]/50 uppercase tracking-[2px]" style={mono}>Registration Flow</span>
-                            <h3 className="text-lg font-bold mt-1 mb-3">{STEPS[currentStep].label}</h3>
-                            <div className="w-full h-[3px] bg-white/[0.08] rounded overflow-hidden">
-                                <div className="h-full bg-[#3CF91A] rounded shadow-[0_0_8px_rgba(60,249,26,0.4)] transition-all duration-500" style={{ width: `${progressPercent}%` }} />
-                            </div>
-                        </div>
-                        <span className="text-sm text-[#3CF91A] font-bold whitespace-nowrap ml-6 drop-shadow-[0_0_8px_rgba(60,249,26,0.3)]" style={mono}>{Math.round(progressPercent)}%</span>
+                    {/* Progress bar */}
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-[0.6rem] text-[#3CF91A]/50 uppercase tracking-[2px]" style={mono}>Talent Registration</span>
+                        <span className="text-xs text-[#3CF91A] font-bold" style={mono}>{Math.round(progressPercent)}%</span>
+                    </div>
+                    <div className="w-full h-[3px] bg-white/[0.06] rounded overflow-hidden mb-5">
+                        <div className="h-full bg-[#3CF91A] rounded shadow-[0_0_8px_rgba(60,249,26,0.4)] transition-all duration-500" style={{ width: `${progressPercent}%` }} />
                     </div>
 
                     {/* Step Indicators */}
-                    <div className="flex gap-2 overflow-x-auto" id="step-indicators" style={{ scrollbarWidth: "none" }}>
+                    <div className="flex bg-[#1A1A24] rounded-full p-1 mb-6" id="step-tabs">
                         {STEPS.map((step, i) => (
-                            <button key={step.id} onClick={(e) => { if (i <= currentStep) { ripple(e); goToStep(i); } }}
-                                className={`flex-1 min-w-[60px] shrink-0 py-2.5 px-2 rounded-lg text-center cursor-pointer transition-all duration-200 border ${i === currentStep ? "border-[#3CF91A] bg-[#3CF91A]/[0.08] shadow-[0_0_10px_rgba(60,249,26,0.15)]" : i < currentStep ? "border-[#3CF91A]/30 bg-[#3CF91A]/[0.04]" : "border-white/10 bg-white/[0.03] opacity-40 cursor-not-allowed"}`}
-                                disabled={i > currentStep} id={`step-nav-${step.id}`}>
-                                <span className={`text-[0.6rem] font-bold tracking-wider ${i === currentStep ? "text-[#3CF91A] drop-shadow-[0_0_4px_rgba(60,249,26,0.5)]" : i < currentStep ? "text-[#3CF91A]/60" : "text-[#555]"}`} style={mono}>{step.label.toUpperCase()}</span>
+                            <button key={step.id} onClick={(e) => { if (i <= currentStep) { ripple(e); goToStep(i); } }} disabled={i > currentStep}
+                                className={`flex-1 py-2 rounded-full text-[0.55rem] font-bold transition-all duration-300 cursor-pointer border-none uppercase tracking-wider ${i === currentStep ? "bg-[#3CF91A] text-black shadow-[0_0_15px_rgba(60,249,26,0.3)]" : i < currentStep ? "bg-transparent text-[#3CF91A]/60 hover:text-[#3CF91A]" : "bg-transparent text-[#444] cursor-not-allowed"}`}
+                                style={mono} id={`step-nav-${step.id}`}>
+                                {step.label}
                             </button>
                         ))}
                     </div>
 
-                    {/* Step Content Panel */}
-                    <div className="glass-card rounded-2xl p-5 sm:p-8 overflow-hidden" id="step-panel">
-                        <div className={`transition-all duration-300 ${animating ? (direction > 0 ? "-translate-x-[30px] opacity-0" : "translate-x-[30px] opacity-0") : "translate-x-0 opacity-100"}`}>
-                            {stepRenderers[currentStep]()}
-                        </div>
-                    </div>
-
-                    {/* Navigation Buttons */}
-                    <div className="flex flex-col gap-3" id="step-nav-buttons">
-                        {currentStep === STEPS.length - 1 ? (
-                            <>
-                                <button onClick={async (e) => {
-                                    ripple(e); setSubmitLoading(true); setSubmitError("");
-                                    try { const res = await fetch("/api/auth/signup/talent", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData) }); const data = await res.json(); if (!res.ok) { setSubmitError(data.errors ? Object.values(data.errors).join(", ") : (data.error || "Signup failed")); return; } router.push("/dashboard"); } catch { setSubmitError("Network error. Please try again."); } finally { setSubmitLoading(false); }
-                                }} className="flex items-center justify-center gap-2 py-3.5 px-8 bg-[#3CF91A] text-black border-none rounded-xl font-bold text-[0.95rem] cursor-pointer hover:-translate-y-0.5 shadow-neon-green hover:shadow-neon-green-strong transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none w-full" disabled={!formData.agreedToTerms || submitLoading} id="btn-submit-registration">
-                                    {submitLoading ? <span className="animate-spin-custom inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full" /> : <><IconSend /> Complete Registration</>}
-                                </button>
-                                {submitError && <p className="text-[#FF003C] text-xs text-center" style={mono}>{submitError}</p>}
-                            </>
-                        ) : (
-                            <button onClick={(e) => { ripple(e); nextStep(); }} className="flex items-center justify-center gap-2 py-3.5 px-8 bg-[#3CF91A] text-black border-none rounded-xl font-bold text-[0.95rem] cursor-pointer hover:-translate-y-0.5 shadow-neon-green hover:shadow-neon-green-strong transition-all w-full" id="btn-next-step">
-                                Next: {STEPS[currentStep + 1]?.label.toUpperCase()} <IconArrowRight />
-                            </button>
-                        )}
-
-                        {currentStep > 0 && (
-                            <button onClick={(e) => { ripple(e); prevStep(); }} className="flex items-center justify-center gap-1.5 py-3 bg-transparent border border-[#3CF91A]/20 rounded-xl text-[#888] font-semibold text-sm cursor-pointer hover:border-[#3CF91A]/50 hover:text-[#3CF91A] transition-all w-full" id="btn-prev-step"><IconArrowLeft /> Back</button>
-                        )}
-
-                        {currentStep === 0 && (
-                            <a href="/" className="flex items-center justify-center gap-1.5 py-3 bg-transparent border border-white/10 rounded-xl text-[#888] font-semibold text-sm hover:border-[#3CF91A]/30 hover:text-[#3CF91A] transition-all w-full no-underline" id="btn-cancel-registration">Cancel Registration</a>
-                        )}
+                    {/* Step Content */}
+                    <div className={`transition-all duration-300 ${animating ? (direction > 0 ? "-translate-x-[30px] opacity-0" : "translate-x-[30px] opacity-0") : "translate-x-0 opacity-100"}`}>
+                        {stepRenderers[currentStep]()}
                     </div>
                 </div>
-            </main>
+            </div>
 
-            <footer className="relative z-10 py-8 text-center" id="signup-footer">
-                <p className="text-[#555] text-xs" style={mono}>© 2026 SKILLSPILL INC. PROTOCOL ACTIVE.</p>
-            </footer>
+            {/* ─── NAV BUTTONS (outside card for visual breathing room) ─── */}
+            <div className="relative z-10 w-full max-w-[520px] flex flex-col gap-3 mt-5" id="step-nav-buttons">
+                {currentStep === STEPS.length - 1 ? (
+                    <>
+                        <button onClick={async (e) => {
+                            ripple(e); setSubmitLoading(true); setSubmitError("");
+                            try { const res = await fetch("/api/auth/signup/talent", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData) }); const data = await res.json(); if (!res.ok) { setSubmitError(data.errors ? Object.values(data.errors).join(", ") : (data.error || "Signup failed")); return; } router.push("/dashboard"); } catch { setSubmitError("Network error. Please try again."); } finally { setSubmitLoading(false); }
+                        }} className="w-full py-4 bg-gradient-to-r from-[#3CF91A] to-[#32d916] text-black border-none rounded-full font-bold text-sm uppercase tracking-[0.15em] cursor-pointer transition-all duration-300 shadow-[0_4px_25px_rgba(60,249,26,0.3)] hover:shadow-[0_4px_35px_rgba(60,249,26,0.5)] hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none flex items-center justify-center gap-2" disabled={!formData.agreedToTerms || submitLoading} id="btn-submit">
+                            {submitLoading ? <span className="inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <><IconSend /> COMPLETE REGISTRATION</>}
+                        </button>
+                        {submitError && <p className="text-[#FF003C] text-xs text-center" style={mono}>{submitError}</p>}
+                    </>
+                ) : (
+                    <button onClick={(e) => { ripple(e); nextStep(); }} className="w-full py-4 bg-gradient-to-r from-[#3CF91A] to-[#32d916] text-black border-none rounded-full font-bold text-sm uppercase tracking-[0.15em] cursor-pointer transition-all duration-300 shadow-[0_4px_25px_rgba(60,249,26,0.3)] hover:shadow-[0_4px_35px_rgba(60,249,26,0.5)] hover:-translate-y-0.5 flex items-center justify-center gap-2" id="btn-next">
+                        Next: {STEPS[currentStep + 1]?.label.toUpperCase()} <IconArrowRight />
+                    </button>
+                )}
+                {currentStep > 0 && (
+                    <button onClick={(e) => { ripple(e); prevStep(); }} className="bg-transparent border-none text-[#555] text-sm cursor-pointer tracking-wide flex items-center justify-center gap-1.5 no-underline hover:text-white transition-colors py-2" id="btn-prev"><IconArrowLeft /> Back</button>
+                )}
+                {currentStep === 0 && (
+                    <a href="/login" className="text-center bg-transparent text-[#555] text-sm cursor-pointer tracking-wide no-underline hover:text-white transition-colors py-2">Cancel Registration</a>
+                )}
+            </div>
+
+            {/* Bottom glow line */}
+            <div className="relative z-10 mt-10 w-full max-w-[300px] h-px bg-gradient-to-r from-transparent via-[#3CF91A]/20 to-transparent" />
         </div>
     );
 }
