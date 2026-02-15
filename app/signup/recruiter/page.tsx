@@ -378,7 +378,7 @@ export default function RecruiterSignup() {
                     </button>
 
                     <button
-                        onClick={currentStep > 0 ? prevStep : () => router.push("/login")}
+                        onClick={currentStep > 0 ? prevStep : () => router.push("/")}
                         className="text-[#666] hover:text-white text-xs uppercase tracking-widest font-mono transition-colors py-2 border-b border-transparent hover:border-white/20"
                     >
                         {currentStep > 0 ? "Go Back" : "Cancel Registration"}

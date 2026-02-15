@@ -110,12 +110,12 @@ export default function LoginPage() {
             <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 sm:px-6 py-12">
 
                 {/* ── Logo ── */}
-                <div className="flex items-center gap-2.5 mb-7" id="login-logo">
+                <a href="/" className="flex items-center gap-2.5 mb-7 cursor-pointer hover:opacity-90 transition-opacity" id="login-logo">
                     <div className="w-9 h-9 rounded-lg bg-[#A855F7] flex items-center justify-center text-white shadow-[0_0_16px_rgba(168,85,247,0.35)]">
                         <IconBolt />
                     </div>
                     <span className="text-[1.35rem] font-bold text-white tracking-tight">SkillSpill</span>
-                </div>
+                </a>
 
                 {/* ── Card ── */}
                 <div className="w-full max-w-[480px] rounded-2xl overflow-hidden" id="login-card">
