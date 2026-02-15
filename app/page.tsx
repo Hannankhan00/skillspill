@@ -67,6 +67,21 @@ const IconChevronDown = () => (
   </svg>
 );
 
+const IconMenu = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="3" y1="12" x2="21" y2="12" />
+    <line x1="3" y1="6" x2="21" y2="6" />
+    <line x1="3" y1="18" x2="21" y2="18" />
+  </svg>
+);
+
+const IconX = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+
 /* ───────────────────── Animated Particles Background ───────────────────── */
 interface Particle {
   x: number;
@@ -299,6 +314,7 @@ function useRipple() {
 /* ═══════════════════════ MAIN PAGE ═══════════════════════ */
 export default function Home() {
   const [scrolled, setScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const searchPlaceholder = useTypingEffect(
     "e.g. React developer with Rust experience...",
     40,
@@ -327,15 +343,35 @@ export default function Home() {
             <span className="logo-text">SkillSpill</span>
           </a>
 
-          <div className="nav-links">
+          <div className="nav-links desktop-only">
             <a href="#how-it-works" className="nav-link" id="nav-how">Find Talent</a>
             <a href="#path" className="nav-link" id="nav-post">Post Job</a>
             <a href="#stats" className="nav-link" id="nav-works">How it works</a>
           </div>
 
-          <div className="nav-auth">
+          <div className="nav-auth desktop-only">
             <a href="/login" className="btn-login" id="btn-login">Log In</a>
             <a href="#path" className="btn-signup" id="btn-signup">Sign Up</a>
+          </div>
+
+          <button
+            className="mobile-menu-btn"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {isMobileMenuOpen ? <IconX /> : <IconMenu />}
+          </button>
+        </div>
+
+        {/* Mobile Menu Overlay */}
+        <div className={`mobile-menu-overlay ${isMobileMenuOpen ? "open" : ""}`}>
+          <div className="mobile-nav-links">
+            <a href="#how-it-works" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>Find Talent</a>
+            <a href="#path" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>Post Job</a>
+            <a href="#stats" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>How it works</a>
+            <div className="mobile-auth-divider" />
+            <a href="/login" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>Log In</a>
+            <a href="#path" className="btn-signup mobile-signup" onClick={() => setIsMobileMenuOpen(false)}>Sign Up</a>
           </div>
         </div>
       </nav>
