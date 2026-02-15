@@ -190,3 +190,35 @@ body {
 .mobile-menu-overlay {
   transition: opacity 0.3s ease;
 }
+
+/* ── Custom Scrollbars ── */
+/* Talent (Green) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #111;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+
+.scrollbar-talent::-webkit-scrollbar-thumb {
+  background: #3CF91A;
+}
+
+.scrollbar-talent::-webkit-scrollbar-thumb:hover {
+  background: #2ecc16;
+}
+
+/* Recruiter (Purple) */
+.scrollbar-recruiter::-webkit-scrollbar-thumb {
+  background: #A855F7;
+}
+
+.scrollbar-recruiter::-webkit-scrollbar-thumb:hover {
+  background: #9333ea;
+}
