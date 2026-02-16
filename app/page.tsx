@@ -183,7 +183,9 @@ export default function Home() {
             ))}
             <div className="w-12 h-px bg-[#3CF91A]/20 my-4" />
             <a href="/login" className="text-2xl font-bold text-[#888] no-underline hover:text-[#3CF91A] transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Log In</a>
-            <button onClick={(e) => { ripple(e); setIsMobileMenuOpen(false); }} className="bg-[#3CF91A] text-black px-8 py-3 rounded-lg font-bold text-lg border-none cursor-pointer shadow-neon-green mt-4">Sign Up</button>
+            <button onClick={(e) => { ripple(e); setIsMobileMenuOpen(false); }} className="bg-[#3CF91A] text-black px-8 py-3 rounded-lg font-bold text-lg border-none cursor-pointer shadow-neon-green mt-4">
+              <a href="#path" className="text-black no-underline">Sign Up</a>
+            </button>
           </div>
         </div>
       </nav>

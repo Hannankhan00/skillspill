@@ -81,6 +81,32 @@ interface RecruiterFormData {
 }
 
 /* ═══════════════════════ MAIN PAGE ═══════════════════════ */
+const mono = { fontFamily: "var(--font-jetbrains-mono), monospace" };
+
+/* REUSABLE UI COMPONENTS */
+const InputField = ({ label, icon: Icon, value, onChange, type = "text", placeholder, error, rightElement }: any) => (
+    <div className="flex flex-col gap-2">
+        <label className="flex items-center gap-2 text-[10px] font-bold text-[#A855F7] uppercase tracking-wider" style={mono}>
+            <Icon className="w-3 h-3" /> {label}
+        </label>
+        <div className={`relative group`}>
+            <input
+                type={type}
+                value={value}
+                onChange={onChange}
+                placeholder={placeholder}
+                className={`w-full bg-[#111] border rounded-lg px-4 py-3.5 text-sm text-white focus:outline-none focus:bg-[#151515] transition-all font-mono placeholder:text-white/20 ${error ? 'border-[#FF003C]' : 'border-white/10 group-hover:border-white/20 focus:border-[#A855F7]'}`}
+                style={mono}
+            />
+            {rightElement && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    {rightElement}
+                </div>
+            )}
+        </div>
+        {error && <span className="text-[10px] text-[#FF003C] font-mono">{error}</span>}
+    </div>
+);
 export default function RecruiterSignup() {
     const router = useRouter();
     const ripple = useRipple();
@@ -99,7 +125,7 @@ export default function RecruiterSignup() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    const mono = { fontFamily: "var(--font-jetbrains-mono), monospace" };
+
     const COLOR_ACCENT = "#A855F7"; // Purple for Recruiter
 
     const updateForm = (field: keyof RecruiterFormData, value: RecruiterFormData[keyof RecruiterFormData]) => {
@@ -139,30 +165,7 @@ export default function RecruiterSignup() {
 
     const progressPercent = ((currentStep + 1) / STEPS.length) * 100;
 
-    /* REUSABLE UI COMPONENTS */
-    const InputField = ({ label, icon: Icon, value, onChange, type = "text", placeholder, error, rightElement }: any) => (
-        <div className="flex flex-col gap-2">
-            <label className="flex items-center gap-2 text-[10px] font-bold text-[#A855F7] uppercase tracking-wider" style={mono}>
-                <Icon className="w-3 h-3" /> {label}
-            </label>
-            <div className={`relative group`}>
-                <input
-                    type={type}
-                    value={value}
-                    onChange={onChange}
-                    placeholder={placeholder}
-                    className={`w-full bg-[#111] border rounded-lg px-4 py-3.5 text-sm text-white focus:outline-none focus:bg-[#151515] transition-all font-mono placeholder:text-white/20 ${error ? 'border-[#FF003C]' : 'border-white/10 group-hover:border-white/20 focus:border-[#A855F7]'}`}
-                    style={mono}
-                />
-                {rightElement && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        {rightElement}
-                    </div>
-                )}
-            </div>
-            {error && <span className="text-[10px] text-[#FF003C] font-mono">{error}</span>}
-        </div>
-    );
+
 
     /* ═══════ STEPS ═══════ */
     const renderAccount = () => (
