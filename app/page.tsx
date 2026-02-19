@@ -197,10 +197,8 @@ export default function Home() {
 
         <div className="w-full max-w-[800px] flex flex-col items-center box-border">
           {/* Small badge */}
-          <div className="flex items-center gap-2 mb-6 px-4 py-1.5 rounded-full border border-[#3CF91A]/20 bg-[#3CF91A]/5 text-[#3CF91A] text-xs font-semibold uppercase tracking-wider" style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }}>
-            <span className="w-2 h-2 rounded-full bg-[#3CF91A] shadow-[0_0_6px_rgba(60,249,26,0.8)]" />
-            Protocol Active — v2.0
-          </div>
+
+
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[4rem] font-bold leading-tight mb-6 tracking-tight" id="hero-title">
             Don&apos;t Show Your Degree.
@@ -208,18 +206,26 @@ export default function Home() {
             <span className="text-gradient-hero animate-shine">Spill Your Skills.</span>
           </h1>
 
-          <p className="text-lg md:text-xl text-[#999] max-w-[600px] mb-8 leading-relaxed" id="hero-subtitle">
-            The first talent marketplace powered 100% by <span className="text-[#3CF91A]">GitHub code analysis</span>.
-            <br className="hidden md:block" />
-            We verify actual <span className="text-[#00D2FF]">coding capability</span>, not resume keywords.
+          <p className="text-lg md:text-xl text-[#999] max-w-[800px] mb-8 leading-relaxed" id="hero-subtitle">
+            The first talent marketplace powered 100% by <span className="text-white/80">GitHub code analysis</span>.
+            <br />
+            We verify actual <span className="text-white/80">coding capability</span>, not resume keywords.
           </p>
 
           {/* Search Bar */}
           <div className="flex justify-center w-full mb-8" id="hero-search">
             <div className="input-terminal flex items-center rounded-xl p-2 w-full max-w-[500px] sm:flex-row flex-col gap-2 sm:gap-0">
               <span className="ml-3 text-[#3CF91A]/50 hidden sm:block"><IconSearch /></span>
-              <input type="text" className="flex-1 min-w-0 bg-transparent border-none text-white px-3 py-1 text-sm outline-none placeholder:text-[#555] w-full sm:w-auto" style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }} placeholder={searchPlaceholder + "│"} readOnly id="search-input" suppressHydrationWarning />
-              <button onClick={ripple} className="bg-[#3CF91A] text-black border-none px-4 py-2.5 rounded-lg font-bold flex items-center gap-1.5 cursor-pointer hover:shadow-neon-green-strong transition-all whitespace-nowrap shrink-0 text-sm w-full sm:w-auto justify-center" id="btn-scan">
+              <input
+                type="text"
+                className="flex-1 min-w-0 bg-transparent border-none text-white px-3 py-1 text-sm outline-none placeholder:text-[#555] w-full sm:w-auto"
+                style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }}
+                placeholder={searchPlaceholder + "│"}
+                id="search-input"
+                suppressHydrationWarning
+                onChange={(e) => console.log(e.target.value)}
+              />
+              <button onClick={(e) => { ripple(e); alert("Search functionality coming soon!"); }} className="bg-[#3CF91A] text-black border-none px-4 py-2.5 rounded-lg font-bold flex items-center gap-1.5 cursor-pointer hover:shadow-neon-green-strong transition-all whitespace-nowrap shrink-0 text-sm w-full sm:w-auto justify-center" id="btn-scan">
                 <IconSparkle /> Scan with AI
               </button>
             </div>
@@ -238,7 +244,7 @@ export default function Home() {
 
       {/* ───── CHOOSE YOUR PATH ───── */}
       <section className="relative py-20 md:py-32 px-6 text-center z-10" id="path">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4">Choose Your <span className="text-gradient-talent">Path</span></h2>
+        <h2 className="text-3xl md:text-4xl font-bold mb-4">Choose Your <span className="text-white/80">Path</span></h2>
         <p className="text-[#888] mb-12 md:mb-16">The future of career evolution starts with a single decision.</p>
 
         <div className="flex justify-center gap-6 flex-wrap" id="path-cards">
@@ -269,24 +275,33 @@ export default function Home() {
       </section>
 
       {/* ───── HOW IT WORKS ───── */}
-      <section className="py-16 md:py-24 px-6 text-center max-w-[1200px] mx-auto" id="how-it-works">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4">How It <span className="text-[#00D2FF]">Works</span></h2>
-        <p className="text-[#888] mb-12">Three steps to the future of hiring.</p>
+      <section className="py-20 md:py-32 px-6 max-w-[1200px] mx-auto" id="how-it-works">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-5xl font-bold mb-6">How It <span className="text-white/80">Works</span></h2>
+          <p className="text-[#888] max-w-2xl mx-auto text-lg leading-relaxed">Three steps to the future of hiring. No resumes, just code.</p>
+        </div>
 
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-start mt-8 md:mt-16 relative gap-8 md:gap-0">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-[2]">
           {[
             { num: "01", icon: <IconGithub />, title: "Connect GitHub", desc: "Link your GitHub profile and let our AI analyze your actual codebase, contributions, and coding patterns." },
             { num: "02", icon: <IconSparkle />, title: "AI Skill Matrix", desc: "We generate a verified skill matrix from real code — no self-assessed ratings, no keyword stuffing." },
             { num: "03", icon: <IconTerminal />, title: "Get Matched", desc: "Recruiters find talent by actual capability. Developers get matched to roles that fit their real skills." },
-          ].map((step, i, arr) => (
-            <div key={step.num} className="flex-1 flex flex-col items-center px-4 relative z-[2]">
-              <div className="text-xs text-[#3CF91A] mb-3 tracking-widest drop-shadow-[0_0_8px_rgba(60,249,26,0.5)]" style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }}>{step.num}</div>
-              <div className="w-15 h-15 bg-[#111] border border-[#3CF91A]/20 rounded-xl flex items-center justify-center mb-4 text-[#3CF91A] shadow-[0_0_15px_rgba(60,249,26,0.1)]">
-                {step.icon}
+          ].map((step) => (
+            <div key={step.num} className="bg-white/5 border border-white/10 p-8 rounded-2xl relative overflow-hidden group hover:border-[#3CF91A]/50 hover:bg-white/[0.07] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(60,249,26,0.1)]">
+              {/* Background Accent */}
+              <div className="absolute top-0 right-0 w-24 h-24 bg-[#3CF91A]/5 rounded-bl-[80px] -mr-4 -mt-4 transition-all group-hover:bg-[#3CF91A]/10 pointer-events-none" />
+
+              <div className="relative z-10 flex flex-col h-full">
+                <div className="flex justify-between items-start mb-6">
+                  <div className="w-14 h-14 rounded-xl bg-black/40 border border-[#3CF91A]/20 flex items-center justify-center text-[#3CF91A] group-hover:scale-110 group-hover:border-[#3CF91A] transition-all duration-300 shadow-[0_0_15px_rgba(60,249,26,0.1)]">
+                    {step.icon}
+                  </div>
+                  <span className="text-4xl font-bold text-white/5 font-mono group-hover:text-[#3CF91A]/20 transition-colors cursor-default" style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }}>{step.num}</span>
+                </div>
+
+                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-[#3CF91A] transition-colors">{step.title}</h3>
+                <p className="text-[#999] text-sm leading-relaxed">{step.desc}</p>
               </div>
-              <h3 className="text-lg font-bold mb-2">{step.title}</h3>
-              <p className="text-sm text-[#888] leading-relaxed max-w-[250px]">{step.desc}</p>
-              {i < arr.length - 1 && <div className="hidden md:block absolute right-0 top-10 w-full h-px bg-gradient-to-r from-transparent via-[#3CF91A]/10 to-transparent" />}
             </div>
           ))}
         </div>
