@@ -8,7 +8,7 @@ const SECRET_KEY = new TextEncoder().encode(process.env.JWT_SECRET || "your-jwt-
 const protectedRoutes = ["/dashboard"];
 const publicRoutes = ["/login", "/signup", "/"];
 
-export async function middleware(req: NextRequest) {
+export default async function proxy(req: NextRequest) {
     // 2. Check if the current route is protected or public
     const path = req.nextUrl.pathname;
     const isProtected = protectedRoutes.some((route) => path.startsWith(route));
