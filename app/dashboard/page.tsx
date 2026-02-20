@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 export default async function Page() {
     const session = await getSession();
+    if (session?.role === "ADMIN") redirect("/admin");
     if (session?.role === "TALENT") redirect("/dashboard/talent");
     if (session?.role === "RECRUITER") redirect("/dashboard/recruiter");
 

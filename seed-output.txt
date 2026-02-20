@@ -1,0 +1,46 @@
+﻿node.exe : ÔØî Failed to seed admin: 
+PrismaClientInitializationError: 
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" 
+"C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: 
+    (ÔØî Failed to s...lizationError: :Str  
+  ing) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommand 
+   Error
+ 
+Invalid `prisma.user.findUnique()` 
+invocation in
+D:\FYP\skillspill\prisma\seed-admin.ts:23:40
+
+  20 const username = "admin";
+  21 
+  22 // Check if admin already exists
+ÔåÆ 23 const existing = await 
+prisma.user.findUnique(
+error: Environment variable not found: 
+DATABASE_URL.
+  -->  schema.prisma:11
+   | 
+10 |   provider = "mysql"
+11 |   url      = env("DATABASE_URL")
+   | 
+
+Validation Error Count: 1
+    at $n.handleRequestError (D:\FYP\skillsp
+ill\app\generated\prisma\runtime\library.js:
+121:7615)
+    at $n.handleAndLogRequestError (D:\FYP\s
+killspill\app\generated\prisma\runtime\libra
+ry.js:121:6623)
+    at $n.request (D:\FYP\skillspill\app\gen
+erated\prisma\runtime\library.js:121:6307)
+    at async l (D:\FYP\skillspill\app\genera
+ted\prisma\runtime\library.js:130:9633)
+    at async main (D:\FYP\skillspill\prisma\
+seed-admin.ts:23:22) {
+  clientVersion: '5.22.0',
+  errorCode: undefined
+}
