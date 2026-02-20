@@ -23,6 +23,9 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: "SkillSpill",
   description: "Don't Show Your Degree. Spill Your Skills.",
+  icons: {
+    icon: "/assets/skillspill icon.png",
+  },
 };
 
 export default function RootLayout({

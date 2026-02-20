@@ -152,9 +152,8 @@ export default function Home() {
       {/* ───── NAVBAR ───── */}
       <nav className={`fixed top-0 left-0 w-full h-20 z-50 flex items-center justify-center px-4 md:px-8 transition-all duration-300 ${scrolled ? "bg-[#050505]/90 backdrop-blur-xl border-b border-[#3CF91A]/10" : ""}`} id="main-nav">
         <div className="w-full max-w-[1200px] flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2 no-underline font-bold text-xl text-white" id="logo">
-            <span className="text-[#3CF91A] text-2xl drop-shadow-[0_0_8px_rgba(60,249,26,0.5)]">◆</span>
-            <span>SkillSpill</span>
+          <a href="/" className="flex items-center no-underline" id="logo">
+            <img src="/assets/logo 2.png" alt="SkillSpill" className="h-12" />
           </a>
 
           <div className="hidden md:flex gap-8">
@@ -329,7 +328,8 @@ export default function Home() {
             <button key={i} onClick={ripple} className="bg-white/5 border border-white/10 w-10 h-10 rounded-full text-[#888] flex items-center justify-center cursor-pointer hover:bg-[#3CF91A] hover:text-black hover:border-[#3CF91A] hover:shadow-neon-green transition-all">{icon}</button>
           ))}
         </div>
-        <p className="text-[#555] text-xs" style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }}>© 2026 SKILLSPILL INC. PROTOCOL ACTIVE.</p>
+        <div className="flex justify-center mb-4"><img src="/assets/logo 2.png" alt="SkillSpill" className="h-8 opacity-40" /></div>
+        <p className="text-[#555] text-xs" style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }}>© 2026 SKILLSPILL INC.</p>
       </footer>
     </div>
   );
