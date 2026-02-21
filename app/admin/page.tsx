@@ -111,17 +111,12 @@ function ProgressBar({ value, color, label, metric }: { value: number; color: st
    ═══════════════════════════════════════════ */
 export default function AdminPage() {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<"dashboard" | "users" | "create">("dashboard");
+    const [activeTab, setActiveTab] = useState<"dashboard" | "users">("dashboard");
     const [users, setUsers] = useState<User[]>([]);
     const [pagination, setPagination] = useState<Pagination>({ total: 0, page: 1, limit: 20, totalPages: 0 });
     const [usersLoading, setUsersLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [roleFilter, setRoleFilter] = useState("");
-    const [formData, setFormData] = useState({ fullName: "", email: "", password: "", role: "ADMIN" });
-    const [showPassword, setShowPassword] = useState(false);
-    const [creating, setCreating] = useState(false);
-    const [formError, setFormError] = useState("");
-    const [formSuccess, setFormSuccess] = useState("");
 
     const fetchUsers = useCallback(async (page = 1) => {
         setUsersLoading(true);
@@ -138,22 +133,7 @@ export default function AdminPage() {
 
     useEffect(() => { if (activeTab === "users" || activeTab === "dashboard") fetchUsers(); }, [activeTab, fetchUsers]);
 
-    const handleCreate = async (e: React.FormEvent) => {
-        e.preventDefault(); setFormError(""); setFormSuccess("");
-        if (!formData.fullName.trim()) { setFormError("Full name is required"); return; }
-        if (!formData.email.trim()) { setFormError("Email is required"); return; }
-        if (formData.password.length < 8) { setFormError("Password must be at least 8 characters"); return; }
-        setCreating(true);
-        try {
-            const res = await fetch("/api/admin/create-user", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData) });
-            const data = await res.json();
-            if (!res.ok) { setFormError(data.error || "Failed to create user"); return; }
-            setFormSuccess(`✓ ${data.user.role} account created — ${data.user.email}`);
-            setFormData({ fullName: "", email: "", password: "", role: "ADMIN" });
-            fetchUsers();
-        } catch { setFormError("Network error. Try again."); }
-        finally { setCreating(false); }
-    };
+
 
     const toggleActive = async (userId: string, cur: boolean) => {
         try {
@@ -173,7 +153,6 @@ export default function AdminPage() {
     const navItems = [
         { key: "dashboard" as const, icon: I.grid(), label: "Overview" },
         { key: "users" as const, icon: I.users(), label: "User Management" },
-        { key: "create" as const, icon: I.userPlus(), label: "Create Account" },
     ];
 
     const timeLabels = ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00", "23:59"];
@@ -239,10 +218,10 @@ export default function AdminPage() {
                     <div className="flex items-center justify-between px-6 md:px-8 py-5 border-b" style={{ borderColor: T.cardBorder }}>
                         <div>
                             <h1 className="text-xl font-bold" style={{ color: T.textPrimary, ...sans }}>
-                                {activeTab === "dashboard" ? "Executive Dashboard" : activeTab === "users" ? "User Management" : "Create Account"}
+                                {activeTab === "dashboard" ? "Executive Dashboard" : "User Management"}
                             </h1>
                             <p className="text-[12px] mt-0.5" style={{ color: T.textSecondary, ...sans }}>
-                                {activeTab === "dashboard" ? "Real-time platform vitality and administrative control." : activeTab === "users" ? "Browse, search, and manage user accounts." : "Provision new platform accounts."}
+                                {activeTab === "dashboard" ? "Real-time platform vitality and administrative control." : "Browse, search, and manage user accounts."}
                             </p>
                         </div>
                         <div className="hidden sm:flex items-center gap-2">
@@ -475,68 +454,7 @@ export default function AdminPage() {
                             </div>
                         )}
 
-                        {/* ══════════ CREATE TAB ══════════ */}
-                        {activeTab === "create" && (
-                            <div className="max-w-2xl mx-auto">
-                                <div className="rounded-xl overflow-hidden" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
-                                    <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${T.admin}, ${T.admin}20 50%, ${T.recruiter}60)` }} />
-                                    <div className="p-6 sm:p-8">
-                                        <div className="flex items-center gap-3 mb-6">
-                                            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${T.admin}20`, border: `1px solid ${T.admin}30` }}>
-                                                <span style={{ color: T.admin }}>{I.userPlus()}</span>
-                                            </div>
-                                            <div>
-                                                <h2 className="text-base font-bold" style={{ color: T.textPrimary, ...sans }}>Provision New Account</h2>
-                                                <p className="text-[10px] uppercase tracking-[2px]" style={{ color: T.textSecondary, ...mono }}>admin_create :: role_assign</p>
-                                            </div>
-                                        </div>
-                                        <div className="h-px mb-6" style={{ background: T.cardBorder }} />
-                                        <form onSubmit={handleCreate} className="flex flex-col gap-5">
-                                            <div className="flex flex-col gap-2">
-                                                <label className="text-[13px] font-semibold" style={{ color: T.textPrimary, ...sans }}>Account Role</label>
-                                                <div className="grid grid-cols-3 gap-2">
-                                                    {[{ value: "ADMIN", label: "Admin", color: T.admin, desc: "Full access" }, { value: "TALENT", label: "Talent", color: T.talent, desc: "Skill profiles" }, { value: "RECRUITER", label: "Recruiter", color: T.recruiter, desc: "Hire talent" }].map((r) => (
-                                                        <button key={r.value} type="button" onClick={() => setFormData((p) => ({ ...p, role: r.value }))}
-                                                            className="flex flex-col items-center gap-1.5 py-4 rounded-xl border-2 cursor-pointer transition-all"
-                                                            style={formData.role === r.value ? { borderColor: `${r.color}60`, background: `${r.color}0A` } : { borderColor: T.cardBorder, background: "transparent" }}
-                                                            id={`admin-create-role-${r.value.toLowerCase()}`}>
-                                                            {formData.role === r.value && <span style={{ color: r.color }}>{I.check()}</span>}
-                                                            <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: formData.role === r.value ? r.color : T.textSecondary, ...mono }}>{r.label}</span>
-                                                            <span className="text-[9px]" style={{ color: T.textSecondary }}>{r.desc}</span>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            {[{ label: "Full Name", key: "fullName", type: "text", ph: "John Doe" }, { label: "Email Address", key: "email", type: "email", ph: "admin@skillspill.io" }].map((f) => (
-                                                <div key={f.key} className="flex flex-col gap-1.5">
-                                                    <label className="text-[13px] font-semibold" style={{ color: T.textPrimary, ...sans }}>{f.label}</label>
-                                                    <input type={f.type} placeholder={f.ph} value={formData[f.key as keyof typeof formData]}
-                                                        onChange={(e) => { setFormData((p) => ({ ...p, [f.key]: e.target.value })); setFormError(""); }}
-                                                        className="py-3 px-4 rounded-lg text-sm outline-none" style={{ background: T.bg, border: `1px solid ${T.cardBorder}`, color: T.textPrimary, ...mono }} id={`admin-create-${f.key}`} />
-                                                </div>
-                                            ))}
-                                            <div className="flex flex-col gap-1.5">
-                                                <label className="text-[13px] font-semibold" style={{ color: T.textPrimary, ...sans }}>Password</label>
-                                                <div className="flex items-center rounded-lg overflow-hidden" style={{ background: T.bg, border: `1px solid ${T.cardBorder}` }}>
-                                                    <input type={showPassword ? "text" : "password"} placeholder="Min 8 characters" value={formData.password}
-                                                        onChange={(e) => { setFormData((p) => ({ ...p, password: e.target.value })); setFormError(""); }}
-                                                        className="flex-1 bg-transparent border-none py-3 px-4 text-sm outline-none" style={{ color: T.textPrimary, ...mono }} id="admin-create-password" autoComplete="new-password" />
-                                                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="bg-transparent border-none pr-3 cursor-pointer" style={{ color: T.textSecondary }}>{showPassword ? I.eyeOff() : I.eye()}</button>
-                                                </div>
-                                                {formData.password && <div className="flex gap-1 mt-1">{[1, 2, 3, 4].map((lv) => { const s = formData.password.length >= 12 ? 4 : formData.password.length >= 10 ? 3 : formData.password.length >= 8 ? 2 : 1; const c = [T.danger, "#F59E0B", T.talent, T.talent]; return <div key={lv} className="flex-1 h-1 rounded-full transition-all" style={{ background: lv <= s ? c[s - 1] : T.cardBorder }} />; })}</div>}
-                                            </div>
-                                            {formError && <div className="flex items-center gap-2 px-4 py-3 rounded-lg text-[12px]" style={{ background: `${T.danger}10`, border: `1px solid ${T.danger}25`, color: T.danger, ...mono }}>{I.x()} {formError}</div>}
-                                            {formSuccess && <div className="flex items-center gap-2 px-4 py-3 rounded-lg text-[12px]" style={{ background: `${T.talent}10`, border: `1px solid ${T.talent}25`, color: T.talent, ...mono }}>{I.check()} {formSuccess}</div>}
-                                            <button type="submit" disabled={creating} id="admin-create-submit"
-                                                className="w-full py-3.5 mt-2 border-none rounded-lg font-bold text-[13px] uppercase tracking-[2px] cursor-pointer transition-all hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed"
-                                                style={{ background: T.admin, color: "#0a1415", ...mono }}>
-                                                {creating ? <span className="inline-flex items-center gap-2"><span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Provisioning...</span> : `Create ${formData.role} Account`}
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+
                     </div>
                 </main>
             </div>
