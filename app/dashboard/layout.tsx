@@ -1,5 +1,6 @@
 import React from "react";
 import { getSession } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 
 export default async function DashboardLayout({
@@ -10,6 +11,16 @@ export default async function DashboardLayout({
     const session = await getSession();
     if (!session) {
         redirect("/login");
+    }
+
+    // Check if user is suspended
+    const user = await prisma.user.findUnique({
+        where: { id: session.userId },
+        select: { isActive: true },
+    });
+
+    if (user && !user.isActive) {
+        redirect("/suspended");
     }
 
     return (

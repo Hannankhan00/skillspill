@@ -27,7 +27,22 @@ export async function PATCH(
         }
 
         const allowedFields: Record<string, unknown> = {};
-        if (typeof body.isActive === "boolean") allowedFields.isActive = body.isActive;
+        if (typeof body.isActive === "boolean") {
+            allowedFields.isActive = body.isActive;
+            if (body.isActive === false) {
+                // Require suspension reason when disabling
+                if (!body.suspensionReason || typeof body.suspensionReason !== "string" || body.suspensionReason.trim().length === 0) {
+                    return NextResponse.json(
+                        { error: "Suspension reason is required when disabling a user" },
+                        { status: 400 }
+                    );
+                }
+                allowedFields.suspensionReason = body.suspensionReason.trim();
+            } else {
+                // Clear suspension reason when re-enabling
+                allowedFields.suspensionReason = null;
+            }
+        }
         if (typeof body.role === "string" && ["ADMIN", "TALENT", "RECRUITER"].includes(body.role)) {
             // Prevent admin from demoting themselves
             if (id === session.userId && body.role !== "ADMIN") {

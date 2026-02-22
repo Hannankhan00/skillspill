@@ -45,6 +45,8 @@ const I = {
     arrowUp: () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="18 15 12 9 6 15" /></svg>,
     arrowDown: () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9" /></svg>,
     server: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" /><rect x="2" y="14" width="20" height="8" rx="2" /><line x1="6" y1="6" x2="6.01" y2="6" /><line x1="6" y1="18" x2="6.01" y2="18" /></svg>,
+    gavel: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2l5 5-7 7-5-5 7-7z" /><path d="M3 21l3.5-3.5" /><path d="M6.5 17.5l-3 3" /><path d="M2 22l2-2" /><path d="M18.5 8.5L22 12" /><path d="M12 2L8.5 5.5" /></svg>,
+    clock: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>,
 };
 
 /* ═══════════════════════════════════════════
@@ -52,6 +54,8 @@ const I = {
    ═══════════════════════════════════════════ */
 interface User { id: string; email: string; username: string | null; fullName: string; role: "TALENT" | "RECRUITER" | "ADMIN"; isActive: boolean; emailVerified: boolean; lastLoginAt: string | null; createdAt: string; }
 interface Pagination { total: number; page: number; limit: number; totalPages: number; }
+interface AppealUser { id: string; email: string; username: string | null; fullName: string; role: string; isActive: boolean; avatarUrl: string | null; createdAt: string; }
+interface Appeal { id: string; userId: string; reason: string; status: "PENDING" | "APPROVED" | "REJECTED"; adminResponse: string | null; reviewedAt: string | null; createdAt: string; updatedAt: string; user: AppealUser; }
 
 /* ═══════════════════════════════════════════
    ROLE BADGE
@@ -111,12 +115,28 @@ function ProgressBar({ value, color, label, metric }: { value: number; color: st
    ═══════════════════════════════════════════ */
 export default function AdminPage() {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<"dashboard" | "users">("dashboard");
+    const [activeTab, setActiveTab] = useState<"dashboard" | "users" | "appeals">("dashboard");
     const [users, setUsers] = useState<User[]>([]);
     const [pagination, setPagination] = useState<Pagination>({ total: 0, page: 1, limit: 20, totalPages: 0 });
     const [usersLoading, setUsersLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [roleFilter, setRoleFilter] = useState("");
+
+    // Appeals state
+    const [appeals, setAppeals] = useState<Appeal[]>([]);
+    const [appealsPagination, setAppealsPagination] = useState<Pagination>({ total: 0, page: 1, limit: 20, totalPages: 0 });
+    const [appealsLoading, setAppealsLoading] = useState(false);
+    const [appealStatusFilter, setAppealStatusFilter] = useState("");
+    const [appealSearch, setAppealSearch] = useState("");
+    const [selectedAppeal, setSelectedAppeal] = useState<Appeal | null>(null);
+    const [adminResponse, setAdminResponse] = useState("");
+    const [appealActionLoading, setAppealActionLoading] = useState(false);
+
+    // Suspension modal state
+    const [suspendUserId, setSuspendUserId] = useState<string | null>(null);
+    const [suspendUserName, setSuspendUserName] = useState("");
+    const [suspensionReason, setSuspensionReason] = useState("");
+    const [suspensionLoading, setSuspensionLoading] = useState(false);
 
     const fetchUsers = useCallback(async (page = 1) => {
         setUsersLoading(true);
@@ -131,17 +151,79 @@ export default function AdminPage() {
         finally { setUsersLoading(false); }
     }, [roleFilter, searchQuery]);
 
-    useEffect(() => { if (activeTab === "users" || activeTab === "dashboard") fetchUsers(); }, [activeTab, fetchUsers]);
-
-
-
-    const toggleActive = async (userId: string, cur: boolean) => {
+    const fetchAppeals = useCallback(async (page = 1) => {
+        setAppealsLoading(true);
         try {
-            const res = await fetch(`/api/admin/users/${userId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isActive: !cur }) });
+            const params = new URLSearchParams({ page: String(page), limit: "20" });
+            if (appealStatusFilter) params.set("status", appealStatusFilter);
+            if (appealSearch) params.set("search", appealSearch);
+            const res = await fetch(`/api/admin/appeals?${params}`);
             const data = await res.json();
-            if (res.ok) setUsers((p) => p.map((u) => u.id === userId ? { ...u, isActive: !cur } : u));
+            if (res.ok) { setAppeals(data.appeals); setAppealsPagination(data.pagination); }
+        } catch { console.error("Failed to fetch appeals"); }
+        finally { setAppealsLoading(false); }
+    }, [appealStatusFilter, appealSearch]);
+
+    useEffect(() => { if (activeTab === "users" || activeTab === "dashboard") fetchUsers(); }, [activeTab, fetchUsers]);
+    useEffect(() => { if (activeTab === "appeals") fetchAppeals(); }, [activeTab, fetchAppeals]);
+
+    const handleAppealAction = async (appealId: string, status: "APPROVED" | "REJECTED") => {
+        setAppealActionLoading(true);
+        try {
+            const res = await fetch(`/api/admin/appeals/${appealId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status, adminResponse }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setAppeals((prev) => prev.map((a) => a.id === appealId ? { ...a, status, adminResponse, reviewedAt: new Date().toISOString() } : a));
+                setSelectedAppeal(null);
+                setAdminResponse("");
+                fetchAppeals();
+            } else {
+                alert(data.error || "Failed to update appeal");
+            }
+        } catch { alert("Network error"); }
+        finally { setAppealActionLoading(false); }
+    };
+
+
+
+    const handleDisableClick = (userId: string, userName: string) => {
+        setSuspendUserId(userId);
+        setSuspendUserName(userName);
+        setSuspensionReason("");
+    };
+
+    const handleEnableUser = async (userId: string) => {
+        try {
+            const res = await fetch(`/api/admin/users/${userId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isActive: true }) });
+            const data = await res.json();
+            if (res.ok) setUsers((p) => p.map((u) => u.id === userId ? { ...u, isActive: true } : u));
             else alert(data.error || "Failed");
         } catch { alert("Network error"); }
+    };
+
+    const handleSuspendConfirm = async () => {
+        if (!suspendUserId || suspensionReason.trim().length === 0) return;
+        setSuspensionLoading(true);
+        try {
+            const res = await fetch(`/api/admin/users/${suspendUserId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ isActive: false, suspensionReason: suspensionReason.trim() }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setUsers((p) => p.map((u) => u.id === suspendUserId ? { ...u, isActive: false } : u));
+                setSuspendUserId(null);
+                setSuspensionReason("");
+            } else {
+                alert(data.error || "Failed to suspend user");
+            }
+        } catch { alert("Network error"); }
+        finally { setSuspensionLoading(false); }
     };
 
     const totalUsers = pagination.total;
@@ -150,9 +232,12 @@ export default function AdminPage() {
     const recruiterCount = users.filter((u) => u.role === "RECRUITER").length;
     const roleColor = (r: string) => r === "ADMIN" ? T.admin : r === "TALENT" ? T.talent : T.recruiter;
 
+    const pendingAppealsCount = appeals.filter((a) => a.status === "PENDING").length;
+
     const navItems = [
         { key: "dashboard" as const, icon: I.grid(), label: "Overview" },
         { key: "users" as const, icon: I.users(), label: "User Management" },
+        { key: "appeals" as const, icon: I.gavel(), label: "Appeals" },
     ];
 
     const timeLabels = ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00", "23:59"];
@@ -218,10 +303,10 @@ export default function AdminPage() {
                     <div className="flex items-center justify-between px-6 md:px-8 py-5 border-b" style={{ borderColor: T.cardBorder }}>
                         <div>
                             <h1 className="text-xl font-bold" style={{ color: T.textPrimary, ...sans }}>
-                                {activeTab === "dashboard" ? "Executive Dashboard" : "User Management"}
+                                {activeTab === "dashboard" ? "Executive Dashboard" : activeTab === "users" ? "User Management" : "Appeal Management"}
                             </h1>
                             <p className="text-[12px] mt-0.5" style={{ color: T.textSecondary, ...sans }}>
-                                {activeTab === "dashboard" ? "Real-time platform vitality and administrative control." : "Browse, search, and manage user accounts."}
+                                {activeTab === "dashboard" ? "Real-time platform vitality and administrative control." : activeTab === "users" ? "Browse, search, and manage user accounts." : "Review and manage user account appeals."}
                             </p>
                         </div>
                         <div className="hidden sm:flex items-center gap-2">
@@ -321,12 +406,12 @@ export default function AdminPage() {
                                                     </div>
                                                     <div className="flex items-center gap-2">
                                                         <RoleBadge role={u.role} />
-                                                        <button onClick={() => toggleActive(u.id, u.isActive)}
+                                                        <button onClick={() => u.isActive ? handleDisableClick(u.id, u.fullName) : handleEnableUser(u.id)}
                                                             className="px-2.5 py-1 rounded text-[9px] font-bold uppercase border cursor-pointer transition-all"
                                                             style={u.isActive
                                                                 ? { background: `${T.talent}15`, borderColor: `${T.talent}30`, color: T.talent, ...mono }
                                                                 : { background: `${T.danger}15`, borderColor: `${T.danger}30`, color: T.danger, ...mono }
-                                                            }>{u.isActive ? "Active" : "Disabled"}</button>
+                                                            }>{u.isActive ? "Active" : "Suspended"}</button>
                                                     </div>
                                                 </div>
                                             ))}
@@ -422,15 +507,15 @@ export default function AdminPage() {
                                                     </td>
                                                     <td className="py-3.5 px-5 group-hover:bg-white/[0.02]"><RoleBadge role={u.role} /></td>
                                                     <td className="py-3.5 px-5 group-hover:bg-white/[0.02]">
-                                                        <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: u.isActive ? T.talent : "#555", ...mono }}>{u.isActive ? "Active" : "Disabled"}</span>
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: u.isActive ? T.talent : T.danger, ...mono }}>{u.isActive ? "Active" : "Suspended"}</span>
                                                     </td>
                                                     <td className="py-3.5 px-5 hidden lg:table-cell group-hover:bg-white/[0.02]"><span className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString() : "Never"}</span></td>
                                                     <td className="py-3.5 px-5 hidden lg:table-cell group-hover:bg-white/[0.02]"><span className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>{new Date(u.createdAt).toLocaleDateString()}</span></td>
                                                     <td className="py-3.5 px-5 text-right group-hover:bg-white/[0.02]">
-                                                        <button onClick={() => toggleActive(u.id, u.isActive)}
+                                                        <button onClick={() => u.isActive ? handleDisableClick(u.id, u.fullName) : handleEnableUser(u.id)}
                                                             className="px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider border cursor-pointer transition-all"
                                                             style={u.isActive ? { background: `${T.danger}15`, borderColor: `${T.danger}30`, color: T.danger, ...mono } : { background: `${T.talent}15`, borderColor: `${T.talent}30`, color: T.talent, ...mono }}>
-                                                            {u.isActive ? "Disable" : "Enable"}
+                                                            {u.isActive ? "Suspend" : "Enable"}
                                                         </button>
                                                     </td>
                                                 </tr>
@@ -454,6 +539,272 @@ export default function AdminPage() {
                             </div>
                         )}
 
+                        {/* ══════════ APPEALS TAB ══════════ */}
+                        {activeTab === "appeals" && (
+                            <div className="flex flex-col gap-5">
+                                {/* Search & Filter Bar */}
+                                <div className="rounded-xl p-5" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
+                                    <div className="flex flex-col sm:flex-row gap-3">
+                                        <div className="flex-1 flex items-center gap-3 rounded-lg px-4 py-2.5" style={{ background: T.bg, border: `1px solid ${T.cardBorder}` }}>
+                                            {I.search()}
+                                            <input type="text" placeholder="Search appeals by user name or email..." value={appealSearch}
+                                                onChange={(e) => setAppealSearch(e.target.value)} onKeyDown={(e) => e.key === "Enter" && fetchAppeals()}
+                                                className="flex-1 bg-transparent border-none outline-none text-sm" style={{ color: T.textPrimary, ...mono }} id="admin-appeal-search" />
+                                        </div>
+                                        <button onClick={() => fetchAppeals()} className="px-5 py-2.5 rounded-lg text-sm font-bold border-none cursor-pointer" style={{ background: T.admin, color: "#0a1415", ...mono }} id="admin-appeal-search-btn">Search</button>
+                                    </div>
+                                    <div className="flex gap-2 mt-3 flex-wrap">
+                                        {[{ l: "All", v: "", c: T.admin }, { l: "Pending", v: "PENDING", c: "#F59E0B" }, { l: "Approved", v: "APPROVED", c: T.talent }, { l: "Rejected", v: "REJECTED", c: T.danger }].map((tag) => (
+                                            <button key={tag.v} onClick={() => { setAppealStatusFilter(tag.v); setTimeout(() => fetchAppeals(), 0); }}
+                                                className="px-3 py-1.5 rounded-md text-[11px] font-bold border-none cursor-pointer transition-all"
+                                                style={appealStatusFilter === tag.v ? { background: tag.c, color: "#0a1415", ...mono } : { background: T.cardBorder, color: T.textSecondary, ...mono }}>{tag.l}</button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Appeals Count Summary */}
+                                <div className="grid grid-cols-3 gap-4">
+                                    {[
+                                        { label: "Pending", count: appeals.filter(a => a.status === "PENDING").length, color: "#F59E0B" },
+                                        { label: "Approved", count: appeals.filter(a => a.status === "APPROVED").length, color: T.talent },
+                                        { label: "Rejected", count: appeals.filter(a => a.status === "REJECTED").length, color: T.danger },
+                                    ].map(s => (
+                                        <div key={s.label} className="rounded-xl p-4" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
+                                            <div className="text-[10px] uppercase tracking-[1.5px] font-bold mb-2" style={{ color: T.textSecondary, ...mono }}>{s.label}</div>
+                                            <div className="text-2xl font-bold" style={{ color: s.color, ...mono }}>{s.count}</div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Appeals Table */}
+                                <div className="rounded-xl overflow-hidden" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
+                                    <table className="w-full text-left">
+                                        <thead><tr style={{ borderBottom: `1px solid ${T.cardBorder}` }}>
+                                            {["User", "Reason", "Status", "Submitted", "Reviewed", "Actions"].map((h, i) => (
+                                                <th key={h} className={`text-[10px] uppercase tracking-[1.5px] font-bold py-3.5 px-5 ${i >= 3 && i < 5 ? "hidden lg:table-cell" : ""} ${i === 5 ? "text-right" : ""}`}
+                                                    style={{ color: T.textSecondary, ...mono }}>{h}</th>
+                                            ))}
+                                        </tr></thead>
+                                        <tbody>
+                                            {appeals.map((a) => {
+                                                const statusColor = a.status === "PENDING" ? "#F59E0B" : a.status === "APPROVED" ? T.talent : T.danger;
+                                                return (
+                                                    <tr key={a.id} className="group transition-all" style={{ borderBottom: `1px solid ${T.cardBorder}20` }}>
+                                                        <td className="py-3.5 px-5 group-hover:bg-white/[0.02]">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-9 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{ background: roleColor(a.user.role), ...mono }}>
+                                                                    {a.user.fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+                                                                </div>
+                                                                <div>
+                                                                    <div className="text-[13px] font-medium" style={{ color: T.textPrimary, ...sans }}>{a.user.fullName}</div>
+                                                                    <div className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>{a.user.email}</div>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-3.5 px-5 group-hover:bg-white/[0.02]">
+                                                            <div className="text-[12px] max-w-[200px] truncate" style={{ color: T.textPrimary, ...sans }}>{a.reason}</div>
+                                                        </td>
+                                                        <td className="py-3.5 px-5 group-hover:bg-white/[0.02]">
+                                                            <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-[1.5px] inline-flex items-center gap-1.5"
+                                                                style={{ background: `${statusColor}15`, color: statusColor, border: `1px solid ${statusColor}25`, ...mono }}>
+                                                                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statusColor }} />{a.status}
+                                                            </span>
+                                                        </td>
+                                                        <td className="py-3.5 px-5 hidden lg:table-cell group-hover:bg-white/[0.02]">
+                                                            <div className="flex items-center gap-1.5">
+                                                                {I.clock()}
+                                                                <span className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>{new Date(a.createdAt).toLocaleDateString()}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-3.5 px-5 hidden lg:table-cell group-hover:bg-white/[0.02]">
+                                                            <span className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>{a.reviewedAt ? new Date(a.reviewedAt).toLocaleDateString() : "—"}</span>
+                                                        </td>
+                                                        <td className="py-3.5 px-5 text-right group-hover:bg-white/[0.02]">
+                                                            <button onClick={() => { setSelectedAppeal(a); setAdminResponse(a.adminResponse || ""); }}
+                                                                className="px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider border cursor-pointer transition-all"
+                                                                style={{ background: `${T.admin}15`, borderColor: `${T.admin}30`, color: T.admin, ...mono }}
+                                                                id={`review-appeal-${a.id}`}>
+                                                                {a.status === "PENDING" ? "Review" : "View"}
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                            {appeals.length === 0 && !appealsLoading && <tr><td colSpan={6} className="text-center py-12 text-sm" style={{ color: T.textSecondary }}>
+                                                <div className="flex flex-col items-center gap-2">
+                                                    {I.gavel()}
+                                                    <span>No appeals found</span>
+                                                </div>
+                                            </td></tr>}
+                                            {appealsLoading && <tr><td colSpan={6} className="text-center py-12 text-sm" style={{ color: T.textSecondary }}>
+                                                <span className="inline-block w-4 h-4 border-2 rounded-full animate-spin mr-2 align-middle" style={{ borderColor: `${T.admin}30`, borderTopColor: T.admin }} />Loading...
+                                            </td></tr>}
+                                        </tbody>
+                                    </table>
+                                    {appealsPagination.totalPages > 1 && (
+                                        <div className="flex items-center justify-between px-5 py-3 border-t" style={{ borderColor: T.cardBorder }}>
+                                            <span className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>Page {appealsPagination.page}/{appealsPagination.totalPages}</span>
+                                            <div className="flex gap-2">
+                                                <button onClick={() => fetchAppeals(appealsPagination.page - 1)} disabled={appealsPagination.page <= 1} className="px-3 py-1.5 rounded-md text-xs border cursor-pointer disabled:opacity-30" style={{ background: "transparent", borderColor: T.cardBorder, color: T.textSecondary, ...mono }}>← Prev</button>
+                                                <button onClick={() => fetchAppeals(appealsPagination.page + 1)} disabled={appealsPagination.page >= appealsPagination.totalPages} className="px-3 py-1.5 rounded-md text-xs border cursor-pointer disabled:opacity-30" style={{ background: "transparent", borderColor: T.cardBorder, color: T.textSecondary, ...mono }}>Next →</button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ══════════ APPEAL DETAIL MODAL ══════════ */}
+                        {selectedAppeal && (
+                            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
+                                <div className="w-full max-w-lg rounded-2xl overflow-hidden" style={{ background: T.card, border: `1px solid ${T.cardBorder}`, boxShadow: `0 0 60px ${T.admin}15` }}>
+                                    {/* Modal Header */}
+                                    <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: T.cardBorder }}>
+                                        <div className="flex items-center gap-3">
+                                            {I.gavel()}
+                                            <h2 className="text-base font-bold" style={{ color: T.textPrimary, ...sans }}>Appeal Review</h2>
+                                        </div>
+                                        <button onClick={() => { setSelectedAppeal(null); setAdminResponse(""); }}
+                                            className="w-8 h-8 rounded-lg flex items-center justify-center border-none cursor-pointer transition-all hover:bg-white/10"
+                                            style={{ color: T.textSecondary, background: "transparent" }}>{I.x()}</button>
+                                    </div>
+
+                                    {/* Modal Body */}
+                                    <div className="p-6 flex flex-col gap-5">
+                                        {/* User Info */}
+                                        <div className="flex items-center gap-4 p-4 rounded-xl" style={{ background: T.bg }}>
+                                            <div className="w-12 h-12 rounded-xl flex items-center justify-center text-sm font-bold text-white shrink-0" style={{ background: roleColor(selectedAppeal.user.role), ...mono }}>
+                                                {selectedAppeal.user.fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="text-sm font-semibold" style={{ color: T.textPrimary, ...sans }}>{selectedAppeal.user.fullName}</div>
+                                                <div className="text-[11px]" style={{ color: T.textSecondary, ...mono }}>{selectedAppeal.user.email}</div>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <RoleBadge role={selectedAppeal.user.role} />
+                                                    <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: selectedAppeal.user.isActive ? T.talent : T.danger, ...mono }}>
+                                                        {selectedAppeal.user.isActive ? "● Active" : "● Disabled"}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Appeal Reason */}
+                                        <div>
+                                            <div className="text-[10px] uppercase tracking-[1.5px] font-bold mb-2" style={{ color: T.textSecondary, ...mono }}>Appeal Reason</div>
+                                            <div className="p-4 rounded-xl text-[13px] leading-relaxed" style={{ background: T.bg, color: T.textPrimary, ...sans, border: `1px solid ${T.cardBorder}` }}>
+                                                {selectedAppeal.reason}
+                                            </div>
+                                        </div>
+
+                                        {/* Status */}
+                                        <div className="flex items-center gap-3">
+                                            <div className="text-[10px] uppercase tracking-[1.5px] font-bold" style={{ color: T.textSecondary, ...mono }}>Status:</div>
+                                            {(() => {
+                                                const statusColor = selectedAppeal.status === "PENDING" ? "#F59E0B" : selectedAppeal.status === "APPROVED" ? T.talent : T.danger;
+                                                return (
+                                                    <span className="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-[1.5px] inline-flex items-center gap-1.5"
+                                                        style={{ background: `${statusColor}15`, color: statusColor, border: `1px solid ${statusColor}25`, ...mono }}>
+                                                        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statusColor }} />{selectedAppeal.status}
+                                                    </span>
+                                                );
+                                            })()}
+                                            {selectedAppeal.reviewedAt && (
+                                                <span className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>Reviewed {new Date(selectedAppeal.reviewedAt).toLocaleDateString()}</span>
+                                            )}
+                                        </div>
+
+                                        {/* Admin Response */}
+                                        <div>
+                                            <div className="text-[10px] uppercase tracking-[1.5px] font-bold mb-2" style={{ color: T.textSecondary, ...mono }}>Admin Response</div>
+                                            {selectedAppeal.status === "PENDING" ? (
+                                                <textarea value={adminResponse} onChange={(e) => setAdminResponse(e.target.value)}
+                                                    placeholder="Write your response to the user..."
+                                                    rows={3}
+                                                    className="w-full p-4 rounded-xl text-[13px] leading-relaxed resize-none outline-none"
+                                                    style={{ background: T.bg, color: T.textPrimary, ...sans, border: `1px solid ${T.cardBorder}` }}
+                                                    id="admin-appeal-response" />
+                                            ) : (
+                                                <div className="p-4 rounded-xl text-[13px] leading-relaxed" style={{ background: T.bg, color: T.textPrimary, ...sans, border: `1px solid ${T.cardBorder}` }}>
+                                                    {selectedAppeal.adminResponse || <span style={{ color: T.textSecondary, fontStyle: "italic" }}>No response provided</span>}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Actions */}
+                                        {selectedAppeal.status === "PENDING" && (
+                                            <div className="flex gap-3 pt-2">
+                                                <button onClick={() => handleAppealAction(selectedAppeal.id, "APPROVED")}
+                                                    disabled={appealActionLoading}
+                                                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold border-none cursor-pointer transition-all disabled:opacity-50"
+                                                    style={{ background: T.talent, color: "#0a1415", ...mono }}
+                                                    id="approve-appeal-btn">
+                                                    {appealActionLoading ? <span className="inline-block w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: "#0a141530", borderTopColor: "#0a1415" }} /> : I.check()} Approve
+                                                </button>
+                                                <button onClick={() => handleAppealAction(selectedAppeal.id, "REJECTED")}
+                                                    disabled={appealActionLoading}
+                                                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold border-none cursor-pointer transition-all disabled:opacity-50"
+                                                    style={{ background: T.danger, color: "#fff", ...mono }}
+                                                    id="reject-appeal-btn">
+                                                    {appealActionLoading ? <span className="inline-block w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: "#ffffff30", borderTopColor: "#fff" }} /> : I.x()} Reject
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ══════════ SUSPENSION REASON MODAL ══════════ */}
+                        {suspendUserId && (
+                            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
+                                <div className="w-full max-w-md rounded-2xl overflow-hidden" style={{ background: T.card, border: `1px solid ${T.danger}30`, boxShadow: `0 0 60px ${T.danger}15` }}>
+                                    {/* Danger stripe */}
+                                    <div className="h-[2px]" style={{ background: `linear-gradient(90deg, transparent, ${T.danger}, transparent)` }} />
+                                    {/* Modal Header */}
+                                    <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: T.cardBorder }}>
+                                        <div className="flex items-center gap-3" style={{ color: T.danger }}>
+                                            {I.shield()}
+                                            <h2 className="text-base font-bold" style={{ color: T.textPrimary, ...sans }}>Suspend Account</h2>
+                                        </div>
+                                        <button onClick={() => { setSuspendUserId(null); setSuspensionReason(""); }}
+                                            className="w-8 h-8 rounded-lg flex items-center justify-center border-none cursor-pointer transition-all hover:bg-white/10"
+                                            style={{ color: T.textSecondary, background: "transparent" }}>{I.x()}</button>
+                                    </div>
+                                    {/* Modal Body */}
+                                    <div className="p-6 flex flex-col gap-4">
+                                        <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: `${T.danger}08`, border: `1px solid ${T.danger}20` }}>
+                                            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: T.danger, boxShadow: `0 0 6px ${T.danger}` }} />
+                                            <span className="text-[12px]" style={{ color: T.textSecondary, ...sans }}>
+                                                You are about to suspend <strong style={{ color: T.textPrimary }}>{suspendUserName}</strong>. They will see this reason when they try to log in.
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <div className="text-[10px] uppercase tracking-[1.5px] font-bold mb-2" style={{ color: T.textSecondary, ...mono }}>Suspension Reason <span style={{ color: T.danger }}>*</span></div>
+                                            <textarea value={suspensionReason} onChange={(e) => setSuspensionReason(e.target.value)}
+                                                placeholder="Describe the reason for suspending this account..."
+                                                rows={4}
+                                                className="w-full p-4 rounded-xl text-[13px] leading-relaxed resize-none outline-none"
+                                                style={{ background: T.bg, color: T.textPrimary, ...sans, border: `1px solid ${T.cardBorder}` }}
+                                                id="suspension-reason-input" />
+                                        </div>
+                                        <div className="flex gap-3 pt-1">
+                                            <button onClick={() => { setSuspendUserId(null); setSuspensionReason(""); }}
+                                                className="flex-1 py-3 rounded-xl text-[12px] font-bold border cursor-pointer transition-all"
+                                                style={{ background: "transparent", borderColor: T.cardBorder, color: T.textSecondary, ...mono }}>
+                                                Cancel
+                                            </button>
+                                            <button onClick={handleSuspendConfirm}
+                                                disabled={suspensionLoading || suspensionReason.trim().length === 0}
+                                                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[12px] font-bold border-none cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                                                style={{ background: T.danger, color: "#fff", ...mono }}
+                                                id="confirm-suspend-btn">
+                                                {suspensionLoading ? <span className="inline-block w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: "#ffffff30", borderTopColor: "#fff" }} /> : <span style={{ color: "#fff" }}>{I.shield()}</span>} Suspend Account
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                     </div>
                 </main>

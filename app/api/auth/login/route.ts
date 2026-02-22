@@ -37,16 +37,23 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
         }
 
-        // 3. Create Session
+        // 3. Check if account is suspended
+        if (!user.isActive) {
+            // Still create session so user can see suspension page and appeal
+            await createSession(user.id, user.role);
+            return NextResponse.json({ success: true, redirectTo: "/suspended" }, { status: 200 });
+        }
+
+        // 4. Create Session
         await createSession(user.id, user.role);
 
-        // 4. Update Last Login
+        // 5. Update Last Login
         await prisma.user.update({
             where: { id: user.id },
             data: { lastLoginAt: new Date() },
         });
 
-        // 5. Determine Redirect
+        // 6. Determine Redirect
         let redirectTo = "/dashboard";
         if (user.role === "TALENT") redirectTo = "/dashboard/talent";
         else if (user.role === "RECRUITER") redirectTo = "/dashboard/recruiter";
