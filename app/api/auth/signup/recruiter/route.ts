@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 // ───────────── VALIDATION SCHEMA ─────────────
 const RecruiterSchema = z.object({
     fullName: z.string().min(2),
+    username: z.string().min(3),
     email: z.string().email(),
     password: z.string().min(8),
     jobTitle: z.string().optional(),
@@ -27,26 +28,20 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Invalid data", details: result.error.format() }, { status: 400 });
         }
 
-        const { fullName, email, password, jobTitle, companyName, companyWebsite, companySize, location, industry } = result.data;
+        const { fullName, username, email, password, jobTitle, companyName, companyWebsite, companySize, location, industry } = result.data;
 
         // 1. Check if user exists
-        const existing = await prisma.user.findUnique({
-            where: { email },
+        const existing = await prisma.user.findFirst({
+            where: {
+                OR: [{ email }, { username }],
+            },
         });
 
         if (existing) {
-            return NextResponse.json({ error: "Email already taken" }, { status: 409 });
+            if (existing.email === email) return NextResponse.json({ error: "Email already taken" }, { status: 409 });
+            if (existing.username === username) return NextResponse.json({ error: "Username already taken" }, { status: 409 });
         }
 
-        // Generate a username from email (e.g., "john.doe" from "john.doe@company.com")
-        // Ensure it's unique by appending random bytes if needed, but for now simple split
-        let baseUsername = email.split("@")[0];
-        let username = baseUsername;
-        let counter = 1;
-        while (await prisma.user.findUnique({ where: { username } })) {
-            username = `${baseUsername}${counter}`;
-            counter++;
-        }
 
         // 2. Hash Password
         const passwordHash = await hashPassword(password);

@@ -23,6 +23,7 @@ function useRipple() {
 /* ───────────── Icons ───────────── */
 const IconUser = (props: any) => (<svg {...props} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>);
 const IconMail = (props: any) => (<svg {...props} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>);
+const IconAtSign = (props: any) => (<svg {...props} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4" /><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8" /></svg>);
 const IconBriefcase = (props: any) => (<svg {...props} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>);
 const IconLock = (props: any) => (<svg {...props} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>);
 const IconRadarScan = (props: any) => (<svg {...props} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" opacity="0.3" /><circle cx="12" cy="12" r="6" opacity="0.5" /><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none" /><line x1="12" y1="2" x2="12" y2="6" /></svg>);
@@ -74,7 +75,7 @@ function ParticlesCanvas() {
 
 /* ───────────── Form Types ───────────── */
 interface RecruiterFormData {
-    fullName: string; email: string; password: string; confirmPassword: string;
+    fullName: string; email: string; username: string; password: string; confirmPassword: string;
     companyName: string; jobTitle: string; companyWebsite: string;
     industry: string[]; companySize: string; hiringGoals: string;
     agreedToTerms: boolean;
@@ -115,7 +116,7 @@ export default function RecruiterSignup() {
     const [submitError, setSubmitError] = useState("");
 
     const [formData, setFormData] = useState<RecruiterFormData>({
-        fullName: "", email: "", password: "", confirmPassword: "",
+        fullName: "", email: "", username: "", password: "", confirmPassword: "",
         companyName: "", jobTitle: "", companyWebsite: "",
         industry: [], companySize: "", hiringGoals: "",
         agreedToTerms: false
@@ -146,6 +147,8 @@ export default function RecruiterSignup() {
             if (!formData.fullName.trim()) e.fullName = "Required";
             if (!formData.email.trim()) e.email = "Required";
             else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) e.email = "Invalid";
+            if (!formData.username.trim()) e.username = "Required";
+            else if (formData.username.length < 3) e.username = "Min 3 chars";
             if (!formData.password) e.password = "Required";
             else if (formData.password.length < 8) e.password = "Min 8 chars";
             if (formData.password !== formData.confirmPassword) e.confirmPassword = "Mismatch";
@@ -177,6 +180,7 @@ export default function RecruiterSignup() {
 
             <InputField label="Full Name" icon={IconUser} value={formData.fullName} onChange={(e: any) => updateForm("fullName", e.target.value)} placeholder="Jane Doe" error={errors.fullName} />
             <InputField label="Work Email" icon={IconMail} value={formData.email} onChange={(e: any) => updateForm("email", e.target.value)} placeholder="jane@company.com" error={errors.email} />
+            <InputField label="Hacker Alias" icon={IconAtSign} value={formData.username} onChange={(e: any) => updateForm("username", e.target.value)} placeholder="recruiter_42" error={errors.username} />
 
             <div className="grid grid-cols-2 gap-4">
                 <InputField
@@ -259,6 +263,10 @@ export default function RecruiterSignup() {
                 <div className="flex justify-between items-center pb-3 border-b border-white/5">
                     <span className="text-xs text-[#666]">Identity</span>
                     <span className="text-sm font-bold text-white">{formData.fullName} ({formData.jobTitle})</span>
+                </div>
+                <div className="flex justify-between items-center pb-3 border-b border-white/5">
+                    <span className="text-xs text-[#666]">Hacker Alias</span>
+                    <span className="text-sm font-bold text-[#A855F7]">@{formData.username}</span>
                 </div>
                 <div className="flex justify-between items-center pb-3 border-b border-white/5">
                     <span className="text-xs text-[#666]">Organization</span>

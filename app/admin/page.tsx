@@ -289,7 +289,7 @@ export default function AdminPage() {
 
                     {/* Terminate */}
                     <div className="px-3 pb-4">
-                        <button onClick={async () => { await fetch("/api/auth/logout", { method: "POST" }); router.push("/login"); }}
+                        <button onClick={async () => { await fetch("/api/auth/logout", { method: "POST" }); window.location.href = "/login"; }}
                             className="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] font-semibold w-full border-none cursor-pointer transition-all"
                             style={{ background: "transparent", color: T.danger, ...sans }} id="admin-logout">
                             {I.logout()}<span>Terminate Session</span>

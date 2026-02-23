@@ -151,7 +151,7 @@ export default function SuspendedPage() {
 
     const handleLogout = async () => {
         await fetch("/api/auth/logout", { method: "POST" });
-        router.push("/login");
+        window.location.href = "/login";
     };
 
     const hasPendingAppeal = userData?.appeals.some((a) => a.status === "PENDING");
