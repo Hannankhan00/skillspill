@@ -93,7 +93,7 @@ export default function LoginPage() {
             const res = await fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) });
             const data = await res.json();
             if (!res.ok) { setError(data.error || "Authentication failed"); return; }
-            router.push(data.redirectTo || "/dashboard");
+            window.location.href = data.redirectTo || "/dashboard";
         } catch { setError("Neural link interrupted. Retry."); } finally { setLoading(false); }
     };
 
