@@ -1,6 +1,7 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
+import { useTheme, ThemeToggle } from "../../components/ThemeProvider";
 
 /* ── Icons ── */
 function UserIcon() {
@@ -21,13 +22,16 @@ function LinkIcon() {
 function TrashIcon() {
     return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>;
 }
+function CheckIcon() {
+    return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>;
+}
 
 const settingsTabs = [
-    { key: "profile", label: "Profile", icon: <UserIcon /> },
-    { key: "security", label: "Security", icon: <ShieldIcon /> },
-    { key: "notifications", label: "Notifications", icon: <BellIcon /> },
-    { key: "appearance", label: "Appearance", icon: <PaletteIcon /> },
-    { key: "connections", label: "Connections", icon: <LinkIcon /> },
+    { key: "profile", label: "Profile", icon: <UserIcon />, desc: "Your identity" },
+    { key: "security", label: "Security", icon: <ShieldIcon />, desc: "Account safety" },
+    { key: "notifications", label: "Notifications", icon: <BellIcon />, desc: "Alert preferences" },
+    { key: "appearance", label: "Appearance", icon: <PaletteIcon />, desc: "Look & feel" },
+    { key: "connections", label: "Connections", icon: <LinkIcon />, desc: "Linked accounts" },
 ];
 
 /* ── Toggle Switch ── */
@@ -35,21 +39,79 @@ function Toggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => void 
     return (
         <button
             onClick={onToggle}
-            className={`relative w-10 h-5 rounded-full transition-all duration-300 cursor-pointer border-none ${enabled ? "bg-[#3CF91A]" : "bg-white/10"
-                }`}
-            style={enabled ? { boxShadow: "0 0 12px #3CF91A40" } : {}}
+            className="relative w-11 h-6 rounded-full transition-all duration-300 cursor-pointer border-none shrink-0"
+            style={{
+                background: enabled ? '#10B981' : 'var(--theme-input-bg)',
+                boxShadow: enabled ? '0 0 12px rgba(16, 185, 129, 0.3)' : 'none',
+                border: enabled ? 'none' : '1px solid var(--theme-border)',
+            }}
         >
             <span
-                className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all duration-300 ${enabled ? "left-[22px]" : "left-0.5"
-                    }`}
-                style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.3)" }}
+                className="absolute top-[3px] w-[18px] h-[18px] rounded-full bg-white transition-all duration-300"
+                style={{
+                    left: enabled ? '23px' : '3px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                }}
             />
         </button>
     );
 }
 
+/* ── Section Wrapper ── */
+function Section({ title, desc, children }: { title: string; desc: string; children: React.ReactNode }) {
+    return (
+        <div className="space-y-5">
+            <div className="pb-4" style={{ borderBottom: '1px solid var(--theme-border)' }}>
+                <h2 className="text-lg font-bold" style={{ color: 'var(--theme-text-primary)' }}>{title}</h2>
+                <p className="text-[12px] mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>{desc}</p>
+            </div>
+            {children}
+        </div>
+    );
+}
+
+/* ── Input Field ── */
+function InputField({ label, value, onChange, type = "text", mono = false, placeholder }: {
+    label: string; value: string; onChange: (v: string) => void; type?: string; mono?: boolean; placeholder?: string;
+}) {
+    return (
+        <div>
+            <label className="text-[10px] uppercase tracking-widest font-semibold block mb-1.5" style={{ color: 'var(--theme-text-muted)' }}>
+                {label}
+            </label>
+            <input
+                type={type}
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder={placeholder}
+                className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all focus:ring-2 focus:ring-emerald-200"
+                style={{
+                    background: 'var(--theme-input-bg)',
+                    border: '1px solid var(--theme-border)',
+                    color: 'var(--theme-text-primary)',
+                    fontFamily: mono ? 'var(--font-jetbrains-mono)' : 'inherit',
+                }}
+            />
+        </div>
+    );
+}
+
+/* ── Toggle Row ── */
+function ToggleRow({ label, desc, enabled, onToggle }: { label: string; desc: string; enabled: boolean; onToggle: () => void }) {
+    return (
+        <div className="flex items-center justify-between py-3.5" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
+            <div>
+                <p className="text-[13px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>{label}</p>
+                <p className="text-[11px] mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>{desc}</p>
+            </div>
+            <Toggle enabled={enabled} onToggle={onToggle} />
+        </div>
+    );
+}
+
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState("profile");
+    const { theme, toggleTheme } = useTheme();
 
     /* Profile states */
     const [displayName, setDisplayName] = useState("Ghost_Protocol");
@@ -69,8 +131,7 @@ export default function SettingsPage() {
     const [notifPush, setNotifPush] = useState(false);
 
     /* Appearance */
-    const [theme, setTheme] = useState<"dark" | "light" | "system">("dark");
-    const [accentColor, setAccentColor] = useState("#3CF91A");
+    const [accentColor, setAccentColor] = useState("#10B981");
     const [codeFont, setCodeFont] = useState("JetBrains Mono");
     const [compactMode, setCompactMode] = useState(false);
 
@@ -78,178 +139,153 @@ export default function SettingsPage() {
     const [githubConnected, setGithubConnected] = useState(true);
     const [linkedinConnected, setLinkedinConnected] = useState(false);
 
-    const accentOptions = ["#3CF91A", "#00D2FF", "#A855F7", "#FF9F43", "#FF003C", "#FFD700"];
+    const accentOptions = [
+        { color: "#10B981", label: "Emerald" },
+        { color: "#3B82F6", label: "Blue" },
+        { color: "#8B5CF6", label: "Purple" },
+        { color: "#F59E0B", label: "Amber" },
+        { color: "#EF4444", label: "Red" },
+        { color: "#EC4899", label: "Pink" },
+    ];
 
     return (
-        <div className="min-h-full bg-[#050505]">
-            {/* Header */}
-            <div className="border-b border-white/[0.06] bg-[#0A0A0A]/60 backdrop-blur-sm">
-                <div className="max-w-[1400px] mx-auto px-6 py-5">
-                    <h1 className="text-2xl lg:text-3xl font-bold text-white tracking-tight" style={{ fontFamily: "var(--font-space-grotesk)" }}>
-                        Settings
+        <div className="min-h-full" style={{ background: 'var(--theme-bg)' }}>
+            <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-5">
+
+                {/* ── Header ── */}
+                <div className="mb-6">
+                    <h1 className="text-2xl lg:text-3xl font-bold tracking-tight" style={{ color: 'var(--theme-text-primary)', fontFamily: 'var(--font-space-grotesk)' }}>
+                        ⚙️ Settings
                     </h1>
-                    <p className="text-[12px] text-white/40 mt-1" style={{ fontFamily: "var(--font-jetbrains-mono)" }}>
-                        Configure your SkillSpill experience. <span className="text-[#3CF91A]">Make it yours.</span>
+                    <p className="text-[13px] mt-1" style={{ color: 'var(--theme-text-muted)' }}>
+                        Configure your SkillSpill experience. <span className="text-emerald-500 font-semibold">Make it yours.</span>
                     </p>
                 </div>
-            </div>
 
-            <div className="max-w-[1400px] mx-auto px-6 py-6">
                 <div className="flex flex-col lg:flex-row gap-6">
-                    {/* Sidebar Tabs */}
+                    {/* ── Sidebar Tabs ── */}
                     <div className="w-full lg:w-[220px] shrink-0">
-                        <nav className="flex lg:flex-col gap-1 overflow-x-auto pb-2 lg:pb-0">
-                            {settingsTabs.map((tab) => (
-                                <button
-                                    key={tab.key}
-                                    onClick={() => setActiveTab(tab.key)}
-                                    className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-[12px] font-medium transition-all duration-200 border-none cursor-pointer whitespace-nowrap ${activeTab === tab.key
-                                            ? "bg-[#3CF91A] text-black"
-                                            : "bg-transparent text-white/40 hover:text-white/60 hover:bg-white/[0.04]"
-                                        }`}
-                                    style={
-                                        activeTab === tab.key
-                                            ? { boxShadow: "0 0 20px #3CF91A40" }
-                                            : {}
-                                    }
-                                >
-                                    {tab.icon}
-                                    {tab.label}
-                                </button>
-                            ))}
-                        </nav>
+                        <div className="rounded-2xl border p-2 lg:sticky lg:top-6" style={{ background: 'var(--theme-card)', borderColor: 'var(--theme-border)' }}>
+                            <nav className="flex lg:flex-col gap-1 overflow-x-auto pb-1 lg:pb-0">
+                                {settingsTabs.map((tab) => (
+                                    <button
+                                        key={tab.key}
+                                        onClick={() => setActiveTab(tab.key)}
+                                        className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[12px] font-medium transition-all duration-200 border-none cursor-pointer whitespace-nowrap text-left w-full"
+                                        style={
+                                            activeTab === tab.key
+                                                ? {
+                                                    background: '#10B981',
+                                                    color: '#fff',
+                                                    boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)',
+                                                }
+                                                : {
+                                                    background: 'transparent',
+                                                    color: 'var(--theme-text-muted)',
+                                                }
+                                        }
+                                    >
+                                        <span className="shrink-0">{tab.icon}</span>
+                                        <div className="hidden lg:block">
+                                            <span className="block">{tab.label}</span>
+                                            <span className="text-[9px] opacity-60">{tab.desc}</span>
+                                        </div>
+                                        <span className="lg:hidden">{tab.label}</span>
+                                    </button>
+                                ))}
+                            </nav>
+                        </div>
                     </div>
 
-                    {/* Content Area */}
+                    {/* ── Content Area ── */}
                     <div className="flex-1 min-w-0">
-                        <div className="rounded-xl border border-white/[0.06] bg-[#0A0A0A] overflow-hidden">
-                            {/* ── Profile Settings ── */}
+                        <div className="rounded-2xl border overflow-hidden" style={{ background: 'var(--theme-card)', borderColor: 'var(--theme-border)' }}>
+
+                            {/* ═══ Profile ═══ */}
                             {activeTab === "profile" && (
                                 <div className="p-6 space-y-6">
-                                    <div>
-                                        <h2 className="text-base font-bold text-white mb-1">Profile Information</h2>
-                                        <p className="text-[11px] text-white/30">Manage how you appear on SkillSpill</p>
-                                    </div>
+                                    <Section title="Profile Information" desc="Manage how you appear on SkillSpill">
+                                        {/* Avatar */}
+                                        <div className="flex items-center gap-4">
+                                            <div
+                                                className="w-16 h-16 rounded-2xl flex items-center justify-center text-lg font-bold text-white"
+                                                style={{ background: 'linear-gradient(135deg, #10B981, #059669)' }}
+                                            >
+                                                GP
+                                            </div>
+                                            <div>
+                                                <button
+                                                    className="text-[12px] px-4 py-2 rounded-xl font-semibold transition-all cursor-pointer border-none hover:shadow-md"
+                                                    style={{ background: 'var(--theme-input-bg)', color: 'var(--theme-text-secondary)', border: '1px solid var(--theme-border)' }}
+                                                >
+                                                    Change Avatar
+                                                </button>
+                                                <p className="text-[10px] mt-1.5" style={{ color: 'var(--theme-text-muted)' }}>PNG, JPG or GIF. Max 2MB.</p>
+                                            </div>
+                                        </div>
 
-                                    {/* Avatar */}
-                                    <div className="flex items-center gap-4">
-                                        <div
-                                            className="w-16 h-16 rounded-full flex items-center justify-center text-lg font-bold"
-                                            style={{
-                                                background: "linear-gradient(135deg, #3CF91A30, #3CF91A10)",
-                                                border: "2px solid #3CF91A40",
-                                                color: "#3CF91A",
-                                            }}
-                                        >
-                                            GP
+                                        {/* Fields */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <InputField label="Display Name" value={displayName} onChange={setDisplayName} mono />
+                                            <InputField label="Email" value={email} onChange={setEmail} type="email" mono />
                                         </div>
                                         <div>
-                                            <button className="text-[11px] px-3 py-1.5 rounded-lg font-semibold bg-white/[0.06] text-white/60 hover:text-white hover:bg-white/[0.1] transition-colors border border-white/[0.08] cursor-pointer">
-                                                Change Avatar
-                                            </button>
-                                            <p className="text-[10px] text-white/20 mt-1">PNG, JPG. Max 2MB.</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Fields */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="text-[10px] uppercase tracking-widest text-white/30 font-semibold block mb-1.5">Display Name</label>
-                                            <input
-                                                type="text"
-                                                value={displayName}
-                                                onChange={(e) => setDisplayName(e.target.value)}
-                                                className="w-full px-3.5 py-2.5 rounded-lg bg-white/[0.03] border border-white/[0.08] text-[13px] text-white focus:border-[#3CF91A]/40 focus:outline-none transition-colors"
-                                                style={{ fontFamily: "var(--font-jetbrains-mono)" }}
+                                            <label className="text-[10px] uppercase tracking-widest font-semibold block mb-1.5" style={{ color: 'var(--theme-text-muted)' }}>Bio</label>
+                                            <textarea
+                                                value={bio}
+                                                onChange={(e) => setBio(e.target.value)}
+                                                rows={3}
+                                                className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all resize-none focus:ring-2 focus:ring-emerald-200"
+                                                style={{ background: 'var(--theme-input-bg)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
                                             />
                                         </div>
-                                        <div>
-                                            <label className="text-[10px] uppercase tracking-widest text-white/30 font-semibold block mb-1.5">Email</label>
-                                            <input
-                                                type="email"
-                                                value={email}
-                                                onChange={(e) => setEmail(e.target.value)}
-                                                className="w-full px-3.5 py-2.5 rounded-lg bg-white/[0.03] border border-white/[0.08] text-[13px] text-white focus:border-[#3CF91A]/40 focus:outline-none transition-colors"
-                                                style={{ fontFamily: "var(--font-jetbrains-mono)" }}
-                                            />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] uppercase tracking-widest text-white/30 font-semibold block mb-1.5">Bio</label>
-                                        <textarea
-                                            value={bio}
-                                            onChange={(e) => setBio(e.target.value)}
-                                            rows={3}
-                                            className="w-full px-3.5 py-2.5 rounded-lg bg-white/[0.03] border border-white/[0.08] text-[13px] text-white focus:border-[#3CF91A]/40 focus:outline-none transition-colors resize-none"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] uppercase tracking-widest text-white/30 font-semibold block mb-1.5">Portfolio URL</label>
-                                        <input
-                                            type="url"
-                                            value={portfolioUrl}
-                                            onChange={(e) => setPortfolioUrl(e.target.value)}
-                                            className="w-full px-3.5 py-2.5 rounded-lg bg-white/[0.03] border border-white/[0.08] text-[13px] text-white focus:border-[#3CF91A]/40 focus:outline-none transition-colors"
-                                            style={{ fontFamily: "var(--font-jetbrains-mono)" }}
-                                        />
-                                    </div>
+                                        <InputField label="Portfolio URL" value={portfolioUrl} onChange={setPortfolioUrl} type="url" mono />
+                                    </Section>
 
                                     <div className="flex items-center gap-3 pt-2">
                                         <button
-                                            className="px-5 py-2.5 rounded-lg text-[12px] font-bold text-black border-none cursor-pointer transition-all duration-200 hover:scale-[1.02]"
-                                            style={{ background: "#3CF91A", boxShadow: "0 0 15px #3CF91A40" }}
+                                            className="px-5 py-2.5 rounded-xl text-[12px] font-bold text-white border-none cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+                                            style={{ background: '#10B981', boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)' }}
                                         >
                                             Save Changes
                                         </button>
-                                        <button className="px-5 py-2.5 rounded-lg text-[12px] font-medium text-white/40 bg-transparent border border-white/[0.08] hover:text-white/60 hover:border-white/[0.15] transition-colors cursor-pointer">
+                                        <button
+                                            className="px-5 py-2.5 rounded-xl text-[12px] font-medium bg-transparent cursor-pointer transition-all"
+                                            style={{ color: 'var(--theme-text-muted)', border: '1px solid var(--theme-border)' }}
+                                        >
                                             Cancel
                                         </button>
                                     </div>
                                 </div>
                             )}
 
-                            {/* ── Security Settings ── */}
+                            {/* ═══ Security ═══ */}
                             {activeTab === "security" && (
                                 <div className="p-6 space-y-6">
-                                    <div>
-                                        <h2 className="text-base font-bold text-white mb-1">Security & Privacy</h2>
-                                        <p className="text-[11px] text-white/30">Protect your SkillSpill account</p>
-                                    </div>
-
-                                    {/* Password */}
-                                    <div className="rounded-lg border border-white/[0.06] p-4 space-y-3">
-                                        <h3 className="text-[13px] font-semibold text-white/80">Change Password</h3>
-                                        <input type="password" placeholder="Current password" className="w-full px-3.5 py-2.5 rounded-lg bg-white/[0.03] border border-white/[0.08] text-[13px] text-white focus:border-[#3CF91A]/40 focus:outline-none transition-colors placeholder-white/20" />
-                                        <input type="password" placeholder="New password" className="w-full px-3.5 py-2.5 rounded-lg bg-white/[0.03] border border-white/[0.08] text-[13px] text-white focus:border-[#3CF91A]/40 focus:outline-none transition-colors placeholder-white/20" />
-                                        <input type="password" placeholder="Confirm new password" className="w-full px-3.5 py-2.5 rounded-lg bg-white/[0.03] border border-white/[0.08] text-[13px] text-white focus:border-[#3CF91A]/40 focus:outline-none transition-colors placeholder-white/20" />
-                                        <button className="px-4 py-2 rounded-lg text-[11px] font-bold text-black bg-[#3CF91A] border-none cursor-pointer hover:scale-[1.02] transition-all">
-                                            Update Password
-                                        </button>
-                                    </div>
-
-                                    {/* Toggles */}
-                                    <div className="space-y-4">
-                                        <div className="flex items-center justify-between py-3 border-b border-white/[0.04]">
-                                            <div>
-                                                <p className="text-[13px] font-semibold text-white/80">Two-Factor Authentication</p>
-                                                <p className="text-[10px] text-white/30 mt-0.5">Add an extra layer of security</p>
-                                            </div>
-                                            <Toggle enabled={twoFA} onToggle={() => setTwoFA(!twoFA)} />
+                                    <Section title="Security & Privacy" desc="Protect your SkillSpill account">
+                                        {/* Password */}
+                                        <div className="rounded-xl p-4 space-y-3" style={{ background: 'var(--theme-bg)', border: '1px solid var(--theme-border)' }}>
+                                            <h3 className="text-[13px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Change Password</h3>
+                                            <InputField label="" value="" onChange={() => { }} type="password" placeholder="Current password" />
+                                            <InputField label="" value="" onChange={() => { }} type="password" placeholder="New password" />
+                                            <InputField label="" value="" onChange={() => { }} type="password" placeholder="Confirm new password" />
+                                            <button
+                                                className="px-4 py-2 rounded-xl text-[11px] font-bold text-white border-none cursor-pointer hover:shadow-md transition-all"
+                                                style={{ background: '#10B981' }}
+                                            >
+                                                Update Password
+                                            </button>
                                         </div>
-                                        <div className="flex items-center justify-between py-3 border-b border-white/[0.04]">
-                                            <div>
-                                                <p className="text-[13px] font-semibold text-white/80">Session Alerts</p>
-                                                <p className="text-[10px] text-white/30 mt-0.5">Get notified of new login sessions</p>
-                                            </div>
-                                            <Toggle enabled={sessionAlerts} onToggle={() => setSessionAlerts(!sessionAlerts)} />
-                                        </div>
-                                    </div>
+
+                                        <ToggleRow label="Two-Factor Authentication" desc="Add an extra layer of security to your account" enabled={twoFA} onToggle={() => setTwoFA(!twoFA)} />
+                                        <ToggleRow label="Session Alerts" desc="Get notified when someone logs in from a new device" enabled={sessionAlerts} onToggle={() => setSessionAlerts(!sessionAlerts)} />
+                                    </Section>
 
                                     {/* Danger Zone */}
-                                    <div className="rounded-lg border border-[#FF003C]/20 p-4 bg-[#FF003C]/[0.03]">
-                                        <h3 className="text-[13px] font-semibold text-[#FF003C] mb-1">Danger Zone</h3>
-                                        <p className="text-[10px] text-white/30 mb-3">Once deleted, your account cannot be recovered.</p>
-                                        <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-[11px] font-bold text-[#FF003C] bg-[#FF003C]/10 border border-[#FF003C]/20 cursor-pointer hover:bg-[#FF003C]/20 transition-colors">
+                                    <div className="rounded-xl p-4" style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.15)' }}>
+                                        <h3 className="text-[13px] font-semibold text-red-500 mb-1">⚠️ Danger Zone</h3>
+                                        <p className="text-[11px] mb-3" style={{ color: 'var(--theme-text-muted)' }}>Once deleted, your account cannot be recovered.</p>
+                                        <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-bold text-red-500 cursor-pointer transition-all hover:shadow-md border-none" style={{ background: 'rgba(239, 68, 68, 0.1)' }}>
                                             <TrashIcon />
                                             Delete Account
                                         </button>
@@ -257,207 +293,179 @@ export default function SettingsPage() {
                                 </div>
                             )}
 
-                            {/* ── Notification Settings ── */}
+                            {/* ═══ Notifications ═══ */}
                             {activeTab === "notifications" && (
                                 <div className="p-6 space-y-6">
-                                    <div>
-                                        <h2 className="text-base font-bold text-white mb-1">Notifications</h2>
-                                        <p className="text-[11px] text-white/30">Choose what alerts you want to receive</p>
-                                    </div>
-
-                                    <div>
-                                        <h3 className="text-[11px] uppercase tracking-widest text-white/30 font-semibold mb-3">Activity</h3>
-                                        <div className="space-y-1">
-                                            {[
-                                                { label: "Bounty Updates", desc: "When bounties you applied to change status", state: notifBounty, toggle: () => setNotifBounty(!notifBounty) },
-                                                { label: "Spill Interactions", desc: "Likes, comments, and shares on your spills", state: notifSpill, toggle: () => setNotifSpill(!notifSpill) },
-                                                { label: "Job Recommendations", desc: "New jobs matching your skill profile", state: notifJob, toggle: () => setNotifJob(!notifJob) },
-                                            ].map((item) => (
-                                                <div key={item.label} className="flex items-center justify-between py-3 border-b border-white/[0.04]">
-                                                    <div>
-                                                        <p className="text-[13px] font-semibold text-white/80">{item.label}</p>
-                                                        <p className="text-[10px] text-white/30 mt-0.5">{item.desc}</p>
-                                                    </div>
-                                                    <Toggle enabled={item.state} onToggle={item.toggle} />
-                                                </div>
-                                            ))}
+                                    <Section title="Notifications" desc="Choose what alerts you want to receive">
+                                        <div>
+                                            <h3 className="text-[11px] uppercase tracking-widest font-semibold mb-2" style={{ color: 'var(--theme-text-muted)' }}>Activity</h3>
+                                            <ToggleRow label="Bounty Updates" desc="When bounties you applied to change status" enabled={notifBounty} onToggle={() => setNotifBounty(!notifBounty)} />
+                                            <ToggleRow label="Spill Interactions" desc="Likes, comments, and shares on your spills" enabled={notifSpill} onToggle={() => setNotifSpill(!notifSpill)} />
+                                            <ToggleRow label="Job Recommendations" desc="New jobs matching your skill profile" enabled={notifJob} onToggle={() => setNotifJob(!notifJob)} />
                                         </div>
-                                    </div>
 
-                                    <div>
-                                        <h3 className="text-[11px] uppercase tracking-widest text-white/30 font-semibold mb-3">Delivery</h3>
-                                        <div className="space-y-1">
-                                            {[
-                                                { label: "Email Notifications", desc: "Receive notifications via email", state: notifEmail, toggle: () => setNotifEmail(!notifEmail) },
-                                                { label: "Push Notifications", desc: "Browser push notifications", state: notifPush, toggle: () => setNotifPush(!notifPush) },
-                                            ].map((item) => (
-                                                <div key={item.label} className="flex items-center justify-between py-3 border-b border-white/[0.04]">
-                                                    <div>
-                                                        <p className="text-[13px] font-semibold text-white/80">{item.label}</p>
-                                                        <p className="text-[10px] text-white/30 mt-0.5">{item.desc}</p>
-                                                    </div>
-                                                    <Toggle enabled={item.state} onToggle={item.toggle} />
-                                                </div>
-                                            ))}
+                                        <div>
+                                            <h3 className="text-[11px] uppercase tracking-widest font-semibold mb-2" style={{ color: 'var(--theme-text-muted)' }}>Delivery</h3>
+                                            <ToggleRow label="Email Notifications" desc="Receive notifications via email" enabled={notifEmail} onToggle={() => setNotifEmail(!notifEmail)} />
+                                            <ToggleRow label="Push Notifications" desc="Browser push notifications" enabled={notifPush} onToggle={() => setNotifPush(!notifPush)} />
                                         </div>
-                                    </div>
+                                    </Section>
                                 </div>
                             )}
 
-                            {/* ── Appearance Settings ── */}
+                            {/* ═══ Appearance ═══ */}
                             {activeTab === "appearance" && (
                                 <div className="p-6 space-y-6">
-                                    <div>
-                                        <h2 className="text-base font-bold text-white mb-1">Appearance</h2>
-                                        <p className="text-[11px] text-white/30">Customize the look and feel</p>
-                                    </div>
-
-                                    {/* Theme */}
-                                    <div>
-                                        <label className="text-[10px] uppercase tracking-widest text-white/30 font-semibold block mb-2">Theme</label>
-                                        <div className="flex gap-2">
-                                            {(["dark", "light", "system"] as const).map((t) => (
-                                                <button
-                                                    key={t}
-                                                    onClick={() => setTheme(t)}
-                                                    className={`px-4 py-2.5 rounded-lg text-[11px] font-semibold capitalize transition-all duration-200 border cursor-pointer ${theme === t
-                                                            ? "bg-[#3CF91A] text-black border-[#3CF91A]"
-                                                            : "bg-transparent text-white/40 border-white/[0.08] hover:text-white/60"
-                                                        }`}
-                                                    style={theme === t ? { boxShadow: "0 0 15px #3CF91A30" } : {}}
-                                                >
-                                                    {t}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* Accent Color */}
-                                    <div>
-                                        <label className="text-[10px] uppercase tracking-widest text-white/30 font-semibold block mb-2">Accent Color</label>
-                                        <div className="flex gap-2.5">
-                                            {accentOptions.map((color) => (
-                                                <button
-                                                    key={color}
-                                                    onClick={() => setAccentColor(color)}
-                                                    className="w-8 h-8 rounded-full transition-all duration-200 cursor-pointer border-2"
-                                                    style={{
-                                                        background: color,
-                                                        borderColor: accentColor === color ? "white" : "transparent",
-                                                        boxShadow: accentColor === color ? `0 0 12px ${color}60` : "none",
-                                                        transform: accentColor === color ? "scale(1.15)" : "scale(1)",
-                                                    }}
-                                                />
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* Code Font */}
-                                    <div>
-                                        <label className="text-[10px] uppercase tracking-widest text-white/30 font-semibold block mb-2">Code Font</label>
-                                        <div className="flex gap-2 flex-wrap">
-                                            {["JetBrains Mono", "Fira Code", "Source Code Pro", "Cascadia Code"].map((font) => (
-                                                <button
-                                                    key={font}
-                                                    onClick={() => setCodeFont(font)}
-                                                    className={`px-3.5 py-2 rounded-lg text-[11px] transition-all duration-200 border cursor-pointer ${codeFont === font
-                                                            ? "bg-white/10 text-white border-white/20"
-                                                            : "bg-transparent text-white/30 border-white/[0.06] hover:text-white/50"
-                                                        }`}
-                                                    style={{ fontFamily: `"${font}", monospace` }}
-                                                >
-                                                    {font}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* Compact Mode */}
-                                    <div className="flex items-center justify-between py-3 border-t border-white/[0.04]">
+                                    <Section title="Appearance" desc="Customize the look and feel of SkillSpill">
+                                        {/* Theme Toggle — wired to actual ThemeProvider */}
                                         <div>
-                                            <p className="text-[13px] font-semibold text-white/80">Compact Mode</p>
-                                            <p className="text-[10px] text-white/30 mt-0.5">Reduce spacing for a denser layout</p>
+                                            <label className="text-[10px] uppercase tracking-widest font-semibold block mb-3" style={{ color: 'var(--theme-text-muted)' }}>Theme</label>
+                                            <div className="flex items-center gap-4 p-4 rounded-xl" style={{ background: 'var(--theme-bg)', border: '1px solid var(--theme-border)' }}>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-[20px]">☀️</span>
+                                                    <div>
+                                                        <p className="text-[13px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>
+                                                            {theme === 'light' ? 'Light Mode' : 'Dark Mode'}
+                                                        </p>
+                                                        <p className="text-[11px]" style={{ color: 'var(--theme-text-muted)' }}>
+                                                            {theme === 'light' ? 'Clean and bright interface' : 'Easy on the eyes at night'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="ml-auto">
+                                                    <ThemeToggle />
+                                                </div>
+                                            </div>
                                         </div>
-                                        <Toggle enabled={compactMode} onToggle={() => setCompactMode(!compactMode)} />
-                                    </div>
+
+                                        {/* Accent Color */}
+                                        <div>
+                                            <label className="text-[10px] uppercase tracking-widest font-semibold block mb-3" style={{ color: 'var(--theme-text-muted)' }}>Accent Color</label>
+                                            <div className="flex gap-3">
+                                                {accentOptions.map((opt) => (
+                                                    <button
+                                                        key={opt.color}
+                                                        onClick={() => setAccentColor(opt.color)}
+                                                        className="w-10 h-10 rounded-xl transition-all duration-200 cursor-pointer border-2 flex items-center justify-center"
+                                                        style={{
+                                                            background: opt.color,
+                                                            borderColor: accentColor === opt.color ? 'var(--theme-text-primary)' : 'transparent',
+                                                            boxShadow: accentColor === opt.color ? `0 4px 15px ${opt.color}50` : 'none',
+                                                            transform: accentColor === opt.color ? 'scale(1.1)' : 'scale(1)',
+                                                        }}
+                                                        title={opt.label}
+                                                    >
+                                                        {accentColor === opt.color && (
+                                                            <span className="text-white"><CheckIcon /></span>
+                                                        )}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Code Font */}
+                                        <div>
+                                            <label className="text-[10px] uppercase tracking-widest font-semibold block mb-3" style={{ color: 'var(--theme-text-muted)' }}>Code Font</label>
+                                            <div className="flex gap-2 flex-wrap">
+                                                {["JetBrains Mono", "Fira Code", "Source Code Pro", "Cascadia Code"].map((font) => (
+                                                    <button
+                                                        key={font}
+                                                        onClick={() => setCodeFont(font)}
+                                                        className="px-4 py-2.5 rounded-xl text-[12px] transition-all duration-200 cursor-pointer border-none"
+                                                        style={{
+                                                            fontFamily: `"${font}", monospace`,
+                                                            background: codeFont === font ? '#10B981' : 'var(--theme-input-bg)',
+                                                            color: codeFont === font ? '#fff' : 'var(--theme-text-secondary)',
+                                                            border: codeFont === font ? 'none' : '1px solid var(--theme-border)',
+                                                            boxShadow: codeFont === font ? '0 4px 15px rgba(16, 185, 129, 0.3)' : 'none',
+                                                        }}
+                                                    >
+                                                        {font}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <ToggleRow label="Compact Mode" desc="Reduce spacing for a denser layout" enabled={compactMode} onToggle={() => setCompactMode(!compactMode)} />
+                                    </Section>
                                 </div>
                             )}
 
-                            {/* ── Connections Settings ── */}
+                            {/* ═══ Connections ═══ */}
                             {activeTab === "connections" && (
                                 <div className="p-6 space-y-6">
-                                    <div>
-                                        <h2 className="text-base font-bold text-white mb-1">Connections</h2>
-                                        <p className="text-[11px] text-white/30">Link external accounts to SkillSpill</p>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        {/* GitHub */}
-                                        <div className="flex items-center justify-between p-4 rounded-lg border border-white/[0.06] bg-white/[0.02]">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-lg bg-white/[0.06] flex items-center justify-center">
-                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" /></svg>
+                                    <Section title="Connections" desc="Link external accounts to boost your SkillSpill profile">
+                                        <div className="space-y-3">
+                                            {/* GitHub */}
+                                            <div className="flex items-center justify-between p-4 rounded-xl" style={{ background: 'var(--theme-bg)', border: '1px solid var(--theme-border)' }}>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--theme-input-bg)' }}>
+                                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style={{ color: 'var(--theme-text-primary)' }}><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" /></svg>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[13px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>GitHub</p>
+                                                        <p className="text-[11px]" style={{ color: githubConnected ? '#10B981' : 'var(--theme-text-muted)' }}>
+                                                            {githubConnected ? "✓ Connected as ghost-protocol" : "Not connected"}
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="text-[13px] font-semibold text-white/80">GitHub</p>
-                                                    <p className="text-[10px] text-white/30">
-                                                        {githubConnected ? "Connected as ghost-protocol" : "Not connected"}
-                                                    </p>
-                                                </div>
+                                                <button
+                                                    onClick={() => setGithubConnected(!githubConnected)}
+                                                    className="px-4 py-2 rounded-xl text-[11px] font-bold cursor-pointer transition-all border-none"
+                                                    style={githubConnected
+                                                        ? { background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444' }
+                                                        : { background: '#10B981', color: '#fff', boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)' }
+                                                    }
+                                                >
+                                                    {githubConnected ? "Disconnect" : "Connect"}
+                                                </button>
                                             </div>
-                                            <button
-                                                onClick={() => setGithubConnected(!githubConnected)}
-                                                className={`px-3.5 py-1.5 rounded-lg text-[11px] font-bold border cursor-pointer transition-all ${githubConnected
-                                                        ? "bg-[#FF003C]/10 text-[#FF003C] border-[#FF003C]/20 hover:bg-[#FF003C]/20"
-                                                        : "bg-[#3CF91A] text-black border-[#3CF91A] hover:scale-[1.02]"
-                                                    }`}
-                                                style={!githubConnected ? { boxShadow: "0 0 12px #3CF91A30" } : {}}
-                                            >
-                                                {githubConnected ? "Disconnect" : "Connect"}
-                                            </button>
-                                        </div>
 
-                                        {/* LinkedIn */}
-                                        <div className="flex items-center justify-between p-4 rounded-lg border border-white/[0.06] bg-white/[0.02]">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-lg bg-[#0A66C2]/10 flex items-center justify-center">
-                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#0A66C2"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg>
+                                            {/* LinkedIn */}
+                                            <div className="flex items-center justify-between p-4 rounded-xl" style={{ background: 'var(--theme-bg)', border: '1px solid var(--theme-border)' }}>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-xl bg-[#0A66C2]/10 flex items-center justify-center">
+                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="#0A66C2"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[13px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>LinkedIn</p>
+                                                        <p className="text-[11px]" style={{ color: linkedinConnected ? '#10B981' : 'var(--theme-text-muted)' }}>
+                                                            {linkedinConnected ? "✓ Connected" : "Not connected"}
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="text-[13px] font-semibold text-white/80">LinkedIn</p>
-                                                    <p className="text-[10px] text-white/30">
-                                                        {linkedinConnected ? "Connected" : "Not connected"}
-                                                    </p>
-                                                </div>
+                                                <button
+                                                    onClick={() => setLinkedinConnected(!linkedinConnected)}
+                                                    className="px-4 py-2 rounded-xl text-[11px] font-bold cursor-pointer transition-all border-none"
+                                                    style={linkedinConnected
+                                                        ? { background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444' }
+                                                        : { background: '#10B981', color: '#fff', boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)' }
+                                                    }
+                                                >
+                                                    {linkedinConnected ? "Disconnect" : "Connect"}
+                                                </button>
                                             </div>
-                                            <button
-                                                onClick={() => setLinkedinConnected(!linkedinConnected)}
-                                                className={`px-3.5 py-1.5 rounded-lg text-[11px] font-bold border cursor-pointer transition-all ${linkedinConnected
-                                                        ? "bg-[#FF003C]/10 text-[#FF003C] border-[#FF003C]/20 hover:bg-[#FF003C]/20"
-                                                        : "bg-[#3CF91A] text-black border-[#3CF91A] hover:scale-[1.02]"
-                                                    }`}
-                                                style={!linkedinConnected ? { boxShadow: "0 0 12px #3CF91A30" } : {}}
-                                            >
-                                                {linkedinConnected ? "Disconnect" : "Connect"}
-                                            </button>
-                                        </div>
 
-                                        {/* Discord */}
-                                        <div className="flex items-center justify-between p-4 rounded-lg border border-white/[0.06] bg-white/[0.02]">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-lg bg-[#5865F2]/10 flex items-center justify-center">
-                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#5865F2"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189z" /></svg>
+                                            {/* Discord */}
+                                            <div className="flex items-center justify-between p-4 rounded-xl" style={{ background: 'var(--theme-bg)', border: '1px solid var(--theme-border)' }}>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-xl bg-[#5865F2]/10 flex items-center justify-center">
+                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="#5865F2"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189z" /></svg>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[13px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Discord</p>
+                                                        <p className="text-[11px]" style={{ color: 'var(--theme-text-muted)' }}>Not connected</p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="text-[13px] font-semibold text-white/80">Discord</p>
-                                                    <p className="text-[10px] text-white/30">Not connected</p>
-                                                </div>
+                                                <button
+                                                    className="px-4 py-2 rounded-xl text-[11px] font-bold cursor-pointer transition-all border-none text-white"
+                                                    style={{ background: '#10B981', boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)' }}
+                                                >
+                                                    Connect
+                                                </button>
                                             </div>
-                                            <button className="px-3.5 py-1.5 rounded-lg text-[11px] font-bold bg-[#3CF91A] text-black border border-[#3CF91A] cursor-pointer hover:scale-[1.02] transition-all" style={{ boxShadow: "0 0 12px #3CF91A30" }}>
-                                                Connect
-                                            </button>
                                         </div>
-                                    </div>
+                                    </Section>
                                 </div>
                             )}
                         </div>

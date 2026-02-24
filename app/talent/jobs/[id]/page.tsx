@@ -1,12 +1,12 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
-/* ═══════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    ICON COMPONENTS
-   ═══════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 function ArrowRightIcon() {
     return (
@@ -64,7 +64,7 @@ function BellIcon() {
     );
 }
 
-/* ─── Tech Stack Icons ─── */
+/* â”€â”€â”€ Tech Stack Icons â”€â”€â”€ */
 
 function GolangIcon() {
     return (
@@ -96,9 +96,9 @@ function PostgresIcon() {
     );
 }
 
-/* ═══════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    MOCK JOB DATA (extended with detail info)
-   ═══════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 interface JobDetail {
     id: number;
@@ -144,7 +144,7 @@ const jobsData: Record<string, JobDetail> = {
             { name: "kubernetes", label: "KUBERNETES" },
             { name: "postgresql", label: "POSTGRESQL" },
         ],
-        objective: `CyberDyne Systems is initiating Project "Genesis"—a global neural infrastructure overhaul. We are seeking a Lead Backend Architect to orchestrate the distributed systems that will power the next generation of autonomous networks.`,
+        objective: `CyberDyne Systems is initiating Project "Genesis"â€”a global neural infrastructure overhaul. We are seeking a Lead Backend Architect to orchestrate the distributed systems that will power the next generation of autonomous networks.`,
         objectiveDetail: `Your primary directive is to design, implement, and scale fault-tolerant services using Go and high-concurrency patterns. You will lead a strike team of 12 senior engineers across four continents, ensuring architectural integrity and sub-millisecond latency across our edge-node clusters.`,
         responsibilities: [
             {
@@ -333,9 +333,9 @@ const similarMissions = [
     { id: "s4", code: "MISSION #0589-DATA", title: "Data Integrity Lead", company: "VaultDB", salary: "$145k - $195k", tags: ["PostgreSQL", "Go"] },
 ];
 
-/* ═══════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    COMPATIBILITY RING (SVG Donut)
-   ═══════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 function CompatibilityRing({ percent }: { percent: number }) {
     const radius = 50;
@@ -373,9 +373,9 @@ function CompatibilityRing({ percent }: { percent: number }) {
     );
 }
 
-/* ═══════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    TECH STACK ICON CARD
-   ═══════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 function TechIconCard({ label, index }: { label: string; index: number }) {
     const icons = [<GolangIcon key={0} />, <KubernetesIcon key={1} />, <PostgresIcon key={2} />];
@@ -406,9 +406,9 @@ function TechIconCard({ label, index }: { label: string; index: number }) {
     );
 }
 
-/* ═══════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    JOB DETAIL PAGE COMPONENT
-   ═══════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 export default function JobDetailPage() {
     const params = useParams();
@@ -445,9 +445,9 @@ export default function JobDetailPage() {
     return (
         <div className="min-h-full bg-[#050505]">
 
-            {/* ═══════════════════════════════════════════
+            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                 TOP NAV BAR
-               ═══════════════════════════════════════════ */}
+               â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
             <div className="border-b border-white/[0.06] bg-[#0A0A0A]/80 backdrop-blur-xl sticky top-0 z-30">
                 <div className="max-w-[1400px] mx-auto px-6">
                     <div className="flex items-center h-12 gap-6">
@@ -477,7 +477,7 @@ export default function JobDetailPage() {
                             <input
                                 type="text"
                                 placeholder="Search..."
-                                className="w-[200px] pl-9 pr-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[11px] text-white placeholder-white/20 focus:border-[#3CF91A]/30 focus:outline-none transition-colors"
+                                className="w-[200px] pl-9 pr-3 py-1.5 rounded-lg bg-[var(--theme-card)]/[0.04] border border-white/[0.06] text-[11px] text-white placeholder-white/20 focus:border-[#3CF91A]/30 focus:outline-none transition-colors"
                                 style={{ fontFamily: "var(--font-jetbrains-mono)" }}
                             />
                         </div>
@@ -505,9 +505,9 @@ export default function JobDetailPage() {
                 </div>
             </div>
 
-            {/* ═══════════════════════════════════════════
+            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                 HERO BANNER
-               ═══════════════════════════════════════════ */}
+               â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
             <div className="relative overflow-hidden">
                 {/* Background gradient/pattern */}
                 <div
@@ -599,9 +599,9 @@ export default function JobDetailPage() {
                 </div>
             </div>
 
-            {/* ═══════════════════════════════════════════
+            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                 TAB NAVIGATION
-               ═══════════════════════════════════════════ */}
+               â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
             <div className="border-b border-white/[0.06] bg-[#050505] sticky top-12 z-20">
                 <div className="max-w-[1400px] mx-auto px-6">
                     <div className="flex items-center gap-1 overflow-x-auto">
@@ -631,16 +631,16 @@ export default function JobDetailPage() {
                 </div>
             </div>
 
-            {/* ═══════════════════════════════════════════
+            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                 MAIN CONTENT AREA
-               ═══════════════════════════════════════════ */}
+               â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
             <div className="max-w-[1400px] mx-auto px-6 py-8">
                 <div className="flex flex-col lg:flex-row gap-6">
 
-                    {/* ──────── LEFT COLUMN ──────── */}
+                    {/* â”€â”€â”€â”€â”€â”€â”€â”€ LEFT COLUMN â”€â”€â”€â”€â”€â”€â”€â”€ */}
                     <div className="flex-1 min-w-0 space-y-6">
 
-                        {/* ── Mission Objective ── */}
+                        {/* â”€â”€ Mission Objective â”€â”€ */}
                         <div className="rounded-xl border border-white/[0.06] bg-[#0A0A0A] p-6">
                             <div className="flex items-center gap-2.5 mb-4">
                                 <TerminalIcon />
@@ -659,7 +659,7 @@ export default function JobDetailPage() {
                             </p>
                         </div>
 
-                        {/* ── The Tech Stack ── */}
+                        {/* â”€â”€ The Tech Stack â”€â”€ */}
                         <div className="rounded-xl border border-white/[0.06] bg-[#0A0A0A] p-6">
                             <h2
                                 className="text-[11px] font-bold uppercase tracking-[2px] text-[#3CF91A] mb-6"
@@ -677,12 +677,12 @@ export default function JobDetailPage() {
                             {/* Carousel dots */}
                             <div className="flex items-center justify-center gap-2 mt-5">
                                 <span className="w-2 h-2 rounded-full bg-[#3CF91A]" style={{ boxShadow: "0 0 6px #3CF91A80" }} />
-                                <span className="w-2 h-2 rounded-full bg-white/10" />
-                                <span className="w-2 h-2 rounded-full bg-white/10" />
+                                <span className="w-2 h-2 rounded-full bg-[var(--theme-card)]/10" />
+                                <span className="w-2 h-2 rounded-full bg-[var(--theme-card)]/10" />
                             </div>
                         </div>
 
-                        {/* ── Key Responsibilities ── */}
+                        {/* â”€â”€ Key Responsibilities â”€â”€ */}
                         <div className="rounded-xl border border-white/[0.06] bg-[#0A0A0A] p-6">
                             <h2
                                 className="text-[11px] font-bold uppercase tracking-[2px] text-white/40 mb-5"
@@ -728,10 +728,10 @@ export default function JobDetailPage() {
                         </div>
                     </div>
 
-                    {/* ──────── RIGHT COLUMN (Sidebar) ──────── */}
+                    {/* â”€â”€â”€â”€â”€â”€â”€â”€ RIGHT COLUMN (Sidebar) â”€â”€â”€â”€â”€â”€â”€â”€ */}
                     <div className="w-full lg:w-[320px] shrink-0 space-y-5">
 
-                        {/* ── The Reward ── */}
+                        {/* â”€â”€ The Reward â”€â”€ */}
                         <div className="rounded-xl border border-white/[0.06] bg-[#0A0A0A] overflow-hidden">
                             <div className="px-5 py-3.5 border-b border-white/[0.04]">
                                 <h3
@@ -752,7 +752,7 @@ export default function JobDetailPage() {
                                         style={{ fontFamily: "var(--font-jetbrains-mono)" }}
                                     >
                                         {formatCurrency(job.salaryMin)}
-                                        <span className="text-white/20 mx-2">—</span>
+                                        <span className="text-white/20 mx-2">â€”</span>
                                         {formatCurrency(job.salaryMax)}
                                     </p>
                                 </div>
@@ -767,7 +767,7 @@ export default function JobDetailPage() {
                                         style={{ fontFamily: "var(--font-jetbrains-mono)" }}
                                     >
                                         {job.equityMin}
-                                        <span className="text-white/20 mx-2">—</span>
+                                        <span className="text-white/20 mx-2">â€”</span>
                                         {job.equityMax}
                                     </p>
                                 </div>
@@ -801,7 +801,7 @@ export default function JobDetailPage() {
                             </div>
                         </div>
 
-                        {/* ── Your Compatibility ── */}
+                        {/* â”€â”€ Your Compatibility â”€â”€ */}
                         <div className="rounded-xl border border-white/[0.06] bg-[#0A0A0A] overflow-hidden">
                             <div className="px-5 py-3.5 border-b border-white/[0.04]">
                                 <h3
@@ -834,7 +834,7 @@ export default function JobDetailPage() {
                             </div>
                         </div>
 
-                        {/* ── Team Insights ── */}
+                        {/* â”€â”€ Team Insights â”€â”€ */}
                         <div className="rounded-xl border border-white/[0.06] bg-[#0A0A0A] overflow-hidden">
                             <div className="px-5 py-3.5 border-b border-white/[0.04]">
                                 <h3
@@ -882,9 +882,9 @@ export default function JobDetailPage() {
                 </div>
             </div>
 
-            {/* ═══════════════════════════════════════════
+            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                 SIMILAR MISSIONS SECTION
-               ═══════════════════════════════════════════ */}
+               â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
             <div className="border-t border-white/[0.06] bg-[#050505]">
                 <div className="max-w-[1400px] mx-auto px-6 py-10">
                     <div className="flex items-center justify-between mb-6">
@@ -896,7 +896,7 @@ export default function JobDetailPage() {
                         </h2>
                         <div className="flex items-center gap-2">
                             <button
-                                className="w-8 h-8 rounded-full flex items-center justify-center border border-white/[0.1] bg-white/[0.03] text-white/30 hover:text-white/60 hover:border-white/20 transition-all cursor-pointer"
+                                className="w-8 h-8 rounded-full flex items-center justify-center border border-white/[0.1] bg-[var(--theme-card)]/[0.03] text-white/30 hover:text-white/60 hover:border-white/20 transition-all cursor-pointer"
                             >
                                 <ChevronLeftIcon />
                             </button>
@@ -951,9 +951,9 @@ export default function JobDetailPage() {
                 </div>
             </div>
 
-            {/* ═══════════════════════════════════════════
+            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                 FOOTER
-               ═══════════════════════════════════════════ */}
+               â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
             <footer className="border-t border-white/[0.06] bg-[#050505]">
                 <div className="max-w-[1400px] mx-auto px-6 py-5">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -963,7 +963,7 @@ export default function JobDetailPage() {
                                 className="text-[9px] text-white/20 uppercase tracking-[2px]"
                                 style={{ fontFamily: "var(--font-jetbrains-mono)" }}
                             >
-                                SKILLSPILL © 2077
+                                SKILLSPILL Â© 2077
                             </span>
                         </div>
                         <div className="flex items-center gap-6">

@@ -1,11 +1,11 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
 
-/* ═══════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    SVG Icon Components
-   ═══════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 function SearchIcon() {
     return (
@@ -64,29 +64,29 @@ function CheckIcon() {
     );
 }
 
-/* ═══════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    Mission / Job Icon Avatars (colored abstract icons)
-   ═══════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 function MissionIcon({ variant }: { variant: number }) {
     const icons = [
-        // Lightning bolt — green
+        // Lightning bolt â€” green
         <svg key="0" width="24" height="24" viewBox="0 0 24 24" fill="none">
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="#3CF91A" stroke="#3CF91A" strokeWidth="0.5" />
         </svg>,
-        // Shield — blue
+        // Shield â€” blue
         <svg key="1" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00D2FF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
         </svg>,
-        // DNA — purple
+        // DNA â€” purple
         <svg key="2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#A855F7" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M2 15c6.667-6 13.333 0 20-6" /><path d="M9 22c1.798-1.998 2.518-3.995 2.807-5.993" /><path d="M15 2c-1.798 1.998-2.518 3.995-2.807 5.993" /><path d="M2 9c6.667 6 13.333 0 20 6" />
         </svg>,
-        // Globe — cyan
+        // Globe â€” cyan
         <svg key="3" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00D2FF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
         </svg>,
-        // Rocket — orange
+        // Rocket â€” orange
         <svg key="4" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FF9F43" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" /><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" /><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" /><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
         </svg>,
@@ -94,9 +94,9 @@ function MissionIcon({ variant }: { variant: number }) {
     return icons[variant % icons.length];
 }
 
-/* ═══════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    Toggle Switch  (reusable)
-   ═══════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 function Toggle({ enabled, onToggle, label }: { enabled: boolean; onToggle: () => void; label?: string }) {
     return (
@@ -117,11 +117,11 @@ function Toggle({ enabled, onToggle, label }: { enabled: boolean; onToggle: () =
                 </span>
             )}
             <span
-                className={`relative w-11 h-6 rounded-full transition-all duration-300 ${enabled ? "bg-[#3CF91A]" : "bg-white/10"}`}
+                className={`relative w-11 h-6 rounded-full transition-all duration-300 ${enabled ? "bg-[#3CF91A]" : "bg-[var(--theme-card)]/10"}`}
                 style={enabled ? { boxShadow: "0 0 14px #3CF91A50" } : {}}
             >
                 <span
-                    className="absolute top-[3px] w-[18px] h-[18px] rounded-full bg-white transition-all duration-300"
+                    className="absolute top-[3px] w-[18px] h-[18px] rounded-full bg-[var(--theme-card)] transition-all duration-300"
                     style={{
                         left: enabled ? "23px" : "3px",
                         boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
@@ -132,9 +132,9 @@ function Toggle({ enabled, onToggle, label }: { enabled: boolean; onToggle: () =
     );
 }
 
-/* ═══════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    Custom Checkbox
-   ═══════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 function Checkbox({ checked, onChange, label }: { checked: boolean; onChange: () => void; label: string }) {
     return (
@@ -158,9 +158,9 @@ function Checkbox({ checked, onChange, label }: { checked: boolean; onChange: ()
     );
 }
 
-/* ═══════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    Mock Job Data
-   ═══════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 interface Job {
     id: number;
@@ -221,12 +221,12 @@ const allJobs: Job[] = [
 
 const techStackOptions = ["Rust", "Solidity", "Go", "WASM", "Python", "C++", "K8s", "PyTorch", "Terraform"];
 
-/* ═══════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    JOBS PAGE COMPONENT
-   ═══════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 export default function JobsPage() {
-    /* ── State ── */
+    /* â”€â”€ State â”€â”€ */
     const [searchQuery, setSearchQuery] = useState("");
     const [skillMatch, setSkillMatch] = useState(true);
     const [viewMode, setViewMode] = useState<"grid" | "list">("list");
@@ -241,7 +241,7 @@ export default function JobsPage() {
     const [salaryRange, setSalaryRange] = useState([120, 280]);
     const [remoteStatus, setRemoteStatus] = useState("all");
 
-    /* ── Handlers ── */
+    /* â”€â”€ Handlers â”€â”€ */
     const toggleBountyType = (key: keyof typeof bountyTypes) => {
         setBountyTypes((prev) => ({ ...prev, [key]: !prev[key] }));
     };
@@ -252,7 +252,7 @@ export default function JobsPage() {
         );
     };
 
-    /* ── Filtered Jobs ── */
+    /* â”€â”€ Filtered Jobs â”€â”€ */
     const filteredJobs = useMemo(() => {
         return allJobs.filter((job) => {
             // Search
@@ -290,9 +290,9 @@ export default function JobsPage() {
 
     return (
         <div className="min-h-full bg-[#050505]">
-            {/* ═══════════════════════════════════════
+            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                 Top Search / Action Bar
-               ═══════════════════════════════════════ */}
+               â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
             <div className="border-b border-white/[0.06] bg-[#0A0A0A]/60 backdrop-blur-sm">
                 <div className="max-w-[1400px] mx-auto px-6 py-4">
                     <div className="flex items-center gap-4">
@@ -306,7 +306,7 @@ export default function JobsPage() {
                                 placeholder="Search mission IDs, tech stacks, or companies..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-[13px] text-white placeholder-white/25 focus:border-[#3CF91A]/30 focus:outline-none transition-all duration-200"
+                                className="w-full pl-11 pr-4 py-3 rounded-xl bg-[var(--theme-card)]/[0.04] border border-white/[0.08] text-[13px] text-white placeholder-white/25 focus:border-[#3CF91A]/30 focus:outline-none transition-all duration-200"
                                 style={{ fontFamily: "var(--font-space-grotesk)" }}
                             />
                         </div>
@@ -315,7 +315,7 @@ export default function JobsPage() {
                         <Toggle enabled={skillMatch} onToggle={() => setSkillMatch(!skillMatch)} label="Skill Match" />
 
                         {/* Notification Bell */}
-                        <button className="relative p-2.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-white/40 hover:text-white/70 hover:bg-white/[0.06] transition-all duration-200 cursor-pointer">
+                        <button className="relative p-2.5 rounded-lg bg-[var(--theme-card)]/[0.04] border border-white/[0.06] text-white/40 hover:text-white/70 hover:bg-[var(--theme-card)]/[0.06] transition-all duration-200 cursor-pointer">
                             <BellIcon />
                             {/* Notification dot */}
                             <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#3CF91A]" />
@@ -324,15 +324,15 @@ export default function JobsPage() {
                 </div>
             </div>
 
-            {/* ═══════════════════════════════════════
+            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                 Main Content
-               ═══════════════════════════════════════ */}
+               â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
             <div className="max-w-[1400px] mx-auto px-6 py-6">
                 <div className="flex flex-col lg:flex-row gap-6">
 
-                    {/* ──────────────────────────────
+                    {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                         LEFT: Filters Panel
-                       ────────────────────────────── */}
+                       â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
                     <div className="w-full lg:w-[240px] shrink-0">
                         {/* Filters Header */}
                         <div className="flex items-center gap-2 mb-5">
@@ -346,7 +346,7 @@ export default function JobsPage() {
                         </div>
 
                         <div className="space-y-6">
-                            {/* ── Bounty Type ── */}
+                            {/* â”€â”€ Bounty Type â”€â”€ */}
                             <div>
                                 <h3
                                     className="text-[12px] font-bold text-white/70 mb-3"
@@ -373,7 +373,7 @@ export default function JobsPage() {
                                 </div>
                             </div>
 
-                            {/* ── Tech Stack ── */}
+                            {/* â”€â”€ Tech Stack â”€â”€ */}
                             <div>
                                 <h3
                                     className="text-[12px] font-bold text-white/70 mb-3"
@@ -403,7 +403,7 @@ export default function JobsPage() {
                                 </div>
                             </div>
 
-                            {/* ── Comp. Range (USD) ── */}
+                            {/* â”€â”€ Comp. Range (USD) â”€â”€ */}
                             <div>
                                 <h3
                                     className="text-[12px] font-bold text-white/70 mb-3"
@@ -447,7 +447,7 @@ export default function JobsPage() {
                                 </div>
                             </div>
 
-                            {/* ── Remote Status ── */}
+                            {/* â”€â”€ Remote Status â”€â”€ */}
                             <div>
                                 <h3
                                     className="text-[12px] font-bold text-white/70 mb-3"
@@ -459,7 +459,7 @@ export default function JobsPage() {
                                     <select
                                         value={remoteStatus}
                                         onChange={(e) => setRemoteStatus(e.target.value)}
-                                        className="w-full px-3.5 py-2.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-[12px] text-white/60 appearance-none focus:border-[#3CF91A]/30 focus:outline-none transition-colors cursor-pointer"
+                                        className="w-full px-3.5 py-2.5 rounded-lg bg-[var(--theme-card)]/[0.04] border border-white/[0.08] text-[12px] text-white/60 appearance-none focus:border-[#3CF91A]/30 focus:outline-none transition-colors cursor-pointer"
                                         style={{ fontFamily: "var(--font-space-grotesk)" }}
                                     >
                                         <option value="all">Remote (Interstellar)</option>
@@ -474,9 +474,9 @@ export default function JobsPage() {
                         </div>
                     </div>
 
-                    {/* ──────────────────────────────
+                    {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                         RIGHT: Job Listings
-                       ────────────────────────────── */}
+                       â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
                     <div className="flex-1 min-w-0">
                         {/* Header */}
                         <div className="flex items-center justify-between mb-5">
@@ -496,10 +496,10 @@ export default function JobsPage() {
                             </div>
 
                             {/* View Mode Toggle */}
-                            <div className="flex items-center gap-1 p-1 rounded-lg bg-white/[0.04] border border-white/[0.06]">
+                            <div className="flex items-center gap-1 p-1 rounded-lg bg-[var(--theme-card)]/[0.04] border border-white/[0.06]">
                                 <button
                                     onClick={() => setViewMode("grid")}
-                                    className={`p-1.5 rounded-md transition-all duration-200 cursor-pointer border-none ${viewMode === "grid" ? "bg-white/[0.08]" : "bg-transparent"
+                                    className={`p-1.5 rounded-md transition-all duration-200 cursor-pointer border-none ${viewMode === "grid" ? "bg-[var(--theme-card)]/[0.08]" : "bg-transparent"
                                         }`}
                                     style={{ color: viewMode === "grid" ? "#3CF91A" : "rgba(255,255,255,0.3)" }}
                                 >
@@ -507,7 +507,7 @@ export default function JobsPage() {
                                 </button>
                                 <button
                                     onClick={() => setViewMode("list")}
-                                    className={`p-1.5 rounded-md transition-all duration-200 cursor-pointer border-none ${viewMode === "list" ? "bg-white/[0.08]" : "bg-transparent"
+                                    className={`p-1.5 rounded-md transition-all duration-200 cursor-pointer border-none ${viewMode === "list" ? "bg-[var(--theme-card)]/[0.08]" : "bg-transparent"
                                         }`}
                                     style={{ color: viewMode === "list" ? "#3CF91A" : "rgba(255,255,255,0.3)" }}
                                 >
@@ -559,7 +559,7 @@ export default function JobsPage() {
                                                         {job.title}
                                                     </h3>
                                                     <p className="text-[11px] text-white/35 mt-0.5">
-                                                        {job.company} • {job.location}
+                                                        {job.company} â€¢ {job.location}
                                                     </p>
 
                                                     {/* Tags */}
@@ -612,7 +612,7 @@ export default function JobsPage() {
                             {/* Empty State */}
                             {filteredJobs.length === 0 && (
                                 <div className="flex flex-col items-center justify-center py-16 text-center">
-                                    <div className="w-16 h-16 rounded-2xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mb-4">
+                                    <div className="w-16 h-16 rounded-2xl bg-[var(--theme-card)]/[0.04] border border-white/[0.06] flex items-center justify-center mb-4">
                                         <SearchIcon />
                                     </div>
                                     <p className="text-[14px] font-semibold text-white/50 mb-1">No missions found</p>
@@ -624,9 +624,9 @@ export default function JobsPage() {
                 </div>
             </div>
 
-            {/* ═══════════════════════════════════════
+            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                 Custom styles for range input
-               ═══════════════════════════════════════ */}
+               â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
             <style jsx>{`
                 input[type="range"]::-webkit-slider-thumb {
                     -webkit-appearance: none;

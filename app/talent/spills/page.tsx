@@ -1,24 +1,24 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import Link from "next/link";
 
-/* ═══════════════════════════════════════════════
-   S K I L L S P I L L  —  M Y  S P I L L S
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   S K I L L S P I L L  â€”  M Y  S P I L L S
    Talent spills management page
-   ═══════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
-/* ── Mock Data ── */
+/* â”€â”€ Mock Data â”€â”€ */
 const mySpills = [
     {
         id: 1,
-        content: "Just shipped a recursive search optimizer in Rust — 24% latency reduction using zero-cost abstractions. Sometimes the compiler really is your best friend. ⚡",
+        content: "Just shipped a recursive search optimizer in Rust â€” 24% latency reduction using zero-cost abstractions. Sometimes the compiler really is your best friend. âš¡",
         code: `fn optimized_search<T: PartialEq>(data: &[T], query: &T) -> Option<usize> {
     data.iter().position(|item| item == query)
 }
 
 // Benchmark: 0.8ms avg on 1M items
-// Previous: 1.05ms — 24% improvement`,
+// Previous: 1.05ms â€” 24% improvement`,
         codeLang: "rust",
         tags: ["Rust", "Performance", "Algorithms"],
         likes: 128,
@@ -50,7 +50,7 @@ const mySpills = [
     },
     {
         id: 3,
-        content: "Hot take: TypeScript's type system is basically a functional programming language that generates JavaScript as a side effect. Change my mind. 🤯",
+        content: "Hot take: TypeScript's type system is basically a functional programming language that generates JavaScript as a side effect. Change my mind. ðŸ¤¯",
         code: null,
         codeLang: null,
         tags: ["TypeScript", "Opinion"],
@@ -63,7 +63,7 @@ const mySpills = [
     },
     {
         id: 4,
-        content: "Working on a new algorithm for distributed consensus in edge computing environments. Early results are promising — 60% reduction in message rounds.",
+        content: "Working on a new algorithm for distributed consensus in edge computing environments. Early results are promising â€” 60% reduction in message rounds.",
         code: null,
         codeLang: null,
         tags: ["Distributed Systems", "Research"],
@@ -115,14 +115,14 @@ export default function TalentSpillsPage() {
             : mySpills.filter(s => s.status === "draft");
 
     return (
-        <div className="min-h-full bg-[#F5F5F7]">
+        <div style={{ background: "var(--theme-bg)" }} className="min-h-full">
             <div className="max-w-[800px] mx-auto px-4 sm:px-6 py-5 pb-20 lg:pb-8">
 
-                {/* ════════ HEADER ════════ */}
+                {/* â•â•â•â•â•â•â•â• HEADER â•â•â•â•â•â•â•â• */}
                 <div className="flex items-center justify-between mb-5">
                     <div>
-                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">My Spills</h1>
-                        <p className="text-[12px] text-gray-400 mt-0.5">Manage and create your code spills</p>
+                        <h1 className="text-xl sm:text-2xl font-bold text-[var(--theme-text-primary)]">My Spills</h1>
+                        <p className="text-[12px] text-[var(--theme-text-muted)] mt-0.5">Manage and create your code spills</p>
                     </div>
                     <button
                         onClick={() => setComposerOpen(!composerOpen)}
@@ -134,14 +134,14 @@ export default function TalentSpillsPage() {
                     </button>
                 </div>
 
-                {/* ════════ COMPOSER (expandable) ════════ */}
+                {/* â•â•â•â•â•â•â•â• COMPOSER (expandable) â•â•â•â•â•â•â•â• */}
                 {composerOpen && (
-                    <div className="rounded-2xl border border-gray-200 bg-white shadow-sm p-4 sm:p-5 mb-5 animate-in">
+                    <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5 mb-5 animate-in">
                         <div className="flex items-center gap-3 mb-3">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white text-[11px] font-bold shrink-0">GP</div>
                             <div>
-                                <p className="text-[13px] font-bold text-gray-800">Ghost_Protocol</p>
-                                <p className="text-[10px] text-gray-400">Public spill to your followers</p>
+                                <p className="text-[13px] font-bold text-[var(--theme-text-primary)]">Ghost_Protocol</p>
+                                <p className="text-[10px] text-[var(--theme-text-muted)]">Public spill to your followers</p>
                             </div>
                         </div>
 
@@ -149,7 +149,7 @@ export default function TalentSpillsPage() {
                             value={composerText}
                             onChange={e => setComposerText(e.target.value)}
                             placeholder="What did you build today? Share your code, insights, or hot takes..."
-                            className="w-full min-h-[100px] p-3 rounded-xl bg-gray-50 border border-gray-200 text-[13px] text-gray-700 placeholder:text-gray-400 resize-none outline-none focus:border-emerald-300 focus:ring-2 focus:ring-emerald-50 transition-all"
+                            className="w-full min-h-[100px] p-3 rounded-xl bg-[var(--theme-bg-secondary)] border border-[var(--theme-border)] text-[13px] text-[var(--theme-text-secondary)] placeholder:text-[var(--theme-text-muted)] resize-none outline-none focus:border-emerald-300 focus:ring-2 focus:ring-emerald-50 transition-all"
                         />
 
                         {showCode && (
@@ -157,29 +157,29 @@ export default function TalentSpillsPage() {
                                 value={composerCode}
                                 onChange={e => setComposerCode(e.target.value)}
                                 placeholder="Paste your code snippet here..."
-                                className="w-full min-h-[120px] p-3 mt-2 rounded-xl bg-gray-900 border border-gray-700 text-[12px] text-green-400 placeholder:text-gray-600 font-mono resize-none outline-none focus:border-emerald-500 transition-all"
+                                className="w-full min-h-[120px] p-3 mt-2 rounded-xl bg-gray-900 border border-gray-700 text-[12px] text-green-400 placeholder:text-[var(--theme-text-tertiary)] font-mono resize-none outline-none focus:border-emerald-500 transition-all"
                             />
                         )}
 
-                        <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <div className="flex items-center justify-between mt-3 pt-3 border-t border-[var(--theme-border-light)]">
                             <div className="flex items-center gap-2">
                                 <button onClick={() => setShowCode(!showCode)}
                                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium border cursor-pointer transition-all
-                                        ${showCode ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-white border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50"}`}>
+                                        ${showCode ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-[var(--theme-card)] border-[var(--theme-border)] text-[var(--theme-text-muted)] hover:text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-secondary)]"}`}>
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg>
                                     Code
                                 </button>
-                                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium border border-gray-200 bg-white text-gray-500 hover:text-gray-700 hover:bg-gray-50 cursor-pointer transition-all">
+                                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium border border-[var(--theme-border)] bg-[var(--theme-card)] text-[var(--theme-text-muted)] hover:text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-secondary)] cursor-pointer transition-all">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
                                     Image
                                 </button>
-                                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium border border-gray-200 bg-white text-gray-500 hover:text-gray-700 hover:bg-gray-50 cursor-pointer transition-all">
+                                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium border border-[var(--theme-border)] bg-[var(--theme-card)] text-[var(--theme-text-muted)] hover:text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-secondary)] cursor-pointer transition-all">
                                     #
                                     Tags
                                 </button>
                             </div>
                             <div className="flex gap-2">
-                                <button className="px-3 py-1.5 rounded-lg text-[11px] font-medium border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 cursor-pointer transition-all">
+                                <button className="px-3 py-1.5 rounded-lg text-[11px] font-medium border border-[var(--theme-border)] bg-[var(--theme-card)] text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg-secondary)] cursor-pointer transition-all">
                                     Save Draft
                                 </button>
                                 <button className="px-4 py-1.5 rounded-lg text-[11px] font-bold border-none cursor-pointer text-black transition-all hover:scale-105"
@@ -191,33 +191,33 @@ export default function TalentSpillsPage() {
                     </div>
                 )}
 
-                {/* ════════ STATS OVERVIEW ════════ */}
+                {/* â•â•â•â•â•â•â•â• STATS OVERVIEW â•â•â•â•â•â•â•â• */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
                     {[
-                        { label: "Total Spills", value: statsOverview.totalSpills, icon: "📝" },
-                        { label: "Total Views", value: statsOverview.totalViews.toLocaleString(), icon: "👁" },
-                        { label: "Total Likes", value: statsOverview.totalLikes.toLocaleString(), icon: "❤️" },
-                        { label: "Engagement", value: statsOverview.avgEngagement, icon: "📊" },
+                        { label: "Total Spills", value: statsOverview.totalSpills, icon: "ðŸ“" },
+                        { label: "Total Views", value: statsOverview.totalViews.toLocaleString(), icon: "ðŸ‘" },
+                        { label: "Total Likes", value: statsOverview.totalLikes.toLocaleString(), icon: "â¤ï¸" },
+                        { label: "Engagement", value: statsOverview.avgEngagement, icon: "ðŸ“Š" },
                     ].map(stat => (
-                        <div key={stat.label} className="rounded-2xl border border-gray-200 bg-white shadow-sm p-3 sm:p-4 text-center">
+                        <div key={stat.label} className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-3 sm:p-4 text-center">
                             <p className="text-lg">{stat.icon}</p>
-                            <p className="text-base sm:text-lg font-bold text-gray-800 mt-1">{stat.value}</p>
-                            <p className="text-[9px] text-gray-400 uppercase tracking-wider">{stat.label}</p>
+                            <p className="text-base sm:text-lg font-bold text-[var(--theme-text-primary)] mt-1">{stat.value}</p>
+                            <p className="text-[9px] text-[var(--theme-text-muted)] uppercase tracking-wider">{stat.label}</p>
                         </div>
                     ))}
                 </div>
 
-                {/* ════════ FILTER TABS ════════ */}
-                <div className="flex gap-0 border-b border-gray-200 mb-4">
+                {/* â•â•â•â•â•â•â•â• FILTER TABS â•â•â•â•â•â•â•â• */}
+                <div className="flex gap-0 border-b border-[var(--theme-border)] mb-4">
                     {filters.map(filter => {
                         const count = filter === "All" ? mySpills.length : filter === "Published" ? mySpills.filter(s => s.status === "published").length : mySpills.filter(s => s.status === "draft").length;
                         return (
                             <button key={filter} onClick={() => setActiveFilter(filter)}
                                 className={`px-4 sm:px-5 py-2.5 text-[12px] font-semibold border-b-2 transition-all cursor-pointer bg-transparent flex items-center gap-1.5
-                                    ${activeFilter === filter ? "border-emerald-500 text-emerald-600" : "border-transparent text-gray-400 hover:text-gray-600"}`}>
+                                    ${activeFilter === filter ? "border-emerald-500 text-emerald-600" : "border-transparent text-[var(--theme-text-muted)] hover:text-[var(--theme-text-tertiary)]"}`}>
                                 {filter}
                                 <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold
-                                    ${activeFilter === filter ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
+                                    ${activeFilter === filter ? "bg-emerald-100 text-emerald-700" : "bg-[var(--theme-input-bg)] text-[var(--theme-text-muted)]"}`}>
                                     {count}
                                 </span>
                             </button>
@@ -225,11 +225,11 @@ export default function TalentSpillsPage() {
                     })}
                 </div>
 
-                {/* ════════ SPILLS LIST ════════ */}
+                {/* â•â•â•â•â•â•â•â• SPILLS LIST â•â•â•â•â•â•â•â• */}
                 <div className="space-y-4">
                     {filteredSpills.map(spill => (
-                        <article key={spill.id} className={`rounded-2xl border bg-white shadow-sm overflow-hidden transition-all hover:shadow-md
-                            ${spill.status === "draft" ? "border-dashed border-amber-300" : "border-gray-200"}`}>
+                        <article key={spill.id} className={`rounded-2xl border bg-[var(--theme-card)] shadow-sm overflow-hidden transition-all hover:shadow-md
+                            ${spill.status === "draft" ? "border-dashed border-amber-300" : "border-[var(--theme-border)]"}`}>
 
                             {/* Draft badge */}
                             {spill.status === "draft" && (
@@ -239,7 +239,7 @@ export default function TalentSpillsPage() {
                                         DRAFT
                                     </span>
                                     <button className="text-[10px] font-medium text-amber-600 hover:text-amber-800 cursor-pointer bg-transparent border-none">
-                                        Continue Editing →
+                                        Continue Editing â†’
                                     </button>
                                 </div>
                             )}
@@ -250,8 +250,8 @@ export default function TalentSpillsPage() {
                                     <div className="flex items-center gap-3">
                                         <div className="w-9 h-9 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white text-[10px] font-bold">GP</div>
                                         <div>
-                                            <p className="text-[13px] font-bold text-gray-800">Ghost_Protocol</p>
-                                            <p className="text-[10px] text-gray-400">{spill.time}</p>
+                                            <p className="text-[13px] font-bold text-[var(--theme-text-primary)]">Ghost_Protocol</p>
+                                            <p className="text-[10px] text-[var(--theme-text-muted)]">{spill.time}</p>
                                         </div>
                                     </div>
 
@@ -260,21 +260,21 @@ export default function TalentSpillsPage() {
                                         {spill.status === "published" && (
                                             <span className="text-[9px] font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 hidden sm:inline-block">Published</span>
                                         )}
-                                        <button className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 cursor-pointer bg-transparent border-none transition-all">
+                                        <button className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--theme-text-muted)] hover:text-[var(--theme-text-secondary)] hover:bg-[var(--theme-input-bg)] cursor-pointer bg-transparent border-none transition-all">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" /></svg>
                                         </button>
                                     </div>
                                 </div>
 
                                 {/* Content */}
-                                <p className="text-[13px] text-gray-700 leading-relaxed mb-3">{spill.content}</p>
+                                <p className="text-[13px] text-[var(--theme-text-secondary)] leading-relaxed mb-3">{spill.content}</p>
 
                                 {/* Code block */}
                                 {spill.code && (
                                     <div className="rounded-xl bg-[#0D1117] border border-gray-800 overflow-hidden mb-3">
                                         <div className="flex items-center justify-between px-3 py-1.5 bg-[#161B22] border-b border-gray-800">
-                                            <span className="text-[10px] text-gray-500 font-mono">{spill.codeLang}</span>
-                                            <button className="text-[9px] text-gray-500 hover:text-gray-300 cursor-pointer bg-transparent border-none transition-colors">
+                                            <span className="text-[10px] text-[var(--theme-text-muted)] font-mono">{spill.codeLang}</span>
+                                            <button className="text-[9px] text-[var(--theme-text-muted)] hover:text-gray-300 cursor-pointer bg-transparent border-none transition-colors">
                                                 Copy
                                             </button>
                                         </div>
@@ -293,8 +293,8 @@ export default function TalentSpillsPage() {
 
                                 {/* Stats */}
                                 {spill.status === "published" && (
-                                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                                        <div className="flex items-center gap-4 sm:gap-5 text-[11px] text-gray-400">
+                                    <div className="flex items-center justify-between pt-3 border-t border-[var(--theme-border-light)]">
+                                        <div className="flex items-center gap-4 sm:gap-5 text-[11px] text-[var(--theme-text-muted)]">
                                             <span className="flex items-center gap-1">
                                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
                                                 {spill.likes}
@@ -313,12 +313,12 @@ export default function TalentSpillsPage() {
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-1.5">
-                                            <button className="text-[10px] font-medium text-gray-400 hover:text-emerald-600 cursor-pointer bg-transparent border-none transition-colors flex items-center gap-1">
+                                            <button className="text-[10px] font-medium text-[var(--theme-text-muted)] hover:text-emerald-600 cursor-pointer bg-transparent border-none transition-colors flex items-center gap-1">
                                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
                                                 Edit
                                             </button>
-                                            <span className="text-gray-200">·</span>
-                                            <button className="text-[10px] font-medium text-gray-400 hover:text-red-500 cursor-pointer bg-transparent border-none transition-colors flex items-center gap-1">
+                                            <span className="text-gray-200">Â·</span>
+                                            <button className="text-[10px] font-medium text-[var(--theme-text-muted)] hover:text-red-500 cursor-pointer bg-transparent border-none transition-colors flex items-center gap-1">
                                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
                                                 Delete
                                             </button>
@@ -328,15 +328,15 @@ export default function TalentSpillsPage() {
 
                                 {/* Draft actions */}
                                 {spill.status === "draft" && (
-                                    <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
+                                    <div className="flex items-center gap-2 pt-3 border-t border-[var(--theme-border-light)]">
                                         <button className="flex-1 sm:flex-none px-4 py-2 rounded-xl text-[11px] font-bold border-none cursor-pointer text-black transition-all hover:scale-105"
                                             style={{ background: accent }}>
                                             Publish Now
                                         </button>
-                                        <button className="px-4 py-2 rounded-xl text-[11px] font-medium border border-gray-200 bg-white text-gray-600 cursor-pointer hover:bg-gray-50 transition-all">
+                                        <button className="px-4 py-2 rounded-xl text-[11px] font-medium border border-[var(--theme-border)] bg-[var(--theme-card)] text-[var(--theme-text-tertiary)] cursor-pointer hover:bg-[var(--theme-bg-secondary)] transition-all">
                                             Edit
                                         </button>
-                                        <button className="px-3 py-2 rounded-xl text-[11px] font-medium border border-gray-200 bg-white text-red-400 cursor-pointer hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all ml-auto">
+                                        <button className="px-3 py-2 rounded-xl text-[11px] font-medium border border-[var(--theme-border)] bg-[var(--theme-card)] text-red-400 cursor-pointer hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all ml-auto">
                                             Delete
                                         </button>
                                     </div>
@@ -348,10 +348,10 @@ export default function TalentSpillsPage() {
 
                 {/* Empty state */}
                 {filteredSpills.length === 0 && (
-                    <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-8 text-center">
-                        <p className="text-3xl mb-2">📝</p>
-                        <p className="text-[14px] font-bold text-gray-700 mb-1">No spills yet</p>
-                        <p className="text-[12px] text-gray-400 mb-4">Start sharing your code, insights, and hot takes</p>
+                    <div className="rounded-2xl border border-dashed border-gray-300 bg-[var(--theme-card)] p-8 text-center">
+                        <p className="text-3xl mb-2">ðŸ“</p>
+                        <p className="text-[14px] font-bold text-[var(--theme-text-secondary)] mb-1">No spills yet</p>
+                        <p className="text-[12px] text-[var(--theme-text-muted)] mb-4">Start sharing your code, insights, and hot takes</p>
                         <button onClick={() => setComposerOpen(true)}
                             className="px-5 py-2.5 rounded-xl text-[12px] font-bold border-none cursor-pointer text-black transition-all hover:scale-105"
                             style={{ background: accent, boxShadow: `0 0 15px ${accent}40` }}>
