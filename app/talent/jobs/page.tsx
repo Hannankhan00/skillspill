@@ -459,7 +459,7 @@ export default function JobsPage() {
                                     <select
                                         value={remoteStatus}
                                         onChange={(e) => setRemoteStatus(e.target.value)}
-                                        className="w-full px-3.5 py-2.5 rounded-lg bg-[var(--theme-card)]/[0.04] border border-white/[0.08] text-[12px] text-white/60 appearance-none focus:border-[#3CF91A]/30 focus:outline-none transition-colors cursor-pointer"
+                                        className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--theme-card)]/[0.04] border border-white/[0.08] text-[12px] text-white/60 appearance-none focus:border-[#3CF91A]/30 focus:outline-none transition-colors cursor-pointer"
                                         style={{ fontFamily: "var(--font-space-grotesk)" }}
                                     >
                                         <option value="all">Remote (Interstellar)</option>
@@ -656,3 +656,5 @@ export default function JobsPage() {
         </div>
     );
 }
+
+

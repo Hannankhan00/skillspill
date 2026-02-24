@@ -131,7 +131,7 @@ export default function TalentProfilePage() {
 
             {/* â•â•â•â•â•â•â•â• COVER / BANNER â•â•â•â•â•â•â•â• */}
             <div className="relative">
-                <div className="h-32 sm:h-44 lg:h-52 w-full bg-gradient-to-r from-emerald-400 via-green-400 to-cyan-500 relative overflow-hidden">
+                <div className="h-32 sm:h-44 lg:h-52 w-full bg-gradient-to-r from-[#3CF91A] via-green-400 to-cyan-500 relative overflow-hidden">
                     {/* Pattern overlay */}
                     <div className="absolute inset-0 opacity-10"
                         style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000' fill-rule='evenodd'%3E%3Cpath d='M0 0h20v20H0zM20 20h20v20H20z'/%3E%3C/g%3E%3C/svg%3E\")" }}
@@ -147,7 +147,7 @@ export default function TalentProfilePage() {
                 {/* Avatar */}
                 <div className="max-w-[900px] mx-auto px-4 sm:px-6">
                     <div className="relative -mt-12 sm:-mt-16 flex items-end gap-4">
-                        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold border-4 border-white shadow-xl shrink-0">
+                        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl bg-gradient-to-br from-green-400 to-[#2edb13] flex items-center justify-center text-white text-2xl sm:text-3xl font-bold border-4 border-white shadow-xl shrink-0">
                             GP
                         </div>
                         <div className="pb-1 sm:pb-2 min-w-0 hidden sm:block">
@@ -156,7 +156,7 @@ export default function TalentProfilePage() {
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="#22C55E" stroke="white" strokeWidth="2">
                                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
                                 </svg>
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Lv.{profileData.level}</span>
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#3CF91A]/10 text-[#2edb13]">Lv.{profileData.level}</span>
                             </div>
                             <p className="text-[13px] text-[var(--theme-text-muted)] mt-0.5">{profileData.tagline}</p>
                         </div>
@@ -171,7 +171,7 @@ export default function TalentProfilePage() {
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="#22C55E" stroke="white" strokeWidth="2">
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
                     </svg>
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Lv.{profileData.level}</span>
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#3CF91A]/10 text-[#2edb13]">Lv.{profileData.level}</span>
                 </div>
                 <p className="text-[12px] text-[var(--theme-text-muted)] mt-0.5">{profileData.tagline}</p>
             </div>
@@ -208,7 +208,7 @@ export default function TalentProfilePage() {
                     {tabs.map(tab => (
                         <button key={tab} onClick={() => setActiveTab(tab)}
                             className={`px-4 sm:px-6 py-3 text-[12px] sm:text-[13px] font-semibold border-b-2 transition-all cursor-pointer bg-transparent whitespace-nowrap
-                                ${activeTab === tab ? "border-emerald-500 text-emerald-600" : "border-transparent text-[var(--theme-text-muted)] hover:text-[var(--theme-text-tertiary)]"}`}>
+                                ${activeTab === tab ? "border-[#3CF91A] text-[#2edb13]" : "border-transparent text-[var(--theme-text-muted)] hover:text-[var(--theme-text-tertiary)]"}`}>
                             {tab}
                         </button>
                     ))}
@@ -233,8 +233,8 @@ export default function TalentProfilePage() {
                                         Joined {profileData.joinedDate}
                                     </span>
                                     {profileData.availability && (
-                                        <span className="flex items-center gap-1 text-emerald-500 font-medium">
-                                            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                                        <span className="flex items-center gap-1 text-[#3CF91A] font-medium">
+                                            <span className="w-2 h-2 rounded-full bg-[#3CF91A]" />
                                             Open to Opportunities
                                         </span>
                                     )}
@@ -307,14 +307,14 @@ export default function TalentProfilePage() {
                                 <div className="space-y-4">
                                     {profileData.experience.map((exp, i) => (
                                         <div key={i} className={`relative pl-6 ${i < profileData.experience.length - 1 ? "pb-4 border-l-2 border-[var(--theme-border-light)] ml-1.5" : "ml-1.5"}`}>
-                                            <div className="absolute left-0 top-0.5 w-3.5 h-3.5 rounded-full border-2 border-emerald-500 bg-[var(--theme-card)] -translate-x-[7px]" />
+                                            <div className="absolute left-0 top-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#3CF91A] bg-[var(--theme-card)] -translate-x-[7px]" />
                                             <h3 className="text-[13px] font-bold text-[var(--theme-text-primary)]">{exp.title}</h3>
-                                            <p className="text-[11px] text-emerald-600 font-medium">{exp.company}</p>
+                                            <p className="text-[11px] text-[#2edb13] font-medium">{exp.company}</p>
                                             <p className="text-[10px] text-[var(--theme-text-muted)] mt-0.5">{exp.period}</p>
                                             <p className="text-[12px] text-[var(--theme-text-tertiary)] mt-1.5 leading-relaxed">{exp.description}</p>
                                             <div className="flex flex-wrap gap-1.5 mt-2">
                                                 {exp.tech.map(t => (
-                                                    <span key={t} className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 font-medium">{t}</span>
+                                                    <span key={t} className="text-[9px] px-2 py-0.5 rounded-full bg-[#3CF91A]/10 text-[#2edb13] font-medium">{t}</span>
                                                 ))}
                                             </div>
                                         </div>
@@ -332,13 +332,13 @@ export default function TalentProfilePage() {
                                         { label: "GitHub", url: profileData.links.github, icon: "ðŸ™" },
                                     ].map(link => (
                                         <a key={link.label} href={link.url} target="_blank" rel="noopener noreferrer"
-                                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[var(--theme-bg-secondary)] hover:bg-emerald-50 transition-colors group no-underline">
+                                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[var(--theme-bg-secondary)] hover:bg-[#3CF91A]/10 transition-colors group no-underline">
                                             <span className="text-base">{link.icon}</span>
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-[12px] font-medium text-[var(--theme-text-secondary)] group-hover:text-emerald-700">{link.label}</p>
+                                                <p className="text-[12px] font-medium text-[var(--theme-text-secondary)] group-hover:text-[#2edb13]">{link.label}</p>
                                                 <p className="text-[10px] text-[var(--theme-text-muted)] truncate">{link.url}</p>
                                             </div>
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" className="group-hover:stroke-emerald-500 shrink-0"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" className="group-hover:stroke-[#3CF91A] shrink-0"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
                                         </a>
                                     ))}
                                 </div>
@@ -351,7 +351,7 @@ export default function TalentProfilePage() {
                             {profileData.recentSpills.map(spill => (
                                 <div key={spill.id} className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
                                     <div className="flex items-center gap-3 mb-3">
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white text-[11px] font-bold">GP</div>
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-[#2edb13] flex items-center justify-center text-white text-[11px] font-bold">GP</div>
                                         <div>
                                             <p className="text-[13px] font-bold text-[var(--theme-text-primary)]">{profileData.name}</p>
                                             <p className="text-[10px] text-[var(--theme-text-muted)]">{spill.time} ago</p>
@@ -370,7 +370,7 @@ export default function TalentProfilePage() {
                     {activeTab === "Projects" && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {profileData.projects.map(project => (
-                                <div key={project.name} className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5 hover:border-emerald-300 hover:shadow-md transition-all">
+                                <div key={project.name} className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5 hover:border-[#3CF91A] hover:shadow-md transition-all">
                                     <div className="flex items-start justify-between mb-2">
                                         <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)]">{project.name}</h3>
                                         <span className="flex items-center gap-1 text-[10px] text-[var(--theme-text-muted)]">
@@ -429,3 +429,7 @@ export default function TalentProfilePage() {
         </div>
     );
 }
+
+
+
+

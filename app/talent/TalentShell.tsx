@@ -1,11 +1,11 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { ThemeToggle } from "../components/ThemeProvider";
 
-/* ── SVG Icon Components ── */
+/* â”€â”€ SVG Icon Components â”€â”€ */
 function FeedIcon() {
     return (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -76,7 +76,7 @@ function PlusIcon() {
     );
 }
 
-/* ── Nav Items ── */
+/* â”€â”€ Nav Items â”€â”€ */
 const talentNavItems = [
     { label: "Feed", icon: <FeedIcon />, href: "/talent" },
     { label: "My Spills", icon: <SpillsIcon />, href: "/talent/spills" },
@@ -87,7 +87,7 @@ const talentNavItems = [
     { label: "Settings", icon: <SettingsIcon />, href: "/talent/settings" },
 ];
 
-/* ── Bottom nav items (mobile — LinkedIn-style) ── */
+/* â”€â”€ Bottom nav items (mobile â€” LinkedIn-style) â”€â”€ */
 const mobileNavItems = [
     {
         label: "Home", href: "/talent",
@@ -156,9 +156,9 @@ export default function TalentShell({
     return (
         <div className="h-screen overflow-hidden flex" style={{ background: 'var(--theme-bg)', color: 'var(--theme-text-primary)' }}>
 
-            {/* ══════════════════════════════════════
+            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                 DESKTOP SIDEBAR (hidden on mobile)
-               ══════════════════════════════════════ */}
+               â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
             <aside className="hidden lg:flex w-[220px] flex-col shrink-0" style={{ background: 'var(--theme-surface)', borderRight: '1px solid var(--theme-border)' }}>
                 {/* Logo */}
                 <div className="h-14 flex items-center px-5" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
@@ -212,7 +212,7 @@ export default function TalentShell({
                         </div>
                         <div className="flex-1 min-w-0">
                             <p className="text-xs font-semibold truncate" style={{ color: 'var(--theme-text-secondary)' }}>Ghost_Protocol</p>
-                            <p className="text-[10px] font-mono text-emerald-600">Lv.42 Shadow</p>
+                            <p className="text-[10px] font-mono text-[#2edb13]">Lv.42 Shadow</p>
                         </div>
                     </div>
 
@@ -241,13 +241,13 @@ export default function TalentShell({
                 </div>
             </aside>
 
-            {/* ── Main Content Area ── */}
+            {/* â”€â”€ Main Content Area â”€â”€ */}
             <div className="flex-1 flex flex-col overflow-hidden">
 
-                {/* ══════════════════════════════════════
+                {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                     MOBILE HEADER (LinkedIn-style)
                     Profile pic | Search bar | Chat icon
-                   ══════════════════════════════════════ */}
+                   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
                 <header className="shrink-0 h-12 flex items-center gap-3 px-3 lg:hidden" style={{ background: 'var(--theme-surface)', borderBottom: '1px solid var(--theme-border)' }}>
                     {/* Profile pic */}
                     <Link href="/talent/profile" className="shrink-0">
@@ -287,12 +287,12 @@ export default function TalentShell({
                     </Link>
                 </header>
 
-                {/* ══════════════════════════════════════
+                {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                     DESKTOP HEADER (full header bar)
-                   ══════════════════════════════════════ */}
+                   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
                 <header className="shrink-0 h-14 hidden lg:flex items-center justify-between px-6 backdrop-blur-xl z-30" style={{ background: 'var(--theme-header-bg)', borderBottom: '1px solid var(--theme-border)' }}>
                     {/* Search bar */}
-                    <div className="flex items-center gap-2 rounded-xl px-3.5 py-2 focus-within:border-emerald-300 focus-within:ring-2 focus-within:ring-emerald-50 transition-all max-w-[360px] w-full" style={{ background: 'var(--theme-input-bg)', border: '1px solid var(--theme-border)' }}>
+                    <div className="flex items-center gap-2 rounded-xl px-3.5 py-2 focus-within:border-[#3CF91A] focus-within:ring-2 focus-within:ring-[#3CF91A]/10 transition-all max-w-[360px] w-full" style={{ background: 'var(--theme-input-bg)', border: '1px solid var(--theme-border)' }}>
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2">
                             <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                         </svg>
@@ -356,17 +356,17 @@ export default function TalentShell({
                                     </div>
                                     <div className="py-1">
                                         <Link href="/talent/profile" onClick={() => setProfileDropdown(false)}
-                                            className="flex items-center gap-3 px-4 py-2.5 text-[12px] hover:text-emerald-700 transition-colors no-underline" style={{ color: 'var(--theme-text-tertiary)' }}>
+                                            className="flex items-center gap-3 px-4 py-2.5 text-[12px] hover:text-[#3CF91A] transition-colors no-underline" style={{ color: 'var(--theme-text-tertiary)' }}>
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                                             View Profile
                                         </Link>
                                         <Link href="/talent/settings" onClick={() => setProfileDropdown(false)}
-                                            className="flex items-center gap-3 px-4 py-2.5 text-[12px] hover:text-emerald-700 transition-colors no-underline" style={{ color: 'var(--theme-text-tertiary)' }}>
+                                            className="flex items-center gap-3 px-4 py-2.5 text-[12px] hover:text-[#3CF91A] transition-colors no-underline" style={{ color: 'var(--theme-text-tertiary)' }}>
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82" /></svg>
                                             Settings
                                         </Link>
                                         <Link href="/talent/notifications" onClick={() => setProfileDropdown(false)}
-                                            className="flex items-center gap-3 px-4 py-2.5 text-[12px] hover:text-emerald-700 transition-colors no-underline" style={{ color: 'var(--theme-text-tertiary)' }}>
+                                            className="flex items-center gap-3 px-4 py-2.5 text-[12px] hover:text-[#3CF91A] transition-colors no-underline" style={{ color: 'var(--theme-text-tertiary)' }}>
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
                                             Notifications
                                             <span className="ml-auto text-[9px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 font-bold">5</span>
@@ -382,47 +382,53 @@ export default function TalentShell({
                                 </div>
                             )}
                         </div>
-                    </div>
-                </header>
+                    </div >
+                </header >
 
-                {/* Page Content — pb-16 on mobile for bottom nav space */}
-                <main className="flex-1 overflow-y-auto pb-16 lg:pb-0" style={{ scrollbarWidth: "thin", scrollbarColor: 'var(--theme-scrollbar-thumb) var(--theme-scrollbar-track)' }}>
+                {/* Page Content â€” pb-16 on mobile for bottom nav space */}
+                < main className="flex-1 overflow-y-auto pb-16 lg:pb-0" style={{ scrollbarWidth: "thin", scrollbarColor: 'var(--theme-scrollbar-thumb) var(--theme-scrollbar-track)' }
+                }>
                     {children}
-                </main>
+                </main >
 
-                {/* ══════════════════════════════════════
+                {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                     MOBILE BOTTOM NAV (LinkedIn-style)
-                   ══════════════════════════════════════ */}
-                <nav className="fixed bottom-0 left-0 right-0 h-14 flex items-center justify-around px-2 z-40 lg:hidden" style={{ background: 'var(--theme-surface)', borderTop: '1px solid var(--theme-border)' }}>
-                    {mobileNavItems.map((item) => {
-                        // Special center Spill button
-                        if (item.label === "Spill") {
+                   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+                < nav className="fixed bottom-0 left-0 right-0 h-14 flex items-center justify-around px-2 z-40 lg:hidden" style={{ background: 'var(--theme-surface)', borderTop: '1px solid var(--theme-border)' }}>
+                    {
+                        mobileNavItems.map((item) => {
+                            // Special center Spill button
+                            if (item.label === "Spill") {
+                                return (
+                                    <Link key="spill" href="/talent/spills"
+                                        className="flex flex-col items-center justify-center -mt-5 no-underline">
+                                        <div className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
+                                            style={{ background: `linear-gradient(135deg, ${accent}, #16A34A)` }}>
+                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+                                                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                                            </svg>
+                                        </div>
+                                        <span className="text-[9px] font-semibold mt-0.5" style={{ color: "#16A34A" }}>Spill</span>
+                                    </Link>
+                                );
+                            }
+
+                            const active = isActive(item.href);
                             return (
-                                <Link key="spill" href="/talent/spills"
-                                    className="flex flex-col items-center justify-center -mt-5 no-underline">
-                                    <div className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
-                                        style={{ background: `linear-gradient(135deg, ${accent}, #16A34A)` }}>
-                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
-                                            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-                                        </svg>
-                                    </div>
-                                    <span className="text-[9px] font-semibold mt-0.5" style={{ color: "#16A34A" }}>Spill</span>
+                                <Link key={item.label} href={item.href}
+                                    className={`flex flex-col items-center justify-center gap-0.5 py-1 px-2 no-underline transition-colors
+                                    ${active ? "text-[#2edb13]" : "text-gray-400"}`}>
+                                    {active ? item.iconFilled : item.icon}
+                                    <span className="text-[9px] font-medium">{item.label}</span>
                                 </Link>
                             );
-                        }
-
-                        const active = isActive(item.href);
-                        return (
-                            <Link key={item.label} href={item.href}
-                                className={`flex flex-col items-center justify-center gap-0.5 py-1 px-2 no-underline transition-colors
-                                    ${active ? "text-emerald-600" : "text-gray-400"}`}>
-                                {active ? item.iconFilled : item.icon}
-                                <span className="text-[9px] font-medium">{item.label}</span>
-                            </Link>
-                        );
-                    })}
-                </nav>
-            </div>
-        </div>
+                        })
+                    }
+                </nav >
+            </div >
+        </div >
     );
 }
+
+
+

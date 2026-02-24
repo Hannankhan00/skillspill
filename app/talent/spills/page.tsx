@@ -138,7 +138,7 @@ export default function TalentSpillsPage() {
                 {composerOpen && (
                     <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5 mb-5 animate-in">
                         <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white text-[11px] font-bold shrink-0">GP</div>
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-[#2edb13] flex items-center justify-center text-white text-[11px] font-bold shrink-0">GP</div>
                             <div>
                                 <p className="text-[13px] font-bold text-[var(--theme-text-primary)]">Ghost_Protocol</p>
                                 <p className="text-[10px] text-[var(--theme-text-muted)]">Public spill to your followers</p>
@@ -149,7 +149,7 @@ export default function TalentSpillsPage() {
                             value={composerText}
                             onChange={e => setComposerText(e.target.value)}
                             placeholder="What did you build today? Share your code, insights, or hot takes..."
-                            className="w-full min-h-[100px] p-3 rounded-xl bg-[var(--theme-bg-secondary)] border border-[var(--theme-border)] text-[13px] text-[var(--theme-text-secondary)] placeholder:text-[var(--theme-text-muted)] resize-none outline-none focus:border-emerald-300 focus:ring-2 focus:ring-emerald-50 transition-all"
+                            className="w-full min-h-[100px] p-3 rounded-xl bg-[var(--theme-bg-secondary)] border border-[var(--theme-border)] text-[13px] text-[var(--theme-text-secondary)] placeholder:text-[var(--theme-text-muted)] resize-none outline-none focus:border-[#3CF91A] focus:ring-2 focus:ring-[#3CF91A]/10 transition-all"
                         />
 
                         {showCode && (
@@ -157,7 +157,7 @@ export default function TalentSpillsPage() {
                                 value={composerCode}
                                 onChange={e => setComposerCode(e.target.value)}
                                 placeholder="Paste your code snippet here..."
-                                className="w-full min-h-[120px] p-3 mt-2 rounded-xl bg-gray-900 border border-gray-700 text-[12px] text-green-400 placeholder:text-[var(--theme-text-tertiary)] font-mono resize-none outline-none focus:border-emerald-500 transition-all"
+                                className="w-full min-h-[120px] p-3 mt-2 rounded-xl bg-gray-900 border border-gray-700 text-[12px] text-green-400 placeholder:text-[var(--theme-text-tertiary)] font-mono resize-none outline-none focus:border-[#3CF91A] transition-all"
                             />
                         )}
 
@@ -165,7 +165,7 @@ export default function TalentSpillsPage() {
                             <div className="flex items-center gap-2">
                                 <button onClick={() => setShowCode(!showCode)}
                                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium border cursor-pointer transition-all
-                                        ${showCode ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-[var(--theme-card)] border-[var(--theme-border)] text-[var(--theme-text-muted)] hover:text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-secondary)]"}`}>
+                                        ${showCode ? "bg-[#3CF91A]/10 border-[#3CF91A]/20 text-[#2edb13]" : "bg-[var(--theme-card)] border-[var(--theme-border)] text-[var(--theme-text-muted)] hover:text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-secondary)]"}`}>
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg>
                                     Code
                                 </button>
@@ -214,10 +214,10 @@ export default function TalentSpillsPage() {
                         return (
                             <button key={filter} onClick={() => setActiveFilter(filter)}
                                 className={`px-4 sm:px-5 py-2.5 text-[12px] font-semibold border-b-2 transition-all cursor-pointer bg-transparent flex items-center gap-1.5
-                                    ${activeFilter === filter ? "border-emerald-500 text-emerald-600" : "border-transparent text-[var(--theme-text-muted)] hover:text-[var(--theme-text-tertiary)]"}`}>
+                                    ${activeFilter === filter ? "border-[#3CF91A] text-[#2edb13]" : "border-transparent text-[var(--theme-text-muted)] hover:text-[var(--theme-text-tertiary)]"}`}>
                                 {filter}
                                 <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold
-                                    ${activeFilter === filter ? "bg-emerald-100 text-emerald-700" : "bg-[var(--theme-input-bg)] text-[var(--theme-text-muted)]"}`}>
+                                    ${activeFilter === filter ? "bg-[#3CF91A]/10 text-[#2edb13]" : "bg-[var(--theme-input-bg)] text-[var(--theme-text-muted)]"}`}>
                                     {count}
                                 </span>
                             </button>
@@ -248,7 +248,7 @@ export default function TalentSpillsPage() {
                                 {/* Header */}
                                 <div className="flex items-center justify-between mb-3">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white text-[10px] font-bold">GP</div>
+                                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-green-400 to-[#2edb13] flex items-center justify-center text-white text-[10px] font-bold">GP</div>
                                         <div>
                                             <p className="text-[13px] font-bold text-[var(--theme-text-primary)]">Ghost_Protocol</p>
                                             <p className="text-[10px] text-[var(--theme-text-muted)]">{spill.time}</p>
@@ -287,7 +287,7 @@ export default function TalentSpillsPage() {
                                 {/* Tags */}
                                 <div className="flex flex-wrap gap-1.5 mb-3">
                                     {spill.tags.map(tag => (
-                                        <span key={tag} className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 font-medium">#{tag}</span>
+                                        <span key={tag} className="text-[9px] px-2 py-0.5 rounded-full bg-[#3CF91A]/10 text-[#2edb13] font-medium">#{tag}</span>
                                     ))}
                                 </div>
 
@@ -313,7 +313,7 @@ export default function TalentSpillsPage() {
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-1.5">
-                                            <button className="text-[10px] font-medium text-[var(--theme-text-muted)] hover:text-emerald-600 cursor-pointer bg-transparent border-none transition-colors flex items-center gap-1">
+                                            <button className="text-[10px] font-medium text-[var(--theme-text-muted)] hover:text-[#2edb13] cursor-pointer bg-transparent border-none transition-colors flex items-center gap-1">
                                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
                                                 Edit
                                             </button>
@@ -363,3 +363,7 @@ export default function TalentSpillsPage() {
         </div>
     );
 }
+
+
+
+

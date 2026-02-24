@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useTheme, ThemeToggle } from "../../components/ThemeProvider";
 
-/* ── Icons ── */
+/*  Icons  */
 function UserIcon() {
     return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>;
 }
@@ -34,15 +34,15 @@ const settingsTabs = [
     { key: "connections", label: "Connections", icon: <LinkIcon />, desc: "Linked accounts" },
 ];
 
-/* ── Toggle Switch ── */
+/*  Toggle Switch  */
 function Toggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) {
     return (
         <button
             onClick={onToggle}
             className="relative w-11 h-6 rounded-full transition-all duration-300 cursor-pointer border-none shrink-0"
             style={{
-                background: enabled ? '#10B981' : 'var(--theme-input-bg)',
-                boxShadow: enabled ? '0 0 12px rgba(16, 185, 129, 0.3)' : 'none',
+                background: enabled ? '#3CF91A' : 'var(--theme-input-bg)',
+                boxShadow: enabled ? '0 0 12px rgba(60, 249, 26, 0.3)' : 'none',
                 border: enabled ? 'none' : '1px solid var(--theme-border)',
             }}
         >
@@ -57,7 +57,7 @@ function Toggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => void 
     );
 }
 
-/* ── Section Wrapper ── */
+/*  Section Wrapper  */
 function Section({ title, desc, children }: { title: string; desc: string; children: React.ReactNode }) {
     return (
         <div className="space-y-5">
@@ -70,7 +70,7 @@ function Section({ title, desc, children }: { title: string; desc: string; child
     );
 }
 
-/* ── Input Field ── */
+/*  Input Field  */
 function InputField({ label, value, onChange, type = "text", mono = false, placeholder }: {
     label: string; value: string; onChange: (v: string) => void; type?: string; mono?: boolean; placeholder?: string;
 }) {
@@ -84,7 +84,7 @@ function InputField({ label, value, onChange, type = "text", mono = false, place
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 placeholder={placeholder}
-                className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all focus:ring-2 focus:ring-emerald-200"
+                className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all focus:ring-2 focus:ring-[#3CF91A]/20"
                 style={{
                     background: 'var(--theme-input-bg)',
                     border: '1px solid var(--theme-border)',
@@ -96,7 +96,7 @@ function InputField({ label, value, onChange, type = "text", mono = false, place
     );
 }
 
-/* ── Toggle Row ── */
+/*  Toggle Row  */
 function ToggleRow({ label, desc, enabled, onToggle }: { label: string; desc: string; enabled: boolean; onToggle: () => void }) {
     return (
         <div className="flex items-center justify-between py-3.5" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
@@ -131,7 +131,7 @@ export default function SettingsPage() {
     const [notifPush, setNotifPush] = useState(false);
 
     /* Appearance */
-    const [accentColor, setAccentColor] = useState("#10B981");
+    const [accentColor, setAccentColor] = useState("#3CF91A");
     const [codeFont, setCodeFont] = useState("JetBrains Mono");
     const [compactMode, setCompactMode] = useState(false);
 
@@ -140,7 +140,7 @@ export default function SettingsPage() {
     const [linkedinConnected, setLinkedinConnected] = useState(false);
 
     const accentOptions = [
-        { color: "#10B981", label: "Emerald" },
+        { color: "#3CF91A", label: "Lime" },
         { color: "#3B82F6", label: "Blue" },
         { color: "#8B5CF6", label: "Purple" },
         { color: "#F59E0B", label: "Amber" },
@@ -152,18 +152,18 @@ export default function SettingsPage() {
         <div className="min-h-full" style={{ background: 'var(--theme-bg)' }}>
             <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-5">
 
-                {/* ── Header ── */}
+                {/*  Header  */}
                 <div className="mb-6">
                     <h1 className="text-2xl lg:text-3xl font-bold tracking-tight" style={{ color: 'var(--theme-text-primary)', fontFamily: 'var(--font-space-grotesk)' }}>
-                        ⚙️ Settings
+                        Settings
                     </h1>
                     <p className="text-[13px] mt-1" style={{ color: 'var(--theme-text-muted)' }}>
-                        Configure your SkillSpill experience. <span className="text-emerald-500 font-semibold">Make it yours.</span>
+                        Configure your SkillSpill experience. <span className="text-[#3CF91A] font-semibold">Make it yours.</span>
                     </p>
                 </div>
 
                 <div className="flex flex-col lg:flex-row gap-6">
-                    {/* ── Sidebar Tabs ── */}
+                    {/*  Sidebar Tabs  */}
                     <div className="w-full lg:w-[220px] shrink-0">
                         <div className="rounded-2xl border p-2 lg:sticky lg:top-6" style={{ background: 'var(--theme-card)', borderColor: 'var(--theme-border)' }}>
                             <nav className="flex lg:flex-col gap-1 overflow-x-auto pb-1 lg:pb-0">
@@ -175,9 +175,9 @@ export default function SettingsPage() {
                                         style={
                                             activeTab === tab.key
                                                 ? {
-                                                    background: '#10B981',
-                                                    color: '#fff',
-                                                    boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)',
+                                                    background: '#3CF91A',
+                                                    color: '#000',
+                                                    boxShadow: '0 4px 15px rgba(60, 249, 26, 0.3)',
                                                 }
                                                 : {
                                                     background: 'transparent',
@@ -197,19 +197,19 @@ export default function SettingsPage() {
                         </div>
                     </div>
 
-                    {/* ── Content Area ── */}
+                    {/*  Content Area  */}
                     <div className="flex-1 min-w-0">
                         <div className="rounded-2xl border overflow-hidden" style={{ background: 'var(--theme-card)', borderColor: 'var(--theme-border)' }}>
 
-                            {/* ═══ Profile ═══ */}
+                            {/*  Profile  */}
                             {activeTab === "profile" && (
                                 <div className="p-6 space-y-6">
                                     <Section title="Profile Information" desc="Manage how you appear on SkillSpill">
                                         {/* Avatar */}
                                         <div className="flex items-center gap-4">
                                             <div
-                                                className="w-16 h-16 rounded-2xl flex items-center justify-center text-lg font-bold text-white"
-                                                style={{ background: 'linear-gradient(135deg, #10B981, #059669)' }}
+                                                className="w-16 h-16 rounded-2xl flex items-center justify-center text-lg font-bold text-black"
+                                                style={{ background: 'linear-gradient(135deg, #3CF91A, #2edb13)' }}
                                             >
                                                 GP
                                             </div>
@@ -235,7 +235,7 @@ export default function SettingsPage() {
                                                 value={bio}
                                                 onChange={(e) => setBio(e.target.value)}
                                                 rows={3}
-                                                className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all resize-none focus:ring-2 focus:ring-emerald-200"
+                                                className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all resize-none focus:ring-2 focus:ring-[#3CF91A]/20"
                                                 style={{ background: 'var(--theme-input-bg)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
                                             />
                                         </div>
@@ -244,8 +244,8 @@ export default function SettingsPage() {
 
                                     <div className="flex items-center gap-3 pt-2">
                                         <button
-                                            className="px-5 py-2.5 rounded-xl text-[12px] font-bold text-white border-none cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
-                                            style={{ background: '#10B981', boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)' }}
+                                            className="px-5 py-2.5 rounded-xl text-[12px] font-bold text-black border-none cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+                                            style={{ background: '#3CF91A', boxShadow: '0 4px 15px rgba(60, 249, 26, 0.3)' }}
                                         >
                                             Save Changes
                                         </button>
@@ -259,7 +259,7 @@ export default function SettingsPage() {
                                 </div>
                             )}
 
-                            {/* ═══ Security ═══ */}
+                            {/*  Security  */}
                             {activeTab === "security" && (
                                 <div className="p-6 space-y-6">
                                     <Section title="Security & Privacy" desc="Protect your SkillSpill account">
@@ -270,8 +270,8 @@ export default function SettingsPage() {
                                             <InputField label="" value="" onChange={() => { }} type="password" placeholder="New password" />
                                             <InputField label="" value="" onChange={() => { }} type="password" placeholder="Confirm new password" />
                                             <button
-                                                className="px-4 py-2 rounded-xl text-[11px] font-bold text-white border-none cursor-pointer hover:shadow-md transition-all"
-                                                style={{ background: '#10B981' }}
+                                                className="px-4 py-2 rounded-xl text-[11px] font-bold text-black border-none cursor-pointer hover:shadow-md transition-all"
+                                                style={{ background: '#3CF91A' }}
                                             >
                                                 Update Password
                                             </button>
@@ -283,7 +283,7 @@ export default function SettingsPage() {
 
                                     {/* Danger Zone */}
                                     <div className="rounded-xl p-4" style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.15)' }}>
-                                        <h3 className="text-[13px] font-semibold text-red-500 mb-1">⚠️ Danger Zone</h3>
+                                        <h3 className="text-[13px] font-semibold text-red-500 mb-1"> Danger Zone</h3>
                                         <p className="text-[11px] mb-3" style={{ color: 'var(--theme-text-muted)' }}>Once deleted, your account cannot be recovered.</p>
                                         <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-bold text-red-500 cursor-pointer transition-all hover:shadow-md border-none" style={{ background: 'rgba(239, 68, 68, 0.1)' }}>
                                             <TrashIcon />
@@ -293,7 +293,7 @@ export default function SettingsPage() {
                                 </div>
                             )}
 
-                            {/* ═══ Notifications ═══ */}
+                            {/*  Notifications  */}
                             {activeTab === "notifications" && (
                                 <div className="p-6 space-y-6">
                                     <Section title="Notifications" desc="Choose what alerts you want to receive">
@@ -313,16 +313,16 @@ export default function SettingsPage() {
                                 </div>
                             )}
 
-                            {/* ═══ Appearance ═══ */}
+                            {/*  Appearance  */}
                             {activeTab === "appearance" && (
                                 <div className="p-6 space-y-6">
                                     <Section title="Appearance" desc="Customize the look and feel of SkillSpill">
-                                        {/* Theme Toggle — wired to actual ThemeProvider */}
+                                        {/* Theme Toggle  wired to actual ThemeProvider */}
                                         <div>
                                             <label className="text-[10px] uppercase tracking-widest font-semibold block mb-3" style={{ color: 'var(--theme-text-muted)' }}>Theme</label>
                                             <div className="flex items-center gap-4 p-4 rounded-xl" style={{ background: 'var(--theme-bg)', border: '1px solid var(--theme-border)' }}>
                                                 <div className="flex items-center gap-3">
-                                                    <span className="text-[20px]">☀️</span>
+                                                    <span className="text-[20px]"></span>
                                                     <div>
                                                         <p className="text-[13px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>
                                                             {theme === 'light' ? 'Light Mode' : 'Dark Mode'}
@@ -350,7 +350,7 @@ export default function SettingsPage() {
                                                         style={{
                                                             background: opt.color,
                                                             borderColor: accentColor === opt.color ? 'var(--theme-text-primary)' : 'transparent',
-                                                            boxShadow: accentColor === opt.color ? `0 4px 15px ${opt.color}50` : 'none',
+                                                            boxShadow: accentColor === opt.color ? `0 4px 15px ${opt.color}66` : 'none',
                                                             transform: accentColor === opt.color ? 'scale(1.1)' : 'scale(1)',
                                                         }}
                                                         title={opt.label}
@@ -373,11 +373,11 @@ export default function SettingsPage() {
                                                         onClick={() => setCodeFont(font)}
                                                         className="px-4 py-2.5 rounded-xl text-[12px] transition-all duration-200 cursor-pointer border-none"
                                                         style={{
-                                                            fontFamily: `"${font}", monospace`,
-                                                            background: codeFont === font ? '#10B981' : 'var(--theme-input-bg)',
-                                                            color: codeFont === font ? '#fff' : 'var(--theme-text-secondary)',
+                                                            fontFamily: font + ", monospace",
+                                                            background: codeFont === font ? '#3CF91A' : 'var(--theme-input-bg)',
+                                                            color: codeFont === font ? '#000' : 'var(--theme-text-secondary)',
                                                             border: codeFont === font ? 'none' : '1px solid var(--theme-border)',
-                                                            boxShadow: codeFont === font ? '0 4px 15px rgba(16, 185, 129, 0.3)' : 'none',
+                                                            boxShadow: codeFont === font ? '0 4px 15px rgba(60, 249, 26, 0.3)' : 'none',
                                                         }}
                                                     >
                                                         {font}
@@ -391,7 +391,7 @@ export default function SettingsPage() {
                                 </div>
                             )}
 
-                            {/* ═══ Connections ═══ */}
+                            {/*  Connections  */}
                             {activeTab === "connections" && (
                                 <div className="p-6 space-y-6">
                                     <Section title="Connections" desc="Link external accounts to boost your SkillSpill profile">
@@ -404,8 +404,8 @@ export default function SettingsPage() {
                                                     </div>
                                                     <div>
                                                         <p className="text-[13px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>GitHub</p>
-                                                        <p className="text-[11px]" style={{ color: githubConnected ? '#10B981' : 'var(--theme-text-muted)' }}>
-                                                            {githubConnected ? "✓ Connected as ghost-protocol" : "Not connected"}
+                                                        <p className="text-[11px]" style={{ color: githubConnected ? '#3CF91A' : 'var(--theme-text-muted)' }}>
+                                                            {githubConnected ? " Connected as ghost-protocol" : "Not connected"}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -414,7 +414,7 @@ export default function SettingsPage() {
                                                     className="px-4 py-2 rounded-xl text-[11px] font-bold cursor-pointer transition-all border-none"
                                                     style={githubConnected
                                                         ? { background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444' }
-                                                        : { background: '#10B981', color: '#fff', boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)' }
+                                                        : { background: '#3CF91A', color: '#000', boxShadow: '0 4px 15px rgba(60, 249, 26, 0.3)' }
                                                     }
                                                 >
                                                     {githubConnected ? "Disconnect" : "Connect"}
@@ -429,8 +429,8 @@ export default function SettingsPage() {
                                                     </div>
                                                     <div>
                                                         <p className="text-[13px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>LinkedIn</p>
-                                                        <p className="text-[11px]" style={{ color: linkedinConnected ? '#10B981' : 'var(--theme-text-muted)' }}>
-                                                            {linkedinConnected ? "✓ Connected" : "Not connected"}
+                                                        <p className="text-[11px]" style={{ color: linkedinConnected ? '#3CF91A' : 'var(--theme-text-muted)' }}>
+                                                            {linkedinConnected ? " Connected" : "Not connected"}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -439,7 +439,7 @@ export default function SettingsPage() {
                                                     className="px-4 py-2 rounded-xl text-[11px] font-bold cursor-pointer transition-all border-none"
                                                     style={linkedinConnected
                                                         ? { background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444' }
-                                                        : { background: '#10B981', color: '#fff', boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)' }
+                                                        : { background: '#3CF91A', color: '#000', boxShadow: '0 4px 15px rgba(60, 249, 26, 0.3)' }
                                                     }
                                                 >
                                                     {linkedinConnected ? "Disconnect" : "Connect"}
@@ -458,8 +458,8 @@ export default function SettingsPage() {
                                                     </div>
                                                 </div>
                                                 <button
-                                                    className="px-4 py-2 rounded-xl text-[11px] font-bold cursor-pointer transition-all border-none text-white"
-                                                    style={{ background: '#10B981', boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)' }}
+                                                    className="px-4 py-2 rounded-xl text-[11px] font-bold cursor-pointer transition-all border-none text-black"
+                                                    style={{ background: '#3CF91A', boxShadow: '0 4px 15px rgba(60, 249, 26, 0.3)' }}
                                                 >
                                                     Connect
                                                 </button>
@@ -475,3 +475,4 @@ export default function SettingsPage() {
         </div>
     );
 }
+

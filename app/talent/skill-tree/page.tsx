@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 
-/* ── Skill Tree Data ── */
+/* -- Skill Tree Data -- */
 interface SkillNode {
     id: string;
     name: string;
@@ -17,7 +17,7 @@ interface SkillNode {
 }
 
 const skillCategories = [
-    { key: "frontend", label: "Frontend", color: "#10B981", gradient: "from-emerald-400 to-green-500" },
+    { key: "frontend", label: "Frontend", color: "#3CF91A", gradient: "from-lime-400 to-green-500" },
     { key: "backend", label: "Backend", color: "#3B82F6", gradient: "from-blue-400 to-indigo-500" },
     { key: "devops", label: "DevOps", color: "#8B5CF6", gradient: "from-violet-400 to-purple-500" },
     { key: "web3", label: "Web3", color: "#F59E0B", gradient: "from-amber-400 to-orange-500" },
@@ -64,7 +64,7 @@ const skillNodes: SkillNode[] = [
     { id: "prompt-eng", name: "Prompt Eng.", category: "ai", level: 3, maxLevel: 5, xp: 300, xpRequired: 500, unlocked: true, children: [], description: "LLM prompt engineering & fine-tuning" },
 ];
 
-/* ── Icons ── */
+/* -- Icons -- */
 function LockIcon() {
     return (
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--theme-text-muted)' }}>
@@ -126,20 +126,20 @@ export default function SkillTreePage() {
         <div className="min-h-full" style={{ background: 'var(--theme-bg)' }}>
             <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-5">
 
-                {/* ── Header ── */}
+                {/* -- Header -- */}
                 <div className="mb-6">
                     <h1 className="text-2xl lg:text-3xl font-bold tracking-tight" style={{ color: 'var(--theme-text-primary)', fontFamily: 'var(--font-space-grotesk)' }}>
-                        ⚡ Skill Tree
+                        ? Skill Tree
                     </h1>
                     <p className="text-[13px] mt-1" style={{ color: 'var(--theme-text-muted)' }}>
-                        Map your expertise. Unlock new capabilities. <span className="text-emerald-500 font-semibold">Level up.</span>
+                        Map your expertise. Unlock new capabilities. <span className="text-[#3CF91A] font-semibold">Level up.</span>
                     </p>
                 </div>
 
-                {/* ── Stats Overview ── */}
+                {/* -- Stats Overview -- */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
                     {[
-                        { icon: <ZapIcon />, label: "Total XP", value: totalXP.toLocaleString(), sub: `/ ${totalMaxXP.toLocaleString()}`, color: "#10B981" },
+                        { icon: <ZapIcon />, label: "Total XP", value: totalXP.toLocaleString(), sub: `/ ${totalMaxXP.toLocaleString()}`, color: "#3CF91A" },
                         { icon: <TargetIcon />, label: "Skills Unlocked", value: `${unlockedCount}`, sub: `/ ${skillNodes.length}`, color: "#3B82F6" },
                         { icon: <StarIcon />, label: "Mastered", value: `${maxedCount}`, sub: "skills", color: "#F59E0B" },
                         { icon: <TrophyIcon />, label: "Overall", value: `${overallPct}%`, sub: "complete", color: "#8B5CF6" },
@@ -170,25 +170,25 @@ export default function SkillTreePage() {
                     ))}
                 </div>
 
-                {/* ── XP Progress Bar ── */}
+                {/* -- XP Progress Bar -- */}
                 <div className="rounded-2xl border p-4 mb-6" style={{ background: 'var(--theme-card)', borderColor: 'var(--theme-border)' }}>
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--theme-text-muted)' }}>Overall Progress</span>
-                        <span className="text-[12px] font-bold" style={{ color: '#10B981', fontFamily: 'var(--font-jetbrains-mono)' }}>{overallPct}%</span>
+                        <span className="text-[12px] font-bold" style={{ color: '#3CF91A', fontFamily: 'var(--font-jetbrains-mono)' }}>{overallPct}%</span>
                     </div>
                     <div className="h-3 rounded-full overflow-hidden" style={{ background: 'var(--theme-input-bg)' }}>
                         <div
                             className="h-full rounded-full transition-all duration-700"
                             style={{
                                 width: `${overallPct}%`,
-                                background: "linear-gradient(90deg, #10B981, #3B82F6, #8B5CF6)",
-                                boxShadow: "0 0 12px rgba(16, 185, 129, 0.3)",
+                                background: "linear-gradient(90deg, #3CF91A, #3B82F6, #8B5CF6)",
+                                boxShadow: "0 0 12px rgba(60, 249, 26, 0.3)",
                             }}
                         />
                     </div>
                 </div>
 
-                {/* ── Category Filter ── */}
+                {/* -- Category Filter -- */}
                 <div className="flex items-center gap-2 mb-5 flex-wrap">
                     <button
                         onClick={() => setActiveCategory("all")}
@@ -227,14 +227,14 @@ export default function SkillTreePage() {
                     ))}
                 </div>
 
-                {/* ── Main Content ── */}
+                {/* -- Main Content -- */}
                 <div className="flex flex-col lg:flex-row gap-6">
                     {/* Skill Grid */}
                     <div className="flex-1 min-w-0">
                         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                             {filteredSkills.map((skill) => {
                                 const cat = skillCategories.find((c) => c.key === skill.category);
-                                const color = cat?.color || "#10B981";
+                                const color = cat?.color || "#3CF91A";
                                 const pct = Math.round((skill.xp / skill.xpRequired) * 100);
                                 const isSelected = selectedSkill?.id === skill.id;
                                 const isMastered = skill.level === skill.maxLevel;
@@ -265,8 +265,8 @@ export default function SkillTreePage() {
                                         {/* Mastered badge */}
                                         {isMastered && (
                                             <div className="absolute top-3 right-3">
-                                                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full text-white" style={{ background: color }}>
-                                                    ★ MAX
+                                                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full text-black" style={{ background: color }}>
+                                                    ? MAX
                                                 </span>
                                             </div>
                                         )}
@@ -274,7 +274,7 @@ export default function SkillTreePage() {
                                         {/* Header */}
                                         <div className="flex items-center gap-2.5 mb-2.5">
                                             <div
-                                                className="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold text-white shrink-0"
+                                                className="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold text-black shrink-0"
                                                 style={{ background: `linear-gradient(135deg, ${color}, ${color}CC)` }}
                                             >
                                                 {skill.name.slice(0, 2).toUpperCase()}
@@ -323,12 +323,12 @@ export default function SkillTreePage() {
                         </div>
                     </div>
 
-                    {/* ── Detail Panel ── */}
+                    {/* -- Detail Panel -- */}
                     <div className="w-full lg:w-[320px] shrink-0">
                         <div className="rounded-2xl border overflow-hidden sticky top-6" style={{ background: 'var(--theme-card)', borderColor: 'var(--theme-border)' }}>
                             {selectedSkill ? (() => {
                                 const cat = skillCategories.find((c) => c.key === selectedSkill.category);
-                                const color = cat?.color || "#10B981";
+                                const color = cat?.color || "#3CF91A";
                                 return (
                                     <>
                                         {/* Detail header with gradient */}
@@ -341,7 +341,7 @@ export default function SkillTreePage() {
                                         >
                                             <div className="flex items-center gap-3 mb-2">
                                                 <div
-                                                    className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-white"
+                                                    className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-black"
                                                     style={{ background: `linear-gradient(135deg, ${color}, ${color}BB)` }}
                                                 >
                                                     {selectedSkill.name.slice(0, 2).toUpperCase()}
@@ -402,7 +402,7 @@ export default function SkillTreePage() {
                                                         {selectedSkill.children.map((childId) => {
                                                             const child = skillNodes.find((s) => s.id === childId);
                                                             const childCat = child ? skillCategories.find((c) => c.key === child.category) : null;
-                                                            const childColor = childCat?.color || "#10B981";
+                                                            const childColor = childCat?.color || "#3CF91A";
                                                             return child ? (
                                                                 <span
                                                                     key={childId}
@@ -427,17 +427,17 @@ export default function SkillTreePage() {
                                                     <span className={`w-2.5 h-2.5 rounded-full ${selectedSkill.level === selectedSkill.maxLevel
                                                         ? "bg-amber-400"
                                                         : selectedSkill.unlocked
-                                                            ? "bg-emerald-400"
+                                                            ? "bg-[#3CF91A]"
                                                             : "bg-gray-400"
                                                         }`}
-                                                        style={selectedSkill.level === selectedSkill.maxLevel ? { boxShadow: '0 0 8px #F59E0B40' } : selectedSkill.unlocked ? { boxShadow: '0 0 8px #10B98140' } : {}}
+                                                        style={selectedSkill.level === selectedSkill.maxLevel ? { boxShadow: '0 0 8px #F59E0B40' } : selectedSkill.unlocked ? { boxShadow: '0 0 8px rgba(60, 249, 26, 0.4)' } : {}}
                                                     />
                                                     <span className="text-[11px] font-semibold" style={{ color: 'var(--theme-text-tertiary)', fontFamily: "var(--font-jetbrains-mono)" }}>
                                                         {selectedSkill.level === selectedSkill.maxLevel
-                                                            ? "✨ MASTERED"
+                                                            ? "? MASTERED"
                                                             : selectedSkill.unlocked
                                                                 ? "IN PROGRESS"
-                                                                : "🔒 LOCKED"}
+                                                                : "?? LOCKED"}
                                                     </span>
                                                 </div>
                                             </div>
@@ -462,3 +462,5 @@ export default function SkillTreePage() {
         </div>
     );
 }
+
+
