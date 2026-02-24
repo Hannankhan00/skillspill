@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
         // 4. Create Session (Cookie)
         await createSession(user.id, user.role);
 
-        return NextResponse.json({ success: true, redirectTo: "/dashboard/talent" }, { status: 201 });
+        return NextResponse.json({ success: true, redirectTo: "/talent" }, { status: 201 });
 
     } catch (error) {
         console.error("Talent Signup Error:", error);

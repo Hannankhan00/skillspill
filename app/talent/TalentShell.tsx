@@ -75,18 +75,18 @@ function PlusIcon() {
     );
 }
 
-/* ── Nav Items ── */
+/* ── Nav Items (updated paths: /talent instead of /dashboard/talent) ── */
 const talentNavItems = [
-    { label: "Feed", icon: <FeedIcon />, href: "/dashboard/talent" },
-    { label: "My Spills", icon: <SpillsIcon />, href: "/dashboard/talent/spills" },
-    { label: "Jobs", icon: <JobsIcon />, href: "/dashboard/talent/jobs" },
-    { label: "GitHub Sync", icon: <GitHubIcon />, href: "/dashboard/talent/github" },
-    { label: "Profile", icon: <ProfileIcon />, href: "/dashboard/talent/profile" },
-    { label: "Skill Tree", icon: <SkillTreeIcon />, href: "/dashboard/talent/skill-tree" },
-    { label: "Settings", icon: <SettingsIcon />, href: "/dashboard/talent/settings" },
+    { label: "Feed", icon: <FeedIcon />, href: "/talent" },
+    { label: "My Spills", icon: <SpillsIcon />, href: "/talent/spills" },
+    { label: "Jobs", icon: <JobsIcon />, href: "/talent/jobs" },
+    { label: "GitHub Sync", icon: <GitHubIcon />, href: "/talent/github" },
+    { label: "Profile", icon: <ProfileIcon />, href: "/talent/profile" },
+    { label: "Skill Tree", icon: <SkillTreeIcon />, href: "/talent/skill-tree" },
+    { label: "Settings", icon: <SettingsIcon />, href: "/talent/settings" },
 ];
 
-export default function DashboardShell({
+export default function TalentShell({
     role,
     userId,
     children,
@@ -97,8 +97,7 @@ export default function DashboardShell({
 }) {
     const pathname = usePathname();
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const isTalent = role === "TALENT";
-    const accent = isTalent ? "#3CF91A" : "#A855F7";
+    const accent = "#3CF91A";
 
     const navItems = talentNavItems;
 
@@ -112,16 +111,16 @@ export default function DashboardShell({
     };
 
     const isActive = (href: string) => {
-        if (href === "/dashboard/talent") return pathname === "/dashboard/talent";
+        if (href === "/talent") return pathname === "/talent";
         return pathname.startsWith(href);
     };
 
     return (
-        <div className="h-screen overflow-hidden bg-[#050505] text-white flex">
+        <div className="h-screen overflow-hidden bg-[#F5F5F7] text-gray-900 flex">
             {/* ── Mobile Overlay ── */}
             {sidebarOpen && (
                 <div
-                    className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+                    className="fixed inset-0 bg-black/30 z-40 lg:hidden"
                     onClick={() => setSidebarOpen(false)}
                 />
             )}
@@ -131,14 +130,14 @@ export default function DashboardShell({
                 className={`
                     fixed lg:static inset-y-0 left-0 z-50
                     w-[220px] flex flex-col
-                    bg-[#0A0A0A] border-r border-white/[0.06]
+                    bg-white border-r border-gray-200
                     transform transition-transform duration-300 ease-in-out
                     ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
                 `}
             >
                 {/* Logo */}
-                <div className="h-16 flex items-center px-5 border-b border-white/[0.06]">
-                    <Link href="/dashboard/talent" className="flex items-center gap-2.5">
+                <div className="h-16 flex items-center px-5 border-b border-gray-100">
+                    <Link href="/talent" className="flex items-center gap-2.5">
                         <img src="/assets/logo 2.png" alt="SkillSpill" className="h-9" />
                     </Link>
                 </div>
@@ -157,7 +156,7 @@ export default function DashboardShell({
                                     transition-all duration-200 group relative
                                     ${active
                                         ? `text-black`
-                                        : "text-white/50 hover:text-white/80 hover:bg-white/[0.04]"
+                                        : "text-gray-400 hover:text-gray-700 hover:bg-gray-50"
                                     }
                                 `}
                                 style={active ? {
@@ -165,7 +164,7 @@ export default function DashboardShell({
                                     boxShadow: `0 0 20px ${accent}40, 0 0 40px ${accent}15`,
                                 } : {}}
                             >
-                                <span className={active ? "text-black" : `text-white/40 group-hover:text-white/70`}>
+                                <span className={active ? "text-black" : `text-gray-400 group-hover:text-gray-600`}>
                                     {item.icon}
                                 </span>
                                 {item.label}
@@ -175,7 +174,7 @@ export default function DashboardShell({
                 </nav>
 
                 {/* Bottom Section - User + New Spill */}
-                <div className="p-4 border-t border-white/[0.06] space-y-3">
+                <div className="p-4 border-t border-gray-100 space-y-3">
                     {/* User */}
                     <div className="flex items-center gap-3">
                         <div
@@ -189,12 +188,13 @@ export default function DashboardShell({
                             {userId.slice(-2).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold text-white/70 truncate">Ghost_Protocol</p>
-                            <p className="text-[10px] font-mono" style={{ color: `${accent}80` }}>
+                            <p className="text-xs font-semibold text-gray-700 truncate">Ghost_Protocol</p>
+                            <p className="text-[10px] font-mono text-emerald-600">
                                 Lv.42 Shadow
                             </p>
                         </div>
                     </div>
+
 
                     {/* New Spill Button */}
                     <button
@@ -208,16 +208,27 @@ export default function DashboardShell({
                         <PlusIcon />
                         NEW SPILL
                     </button>
+
+                    {/* Logout Button */}
+                    <button
+                        onClick={handleLogout}
+                        className="w-full py-2 rounded-lg text-[11px] font-medium flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer border border-gray-200 bg-transparent text-gray-400 hover:text-red-500 hover:border-red-300 hover:bg-red-50"
+                    >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
+                        </svg>
+                        Sign Out
+                    </button>
                 </div>
             </aside>
 
             {/* ── Main Content Area ── */}
             <div className="flex-1 flex flex-col overflow-hidden">
                 {/* Mobile Top Bar */}
-                <header className="shrink-0 h-14 flex items-center justify-between px-4 border-b border-white/[0.06] bg-[#050505]/80 backdrop-blur-xl lg:hidden">
+                <header className="shrink-0 h-14 flex items-center justify-between px-4 border-b border-gray-200 bg-white/80 backdrop-blur-xl lg:hidden">
                     <button
                         onClick={() => setSidebarOpen(true)}
-                        className="text-white/60 hover:text-white p-1 cursor-pointer bg-transparent border-none"
+                        className="text-gray-500 hover:text-gray-800 p-1 cursor-pointer bg-transparent border-none"
                     >
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                             <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
@@ -226,7 +237,7 @@ export default function DashboardShell({
                     <img src="/assets/logo 2.png" alt="SkillSpill" className="h-8" />
                     <button
                         onClick={handleLogout}
-                        className="text-[11px] text-white/30 hover:text-red-400 transition-colors font-medium cursor-pointer bg-transparent border-none"
+                        className="text-[11px] text-gray-400 hover:text-red-500 transition-colors font-medium cursor-pointer bg-transparent border-none"
                     >
                         Sign Out
                     </button>

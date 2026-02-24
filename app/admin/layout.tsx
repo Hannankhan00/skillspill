@@ -14,6 +14,7 @@ export default async function AdminLayout({
 }) {
     const session = await getSession();
 
+
     // Not logged in → redirect to login
     if (!session) {
         redirect("/login");
@@ -21,8 +22,8 @@ export default async function AdminLayout({
 
     // Not an admin → redirect to appropriate dashboard
     if (session.role !== "ADMIN") {
-        if (session.role === "TALENT") redirect("/dashboard/talent");
-        if (session.role === "RECRUITER") redirect("/dashboard/recruiter");
+        if (session.role === "TALENT") redirect("/talent");
+        if (session.role === "RECRUITER") redirect("/recruiter");
         redirect("/dashboard");
     }
 

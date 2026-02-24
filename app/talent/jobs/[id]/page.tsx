@@ -423,7 +423,7 @@ export default function JobDetailPage() {
                     <p className="text-[60px] font-black text-white/10" style={{ fontFamily: "var(--font-jetbrains-mono)" }}>404</p>
                     <p className="text-[14px] text-white/40 mt-2">Mission not found in the database.</p>
                     <Link
-                        href="/dashboard/talent/jobs"
+                        href="/talent/jobs"
                         className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-lg text-[12px] font-bold bg-[#3CF91A] text-black no-underline hover:scale-[1.02] transition-transform"
                     >
                         <ChevronLeftIcon /> Return to Missions
@@ -452,7 +452,7 @@ export default function JobDetailPage() {
                 <div className="max-w-[1400px] mx-auto px-6">
                     <div className="flex items-center h-12 gap-6">
                         {/* Logo */}
-                        <Link href="/dashboard/talent" className="flex items-center gap-2 no-underline shrink-0">
+                        <Link href="/talent" className="flex items-center gap-2 no-underline shrink-0">
                             <img src="/assets/logo 2.png" alt="SkillSpill" className="h-7" />
                         </Link>
 
@@ -544,7 +544,7 @@ export default function JobDetailPage() {
                 <div className="relative max-w-[1400px] mx-auto px-6 py-12 lg:py-16">
                     {/* Back button */}
                     <Link
-                        href="/dashboard/talent/jobs"
+                        href="/talent/jobs"
                         className="inline-flex items-center gap-1.5 text-[11px] text-white/30 hover:text-[#3CF91A] transition-colors no-underline mb-6"
                     >
                         <ChevronLeftIcon /> Back to Missions

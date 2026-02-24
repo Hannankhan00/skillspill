@@ -55,8 +55,8 @@ export async function POST(req: NextRequest) {
 
         // 6. Determine Redirect
         let redirectTo = "/dashboard";
-        if (user.role === "TALENT") redirectTo = "/dashboard/talent";
-        else if (user.role === "RECRUITER") redirectTo = "/dashboard/recruiter";
+        if (user.role === "TALENT") redirectTo = "/talent";
+        else if (user.role === "RECRUITER") redirectTo = "/recruiter";
         else if (user.role === "ADMIN") redirectTo = "/admin";
 
         return NextResponse.json({ success: true, redirectTo }, { status: 200 });

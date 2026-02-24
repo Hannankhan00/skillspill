@@ -455,7 +455,7 @@ export default function TalentSignup() {
                                 const res = await fetch("/api/auth/signup/talent", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData) });
                                 const data = await res.json();
                                 if (!res.ok) { setSubmitError(data.errors ? Object.values(data.errors).join(", ") : (data.error || "Signup failed")); return; }
-                                router.push("/dashboard");
+                                router.push(data.redirectTo || "/talent");
                             } catch { setSubmitError("Network connection failed."); }
                             finally { setSubmitLoading(false); }
                         } : nextStep}

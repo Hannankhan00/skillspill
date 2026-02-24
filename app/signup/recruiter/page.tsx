@@ -367,7 +367,7 @@ export default function RecruiterSignup() {
                                 const res = await fetch("/api/auth/signup/recruiter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData) });
                                 const data = await res.json();
                                 if (!res.ok) { setSubmitError(data.errors ? Object.values(data.errors).join(", ") : (data.error || "Signup failed")); return; }
-                                router.push("/dashboard");
+                                router.push(data.redirectTo || "/recruiter");
                             } catch { setSubmitError("Network connection failed."); }
                             finally { setSubmitLoading(false); }
                         } : nextStep}

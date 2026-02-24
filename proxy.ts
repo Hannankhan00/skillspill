@@ -5,7 +5,7 @@ import { jwtVerify } from "jose";
 const SECRET_KEY = new TextEncoder().encode(process.env.JWT_SECRET || "your-jwt-secret");
 
 // 1. Define protected routes and public routes
-const protectedRoutes = ["/dashboard", "/admin"];
+const protectedRoutes = ["/dashboard", "/admin", "/talent", "/recruiter"];
 const publicRoutes = ["/login", "/signup", "/"];
 
 export default async function proxy(req: NextRequest) {
@@ -63,9 +63,9 @@ export default async function proxy(req: NextRequest) {
                     // User is NOT suspended — if on /suspended, redirect to dashboard
                     if (isSuspendedRoute) {
                         if (session.role === "TALENT") {
-                            return NextResponse.redirect(new URL("/dashboard/talent", req.nextUrl));
+                            return NextResponse.redirect(new URL("/talent", req.nextUrl));
                         } else if (session.role === "RECRUITER") {
-                            return NextResponse.redirect(new URL("/dashboard/recruiter", req.nextUrl));
+                            return NextResponse.redirect(new URL("/recruiter", req.nextUrl));
                         } else if (session.role === "ADMIN") {
                             return NextResponse.redirect(new URL("/admin", req.nextUrl));
                         }
@@ -83,9 +83,9 @@ export default async function proxy(req: NextRequest) {
     if (isPublic && session && path !== "/") {
         // Redirect based on role if possible, otherwise default dashboard
         if (session.role === "TALENT") {
-            return NextResponse.redirect(new URL("/dashboard/talent", req.nextUrl));
+            return NextResponse.redirect(new URL("/talent", req.nextUrl));
         } else if (session.role === "RECRUITER") {
-            return NextResponse.redirect(new URL("/dashboard/recruiter", req.nextUrl));
+            return NextResponse.redirect(new URL("/recruiter", req.nextUrl));
         }
         return NextResponse.redirect(new URL("/dashboard", req.nextUrl));
     }

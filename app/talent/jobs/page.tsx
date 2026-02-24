@@ -522,7 +522,7 @@ export default function JobsPage() {
                             : "flex flex-col gap-3"
                         }>
                             {filteredJobs.map((job) => (
-                                <Link key={job.id} href={`/dashboard/talent/jobs/${job.id}`} className="block no-underline">
+                                <Link key={job.id} href={`/talent/jobs/${job.id}`} className="block no-underline">
                                     <article
                                         className="rounded-xl border border-white/[0.06] bg-[#0A0A0A] hover:border-[#3CF91A]/20 transition-all duration-300 group cursor-pointer"
                                         style={{ transition: "all 0.3s ease" }}
