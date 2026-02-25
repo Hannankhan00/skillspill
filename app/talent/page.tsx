@@ -264,7 +264,7 @@ export default function TalentFeed() {
                                             </button>
                                         </div>
                                         <button onClick={() => toggleSave(post.id)}
-                                            className={`transition-all bg-transparent border-none cursor-pointer ${isSaved ? "text-purple-500" : "text-[var(--theme-text-muted)] hover:text-purple-500"}`}>
+                                            className={`transition-all bg-transparent border-none cursor-pointer ${isSaved ? "text-[#A855F7]" : "text-[var(--theme-text-muted)] hover:text-[#A855F7]"}`}>
                                             <BookmarkIcon filled={isSaved} />
                                         </button>
                                     </div>

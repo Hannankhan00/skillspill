@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import Logo from "@/app/components/Logo";
 
 /* ═══════════════════════════════════════════════
    ICON COMPONENTS
@@ -862,7 +863,7 @@ export default function JobDetailPage() {
                 <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-5">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
                         <div className="flex items-center gap-2">
-                            <img src="/assets/logo 2.png" alt="SkillSpill" className="h-5 opacity-40" />
+                            <span className="opacity-40"><Logo height={20} /></span>
                             <span
                                 className="text-[9px] uppercase tracking-[2px]"
                                 style={{ fontFamily: "var(--font-jetbrains-mono)", color: "var(--theme-text-muted)" }}

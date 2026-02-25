@@ -24,15 +24,19 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         setMounted(true);
+        // The blocking script in layout.tsx already applied the correct class.
+        // Just sync React state with what's already on the DOM.
+        const isDarkAlready = document.documentElement.classList.contains("dark");
         const stored = localStorage.getItem("skillspill-theme") as Theme | null;
+
         if (stored === "dark" || stored === "light") {
             setTheme(stored);
-            document.documentElement.classList.toggle("dark", stored === "dark");
+        } else if (isDarkAlready) {
+            setTheme("dark");
         } else {
-            // Default to light
             setTheme("light");
-            document.documentElement.classList.remove("dark");
         }
+        // No need to toggle classList here — the blocking script already did it
     }, []);
 
     const toggleTheme = useCallback(() => {

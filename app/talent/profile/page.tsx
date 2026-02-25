@@ -150,7 +150,7 @@ export default function TalentProfilePage() {
                         <div className="pb-1 sm:pb-2 min-w-0 hidden sm:block">
                             <div className="flex items-center gap-2">
                                 <h1 className="text-xl sm:text-2xl font-bold text-[var(--theme-text-primary)]">{profileData.name}</h1>
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="#22C55E" stroke="white" strokeWidth="2">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="#22C55E" stroke="var(--theme-card)" strokeWidth="2">
                                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
                                 </svg>
                                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#3CF91A]/10 text-[#2edb13]">Lv.{profileData.level}</span>
@@ -165,7 +165,7 @@ export default function TalentProfilePage() {
             <div className="sm:hidden px-4 mt-3">
                 <div className="flex items-center gap-2">
                     <h1 className="text-lg font-bold text-[var(--theme-text-primary)]">{profileData.name}</h1>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#22C55E" stroke="white" strokeWidth="2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#22C55E" stroke="var(--theme-card)" strokeWidth="2">
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
                     </svg>
                     <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#3CF91A]/10 text-[#2edb13]">Lv.{profileData.level}</span>
@@ -270,8 +270,8 @@ export default function TalentProfilePage() {
                                                 let bg = "var(--theme-input-bg)";
                                                 if (intensity > 0.8) bg = "#16A34A";
                                                 else if (intensity > 0.6) bg = "#22C55E";
-                                                else if (intensity > 0.4) bg = "#4ADE80";
-                                                else if (intensity > 0.2) bg = "#BBF7D0";
+                                                else if (intensity > 0.4) bg = "#2D9B4E";
+                                                else if (intensity > 0.2) bg = "#1A6B35";
                                                 return <div key={i} className="w-[8px] h-[8px] sm:w-[10px] sm:h-[10px] rounded-[2px]" style={{ backgroundColor: bg }} />;
                                             })}
                                         </div>
@@ -414,7 +414,7 @@ export default function TalentProfilePage() {
                                         </div>
                                         <div className="h-2.5 bg-[var(--theme-input-bg)] rounded-full overflow-hidden">
                                             <div className="h-full rounded-full transition-all duration-700"
-                                                style={{ width: `${skill.level}%`, background: skill.level >= 90 ? `linear-gradient(90deg, #16A34A, ${accent})` : skill.level >= 80 ? "linear-gradient(90deg, #22C55E, #4ADE80)" : "#D1D5DB" }} />
+                                                style={{ width: `${skill.level}%`, background: skill.level >= 90 ? `linear-gradient(90deg, #16A34A, ${accent})` : skill.level >= 80 ? "linear-gradient(90deg, #22C55E, #4ADE80)" : "var(--theme-text-muted)" }} />
                                         </div>
                                     </div>
                                 ))}

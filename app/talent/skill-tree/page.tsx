@@ -134,7 +134,13 @@ interface TreeEdge {
     to: string;
 }
 
-function buildTreeLayout(categoryKey: string): { nodes: Map<string, LayoutNode>; edges: TreeEdge[] } {
+interface LayoutSizing {
+    nodeW: number;
+    gapX: number;
+    rowH: number;
+}
+
+function buildTreeLayout(categoryKey: string, sizing: LayoutSizing): { nodes: Map<string, LayoutNode>; edges: TreeEdge[]; rows: string[][] } {
     const catSkills = skillNodes.filter(s => s.category === categoryKey);
     const childIds = new Set(catSkills.flatMap(s => s.children.filter(cid => catSkills.find(cs => cs.id === cid))));
     const roots = catSkills.filter(s => !childIds.has(s.id));
@@ -170,7 +176,7 @@ function buildTreeLayout(categoryKey: string): { nodes: Map<string, LayoutNode>;
         currentLevel = nextLevel;
     }
 
-    // Add any orphaned nodes (nodes with no parent and no children that weren't picked up)
+    // Add any orphaned nodes
     for (const s of catSkills) {
         if (!visited.has(s.id)) {
             const lastRow = rows.length > 0 ? rows.length - 1 : 0;
@@ -184,25 +190,23 @@ function buildTreeLayout(categoryKey: string): { nodes: Map<string, LayoutNode>;
     }
 
     // Assign x,y — center each row
-    const NODE_W = 120;
-    const NODE_GAP_X = 24;
-    const ROW_H = 110;
+    const { nodeW, gapX, rowH } = sizing;
 
     for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
         const row = rows[rowIdx];
-        const totalWidth = row.length * NODE_W + (row.length - 1) * NODE_GAP_X;
-        const startX = -totalWidth / 2 + NODE_W / 2;
+        const totalWidth = row.length * nodeW + (row.length - 1) * gapX;
+        const startX = -totalWidth / 2 + nodeW / 2;
         for (let col = 0; col < row.length; col++) {
             nodes.set(row[col], {
                 id: row[col],
-                x: startX + col * (NODE_W + NODE_GAP_X),
-                y: rowIdx * ROW_H,
+                x: startX + col * (nodeW + gapX),
+                y: rowIdx * rowH,
                 row: rowIdx,
             });
         }
     }
 
-    return { nodes, edges };
+    return { nodes, edges, rows };
 }
 
 /* ═══════════════════════════════════════════════
@@ -214,20 +218,32 @@ function TreeNode({
     color,
     isSelected,
     onClick,
+    scale = 1,
 }: {
     skill: SkillNode;
     color: string;
     isSelected: boolean;
     onClick: () => void;
+    scale?: number;
 }) {
     const isMastered = skill.level === skill.maxLevel;
     const pct = Math.round((skill.xp / skill.xpRequired) * 100);
 
+    // Scale dimensions
+    const boxSize = Math.round(72 * scale);
+    const nodeWidth = Math.round(120 * scale);
+    const fontSize = Math.max(9, Math.round(13 * scale));
+    const labelSize = Math.max(8, Math.round(10 * scale));
+    const xpBarW = Math.round(56 * scale);
+    const pipW = Math.max(4, Math.round(6 * scale));
+    const pipH = Math.max(2, Math.round(3 * scale));
+    const badgeSize = Math.round(20 * scale);
+
     return (
         <button
             onClick={onClick}
-            className="relative flex flex-col items-center gap-1.5 group transition-all duration-300 bg-transparent border-none cursor-pointer"
-            style={{ width: 120 }}
+            className="relative flex flex-col items-center gap-1 group transition-all duration-300 bg-transparent border-none cursor-pointer"
+            style={{ width: nodeWidth }}
         >
             {/* Glow ring */}
             {isSelected && (
@@ -242,8 +258,10 @@ function TreeNode({
 
             {/* Node box */}
             <div
-                className={`relative w-[72px] h-[72px] rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 ${isSelected ? "scale-110" : ""}`}
+                className={`relative rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 ${isSelected ? "scale-110" : ""}`}
                 style={{
+                    width: boxSize,
+                    height: boxSize,
                     background: skill.unlocked
                         ? `linear-gradient(135deg, ${color}20, ${color}08)`
                         : "var(--theme-input-bg)",
@@ -265,8 +283,10 @@ function TreeNode({
                 {/* Mastered badge */}
                 {isMastered && (
                     <div
-                        className="absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center z-10"
+                        className="absolute -top-2 -right-2 rounded-full flex items-center justify-center z-10"
                         style={{
+                            width: badgeSize,
+                            height: badgeSize,
                             background: color,
                             boxShadow: `0 0 10px ${color}80`,
                             color: "#000",
@@ -278,8 +298,9 @@ function TreeNode({
 
                 {/* Inner icon/label */}
                 <span
-                    className="text-[13px] font-black tracking-wide"
+                    className="font-black tracking-wide"
                     style={{
+                        fontSize,
                         fontFamily: "var(--font-jetbrains-mono)",
                         color: skill.unlocked ? color : "var(--theme-text-muted)",
                         textShadow: skill.unlocked ? `0 0 12px ${color}50` : "none",
@@ -290,12 +311,14 @@ function TreeNode({
                 </span>
 
                 {/* Level pip row */}
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex gap-[3px]">
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex" style={{ gap: Math.max(1, 3 * scale) }}>
                     {Array.from({ length: skill.maxLevel }).map((_, i) => (
                         <div
                             key={i}
-                            className="w-[6px] h-[3px] rounded-full"
+                            className="rounded-full"
                             style={{
+                                width: pipW,
+                                height: pipH,
                                 background: i < skill.level ? color : "var(--theme-border)",
                                 boxShadow: i < skill.level ? `0 0 4px ${color}50` : "none",
                             }}
@@ -306,8 +329,9 @@ function TreeNode({
 
             {/* Label */}
             <span
-                className="text-[10px] font-bold uppercase tracking-wider text-center leading-tight mt-1"
+                className="font-bold uppercase tracking-wider text-center leading-tight mt-1"
                 style={{
+                    fontSize: labelSize,
                     fontFamily: "var(--font-jetbrains-mono)",
                     color: isSelected ? color : skill.unlocked ? "var(--theme-text-secondary)" : "var(--theme-text-muted)",
                     textShadow: isSelected ? `0 0 8px ${color}40` : "none",
@@ -318,7 +342,7 @@ function TreeNode({
 
             {/* XP Bar */}
             {skill.unlocked && (
-                <div className="w-14 h-[3px] rounded-full overflow-hidden" style={{ background: "var(--theme-input-bg)" }}>
+                <div className="h-[3px] rounded-full overflow-hidden" style={{ width: xpBarW, background: "var(--theme-input-bg)" }}>
                     <div
                         className="h-full rounded-full"
                         style={{
@@ -347,55 +371,112 @@ function CategoryTree({
     onSelectSkill: (skill: SkillNode) => void;
 }) {
     const cat = skillCategories.find(c => c.key === categoryKey)!;
-    const { nodes: layoutNodes, edges } = useMemo(() => buildTreeLayout(categoryKey), [categoryKey]);
     const containerRef = useRef<HTMLDivElement>(null);
     const [containerWidth, setContainerWidth] = useState(600);
 
     useEffect(() => {
-        if (containerRef.current) {
-            setContainerWidth(containerRef.current.offsetWidth);
-        }
+        const measure = () => {
+            if (containerRef.current) {
+                setContainerWidth(containerRef.current.offsetWidth);
+            }
+        };
+        measure();
+        window.addEventListener("resize", measure);
+        return () => window.removeEventListener("resize", measure);
     }, []);
+
+    // Compute responsive sizing based on container width
+    // Find the widest row for this category to determine the best scale
+    const catSkills = skillNodes.filter(s => s.category === categoryKey);
+    const widestRowCount = useMemo(() => {
+        // Quick BFS just to find the widest row count
+        const childIds = new Set(catSkills.flatMap(s => s.children.filter(cid => catSkills.find(cs => cs.id === cid))));
+        const roots = catSkills.filter(s => !childIds.has(s.id));
+        let maxRow = roots.length;
+        const visited = new Set<string>();
+        let currentLevel = roots.map(r => r.id);
+        while (currentLevel.length > 0) {
+            const nextLevel: string[] = [];
+            for (const nid of currentLevel) {
+                if (visited.has(nid)) continue;
+                visited.add(nid);
+                const node = catSkills.find(s => s.id === nid);
+                if (node) {
+                    for (const cid of node.children) {
+                        if (catSkills.find(s => s.id === cid) && !visited.has(cid)) {
+                            nextLevel.push(cid);
+                        }
+                    }
+                }
+            }
+            if (nextLevel.length > maxRow) maxRow = nextLevel.length;
+            currentLevel = nextLevel;
+        }
+        return Math.max(1, maxRow);
+    }, [categoryKey]);
+
+    // Responsive sizing: scale down to fit container
+    const desktopNodeW = 120;
+    const desktopGapX = 32;
+    const desktopRowH = 170;
+    const padding = 40; // padding on each side
+
+    const neededWidth = widestRowCount * desktopNodeW + (widestRowCount - 1) * desktopGapX;
+    const availableWidth = containerWidth - padding;
+    const scaleFactor = availableWidth > 0 ? Math.min(1, availableWidth / neededWidth) : 1;
+    const clampedScale = Math.max(0.55, scaleFactor); // never go below 55%
+
+    const nodeW = Math.round(desktopNodeW * clampedScale);
+    const gapX = Math.round(desktopGapX * clampedScale);
+    const rowH = Math.round(desktopRowH * clampedScale);
+
+    const sizing: LayoutSizing = { nodeW, gapX, rowH };
+    const { nodes: layoutNodes, edges } = useMemo(() => buildTreeLayout(categoryKey, sizing), [categoryKey, nodeW, gapX, rowH]);
 
     // Compute bounding box
     const allLayoutNodes = Array.from(layoutNodes.values());
     if (allLayoutNodes.length === 0) return null;
 
-    const minX = Math.min(...allLayoutNodes.map(n => n.x)) - 60;
-    const maxX = Math.max(...allLayoutNodes.map(n => n.x)) + 60;
+    const halfNodeW = nodeW / 2;
+    const minX = Math.min(...allLayoutNodes.map(n => n.x)) - halfNodeW;
+    const maxX = Math.max(...allLayoutNodes.map(n => n.x)) + halfNodeW;
     const maxY = Math.max(...allLayoutNodes.map(n => n.y));
     const treeWidth = maxX - minX;
-    const treeHeight = maxY + 130;
+    const treeHeight = maxY + rowH;
     const centerOffsetX = containerWidth / 2;
+
+    // Scaled node content height for line coordinates
+    const boxSize = Math.round(72 * clampedScale);
+    const nodeContentH = boxSize + 20 * clampedScale; // box + pips + label + xp bar
 
     return (
         <div className="rounded-2xl border overflow-hidden" style={{ background: "var(--theme-card)", borderColor: "var(--theme-border)" }}>
             {/* Category header */}
             <div
-                className="flex items-center gap-2.5 px-5 py-3"
+                className="flex items-center gap-2.5 px-4 sm:px-5 py-3"
                 style={{ borderBottom: `1px solid ${cat.color}20`, background: `${cat.color}06` }}
             >
                 <span className="text-[16px]">{cat.icon}</span>
                 <h2
-                    className="text-[12px] font-bold uppercase tracking-[2px]"
+                    className="text-[11px] sm:text-[12px] font-bold uppercase tracking-[2px]"
                     style={{ fontFamily: "var(--font-jetbrains-mono)", color: cat.color }}
                 >
                     {cat.label}
                 </h2>
-                <span className="text-[10px] ml-auto" style={{ color: "var(--theme-text-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>
+                <span className="text-[9px] sm:text-[10px] ml-auto" style={{ color: "var(--theme-text-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>
                     {skillNodes.filter(s => s.category === categoryKey && s.unlocked).length}/
                     {skillNodes.filter(s => s.category === categoryKey).length} UNLOCKED
                 </span>
             </div>
 
-            {/* Tree canvas */}
-            <div ref={containerRef} className="relative overflow-x-auto" style={{ minHeight: treeHeight + 40, padding: "20px 0" }}>
+            {/* Tree canvas — NO overflow-x so it never scrolls horizontally */}
+            <div ref={containerRef} className="relative" style={{ minHeight: treeHeight + 40, padding: `${Math.round(20 * clampedScale)}px 0 ${Math.round(28 * clampedScale)}px` }}>
                 {/* SVG Connections */}
                 <svg
                     className="absolute top-0 left-0 pointer-events-none"
-                    width={Math.max(treeWidth + 120, containerWidth)}
+                    width={containerWidth}
                     height={treeHeight + 40}
-                    style={{ overflow: "visible" }}
+                    style={{ overflow: "visible", zIndex: 1 }}
                 >
                     <defs>
                         <filter id={`glow-${categoryKey}`} x="-50%" y="-50%" width="200%" height="200%">
@@ -415,36 +496,25 @@ function CategoryTree({
                         const toSkill = skillNodes.find(s => s.id === edge.to);
                         const isActive = fromSkill?.unlocked && toSkill?.unlocked;
 
-                        const x1 = fromNode.x - minX + 60 + (centerOffsetX - (treeWidth + 120) / 2);
-                        const y1 = fromNode.y + 76 + 20;
-                        const x2 = toNode.x - minX + 60 + (centerOffsetX - (treeWidth + 120) / 2);
-                        const y2 = toNode.y + 20;
+                        const topPad = Math.round(20 * clampedScale);
+                        const x1 = fromNode.x - minX + (centerOffsetX - treeWidth / 2);
+                        const y1 = fromNode.y + topPad + nodeContentH + 4 * clampedScale;
+                        const x2 = toNode.x - minX + (centerOffsetX - treeWidth / 2);
+                        const y2 = toNode.y + topPad - 4 * clampedScale;
 
                         const midY = (y1 + y2) / 2;
 
                         return (
-                            <g key={i}>
-                                {/* Background line */}
-                                <path
-                                    d={`M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`}
-                                    fill="none"
-                                    stroke={isActive ? cat.color : "var(--theme-border)"}
-                                    strokeWidth={isActive ? 2 : 1}
-                                    strokeDasharray={isActive ? "none" : "4 4"}
-                                    opacity={isActive ? 0.6 : 0.3}
-                                    filter={isActive ? `url(#glow-${categoryKey})` : undefined}
-                                />
-                                {/* Animated dot for active connections */}
-                                {isActive && (
-                                    <circle r="3" fill={cat.color} opacity="0.8">
-                                        <animateMotion
-                                            dur="3s"
-                                            repeatCount="indefinite"
-                                            path={`M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`}
-                                        />
-                                    </circle>
-                                )}
-                            </g>
+                            <path
+                                key={i}
+                                d={`M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`}
+                                fill="none"
+                                stroke={isActive ? cat.color : "var(--theme-border)"}
+                                strokeWidth={isActive ? 2 : 1}
+                                strokeDasharray={isActive ? "none" : "4 4"}
+                                opacity={isActive ? 0.6 : 0.3}
+                                filter={isActive ? `url(#glow-${categoryKey})` : undefined}
+                            />
                         );
                     })}
                 </svg>
@@ -453,20 +523,21 @@ function CategoryTree({
                 {allLayoutNodes.map(layoutNode => {
                     const skill = skillNodes.find(s => s.id === layoutNode.id);
                     if (!skill) return null;
-                    const x = layoutNode.x - minX + 60 + (centerOffsetX - (treeWidth + 120) / 2) - 60;
-                    const y = layoutNode.y + 20;
+                    const x = layoutNode.x - minX + (centerOffsetX - treeWidth / 2) - halfNodeW;
+                    const y = layoutNode.y + Math.round(20 * clampedScale);
 
                     return (
                         <div
                             key={skill.id}
                             className="absolute"
-                            style={{ left: x, top: y, zIndex: 10 }}
+                            style={{ left: x, top: y, zIndex: 10, isolation: "isolate" }}
                         >
                             <TreeNode
                                 skill={skill}
                                 color={cat.color}
                                 isSelected={selectedSkill?.id === skill.id}
                                 onClick={() => onSelectSkill(skill)}
+                                scale={clampedScale}
                             />
                         </div>
                     );

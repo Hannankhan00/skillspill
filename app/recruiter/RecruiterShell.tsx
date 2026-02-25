@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { ThemeToggle } from "../components/ThemeProvider";
+import Logo from "../components/Logo";
 
 /* ── SVG Icon Components ── */
 function HomeIcon() {
@@ -158,7 +159,7 @@ export default function RecruiterShell({
                 {/* Logo */}
                 <div className="h-14 flex items-center px-5" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
                     <Link href="/recruiter" className="flex items-center gap-2.5">
-                        <img src="/assets/logo 2.png" alt="SkillSpill" className="h-9" />
+                        <Logo height={36} accentColor="#A855F7" />
                     </Link>
                 </div>
 
@@ -207,7 +208,7 @@ export default function RecruiterShell({
                         </div>
                         <div className="flex-1 min-w-0">
                             <p className="text-xs font-semibold truncate" style={{ color: 'var(--theme-text-secondary)' }}>Recruiter</p>
-                            <p className="text-[10px] font-mono text-purple-500">Talent Scout</p>
+                            <p className="text-[10px] font-mono text-[#A855F7]">Talent Scout</p>
                         </div>
                     </div>
 
@@ -286,7 +287,7 @@ export default function RecruiterShell({
                     DESKTOP HEADER (full header bar)
                    ══════════════════════════════════════ */}
                 <header className="shrink-0 h-14 hidden lg:flex items-center justify-between px-6 backdrop-blur-xl z-30" style={{ background: 'var(--theme-header-bg)', borderBottom: '1px solid var(--theme-border)' }}>
-                    <div className="flex items-center gap-2 rounded-xl px-3.5 py-2 focus-within:border-purple-300 focus-within:ring-2 focus-within:ring-purple-50 transition-all max-w-[360px] w-full" style={{ background: 'var(--theme-input-bg)', border: '1px solid var(--theme-border)' }}>
+                    <div className="flex items-center gap-2 rounded-xl px-3.5 py-2 focus-within:border-[#A855F7]/40 focus-within:ring-2 focus-within:ring-purple-50 transition-all max-w-[360px] w-full" style={{ background: 'var(--theme-input-bg)', border: '1px solid var(--theme-border)' }}>
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2">
                             <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                         </svg>
@@ -350,17 +351,17 @@ export default function RecruiterShell({
                                     </div>
                                     <div className="py-1">
                                         <Link href="/recruiter/profile" onClick={() => setProfileDropdown(false)}
-                                            className="flex items-center gap-3 px-4 py-2.5 text-[12px] hover:text-purple-700 transition-colors no-underline" style={{ color: 'var(--theme-text-tertiary)' }}>
+                                            className="flex items-center gap-3 px-4 py-2.5 text-[12px] hover:text-[#A855F7] transition-colors no-underline" style={{ color: 'var(--theme-text-tertiary)' }}>
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                                             View Profile
                                         </Link>
                                         <Link href="/recruiter/settings" onClick={() => setProfileDropdown(false)}
-                                            className="flex items-center gap-3 px-4 py-2.5 text-[12px] hover:text-purple-700 transition-colors no-underline" style={{ color: 'var(--theme-text-tertiary)' }}>
+                                            className="flex items-center gap-3 px-4 py-2.5 text-[12px] hover:text-[#A855F7] transition-colors no-underline" style={{ color: 'var(--theme-text-tertiary)' }}>
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82" /></svg>
                                             Settings
                                         </Link>
                                         <Link href="/recruiter/notifications" onClick={() => setProfileDropdown(false)}
-                                            className="flex items-center gap-3 px-4 py-2.5 text-[12px] hover:text-purple-700 transition-colors no-underline" style={{ color: 'var(--theme-text-tertiary)' }}>
+                                            className="flex items-center gap-3 px-4 py-2.5 text-[12px] hover:text-[#A855F7] transition-colors no-underline" style={{ color: 'var(--theme-text-tertiary)' }}>
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
                                             Notifications
                                             <span className="ml-auto text-[9px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 font-bold">3</span>
@@ -409,7 +410,7 @@ export default function RecruiterShell({
                         return (
                             <Link key={item.label} href={item.href}
                                 className={`flex flex-col items-center justify-center gap-0.5 py-1 px-2 no-underline transition-colors
-                                    ${active ? "text-purple-600" : "text-gray-400"}`}>
+                                    ${active ? "text-[#A855F7]" : "text-[var(--theme-text-muted)]"}`}>
                                 {active ? item.iconFilled : item.icon}
                                 <span className="text-[9px] font-medium">{item.label}</span>
                                 {item.label === "Alerts" && (

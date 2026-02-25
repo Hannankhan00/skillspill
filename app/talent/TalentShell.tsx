@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { ThemeToggle } from "../components/ThemeProvider";
+import Logo from "../components/Logo";
 
 /* -- SVG Icon Components -- */
 function FeedIcon() {
@@ -161,7 +162,7 @@ export default function TalentShell({
                 {/* Logo */}
                 <div className="h-14 flex items-center px-5" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
                     <Link href="/talent" className="flex items-center gap-2.5">
-                        <img src="/assets/logo 2.png" alt="SkillSpill" className="h-9" />
+                        <Logo height={36} />
                     </Link>
                 </div>
 

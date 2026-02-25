@@ -1,6 +1,8 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
+
+const accent = "#A855F7";
 
 /*  Icons  */
 function ShieldIcon() {
@@ -29,8 +31,8 @@ function Toggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => void 
             onClick={onToggle}
             className="relative w-11 h-6 rounded-full transition-all duration-300 cursor-pointer border-none shrink-0"
             style={{
-                background: enabled ? '#3CF91A' : 'var(--theme-input-bg)',
-                boxShadow: enabled ? '0 0 12px rgba(60, 249, 26, 0.3)' : 'none',
+                background: enabled ? accent : 'var(--theme-input-bg)',
+                boxShadow: enabled ? `0 0 12px ${accent}50` : 'none',
                 border: enabled ? 'none' : '1px solid var(--theme-border)',
             }}
         >
@@ -74,7 +76,7 @@ function InputField({ label, value, onChange, type = "text", mono = false, place
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 placeholder={placeholder}
-                className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all focus:ring-2 focus:ring-[#3CF91A]/20"
+                className={`w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all focus:ring-2 focus:ring-[${accent}]/20`}
                 style={{
                     background: 'var(--theme-input-bg)',
                     border: '1px solid var(--theme-border)',
@@ -99,7 +101,7 @@ function ToggleRow({ label, desc, enabled, onToggle }: { label: string; desc: st
     );
 }
 
-export default function SettingsPage() {
+export default function RecruiterSettingsPage() {
     const [activeTab, setActiveTab] = useState("security");
 
     /* Security */
@@ -107,19 +109,19 @@ export default function SettingsPage() {
     const [sessionAlerts, setSessionAlerts] = useState(true);
 
     /* Notifications */
-    const [notifBounty, setNotifBounty] = useState(true);
+    const [notifApplication, setNotifApplication] = useState(true);
     const [notifSpill, setNotifSpill] = useState(true);
-    const [notifJob, setNotifJob] = useState(false);
+    const [notifBounty, setNotifBounty] = useState(true);
     const [notifEmail, setNotifEmail] = useState(true);
     const [notifPush, setNotifPush] = useState(false);
 
     /* Connections */
-    const [githubConnected, setGithubConnected] = useState(true);
-    const [linkedinConnected, setLinkedinConnected] = useState(false);
+    const [githubConnected, setGithubConnected] = useState(false);
+    const [linkedinConnected, setLinkedinConnected] = useState(true);
 
     return (
         <div className="min-h-full" style={{ background: 'var(--theme-bg)' }}>
-            <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-5">
+            <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-4 pb-24 lg:pb-8">
 
                 {/*  Header  */}
                 <div className="mb-6">
@@ -127,7 +129,7 @@ export default function SettingsPage() {
                         Settings
                     </h1>
                     <p className="text-[13px] mt-1" style={{ color: 'var(--theme-text-muted)' }}>
-                        Configure your SkillSpill experience. <span className="text-[#3CF91A] font-semibold">Make it yours.</span>
+                        Configure your recruiter experience. <span style={{ color: accent }} className="font-semibold">Fine-tune your workflow.</span>
                     </p>
                 </div>
 
@@ -144,9 +146,9 @@ export default function SettingsPage() {
                                         style={
                                             activeTab === tab.key
                                                 ? {
-                                                    background: '#3CF91A',
-                                                    color: '#000',
-                                                    boxShadow: '0 4px 15px rgba(60, 249, 26, 0.3)',
+                                                    background: accent,
+                                                    color: '#fff',
+                                                    boxShadow: `0 4px 15px ${accent}50`,
                                                 }
                                                 : {
                                                     background: 'transparent',
@@ -173,7 +175,7 @@ export default function SettingsPage() {
                             {/*  Security  */}
                             {activeTab === "security" && (
                                 <div className="p-6 space-y-6">
-                                    <Section title="Security & Privacy" desc="Protect your SkillSpill account">
+                                    <Section title="Security & Privacy" desc="Protect your SkillSpill recruiter account">
                                         {/* Password */}
                                         <div className="rounded-xl p-4 space-y-3" style={{ background: 'var(--theme-bg)', border: '1px solid var(--theme-border)' }}>
                                             <h3 className="text-[13px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Change Password</h3>
@@ -181,8 +183,8 @@ export default function SettingsPage() {
                                             <InputField label="" value="" onChange={() => { }} type="password" placeholder="New password" />
                                             <InputField label="" value="" onChange={() => { }} type="password" placeholder="Confirm new password" />
                                             <button
-                                                className="px-4 py-2 rounded-xl text-[11px] font-bold text-black border-none cursor-pointer hover:shadow-md transition-all"
-                                                style={{ background: '#3CF91A' }}
+                                                className="px-4 py-2 rounded-xl text-[11px] font-bold text-white border-none cursor-pointer hover:shadow-md transition-all"
+                                                style={{ background: accent }}
                                             >
                                                 Update Password
                                             </button>
@@ -210,9 +212,9 @@ export default function SettingsPage() {
                                     <Section title="Notifications" desc="Choose what alerts you want to receive">
                                         <div>
                                             <h3 className="text-[11px] uppercase tracking-widest font-semibold mb-2" style={{ color: 'var(--theme-text-muted)' }}>Activity</h3>
-                                            <ToggleRow label="Bounty Updates" desc="When bounties you applied to change status" enabled={notifBounty} onToggle={() => setNotifBounty(!notifBounty)} />
+                                            <ToggleRow label="New Applications" desc="When candidates apply to your bounties" enabled={notifApplication} onToggle={() => setNotifApplication(!notifApplication)} />
                                             <ToggleRow label="Spill Interactions" desc="Likes, comments, and shares on your spills" enabled={notifSpill} onToggle={() => setNotifSpill(!notifSpill)} />
-                                            <ToggleRow label="Job Recommendations" desc="New jobs matching your skill profile" enabled={notifJob} onToggle={() => setNotifJob(!notifJob)} />
+                                            <ToggleRow label="Bounty Updates" desc="Status changes on your posted bounties" enabled={notifBounty} onToggle={() => setNotifBounty(!notifBounty)} />
                                         </div>
 
                                         <div>
@@ -227,7 +229,7 @@ export default function SettingsPage() {
                             {/*  Connections  */}
                             {activeTab === "connections" && (
                                 <div className="p-6 space-y-6">
-                                    <Section title="Connections" desc="Link external accounts to boost your SkillSpill profile">
+                                    <Section title="Connections" desc="Link external accounts to enhance your recruiter profile">
                                         <div className="space-y-3">
                                             {/* GitHub */}
                                             <div className="flex items-center justify-between p-4 rounded-xl" style={{ background: 'var(--theme-bg)', border: '1px solid var(--theme-border)' }}>
@@ -237,8 +239,8 @@ export default function SettingsPage() {
                                                     </div>
                                                     <div>
                                                         <p className="text-[13px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>GitHub</p>
-                                                        <p className="text-[11px]" style={{ color: githubConnected ? '#3CF91A' : 'var(--theme-text-muted)' }}>
-                                                            {githubConnected ? " Connected as ghost-protocol" : "Not connected"}
+                                                        <p className="text-[11px]" style={{ color: githubConnected ? accent : 'var(--theme-text-muted)' }}>
+                                                            {githubConnected ? " Connected" : "Not connected"}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -247,7 +249,7 @@ export default function SettingsPage() {
                                                     className="px-4 py-2 rounded-xl text-[11px] font-bold cursor-pointer transition-all border-none"
                                                     style={githubConnected
                                                         ? { background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444' }
-                                                        : { background: '#3CF91A', color: '#000', boxShadow: '0 4px 15px rgba(60, 249, 26, 0.3)' }
+                                                        : { background: accent, color: '#fff', boxShadow: `0 4px 15px ${accent}50` }
                                                     }
                                                 >
                                                     {githubConnected ? "Disconnect" : "Connect"}
@@ -262,7 +264,7 @@ export default function SettingsPage() {
                                                     </div>
                                                     <div>
                                                         <p className="text-[13px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>LinkedIn</p>
-                                                        <p className="text-[11px]" style={{ color: linkedinConnected ? '#3CF91A' : 'var(--theme-text-muted)' }}>
+                                                        <p className="text-[11px]" style={{ color: linkedinConnected ? accent : 'var(--theme-text-muted)' }}>
                                                             {linkedinConnected ? " Connected" : "Not connected"}
                                                         </p>
                                                     </div>
@@ -272,7 +274,7 @@ export default function SettingsPage() {
                                                     className="px-4 py-2 rounded-xl text-[11px] font-bold cursor-pointer transition-all border-none"
                                                     style={linkedinConnected
                                                         ? { background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444' }
-                                                        : { background: '#3CF91A', color: '#000', boxShadow: '0 4px 15px rgba(60, 249, 26, 0.3)' }
+                                                        : { background: accent, color: '#fff', boxShadow: `0 4px 15px ${accent}50` }
                                                     }
                                                 >
                                                     {linkedinConnected ? "Disconnect" : "Connect"}
@@ -291,8 +293,8 @@ export default function SettingsPage() {
                                                     </div>
                                                 </div>
                                                 <button
-                                                    className="px-4 py-2 rounded-xl text-[11px] font-bold cursor-pointer transition-all border-none text-black"
-                                                    style={{ background: '#3CF91A', boxShadow: '0 4px 15px rgba(60, 249, 26, 0.3)' }}
+                                                    className="px-4 py-2 rounded-xl text-[11px] font-bold cursor-pointer transition-all border-none text-white"
+                                                    style={{ background: accent, boxShadow: `0 4px 15px ${accent}50` }}
                                                 >
                                                     Connect
                                                 </button>

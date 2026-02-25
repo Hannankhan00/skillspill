@@ -3,20 +3,22 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
+import { ThemeToggle } from "@/app/components/ThemeProvider";
+
 /* ═══════════════════════════════════════════
    DESIGN TOKENS
    ═══════════════════════════════════════════ */
 const T = {
-    bg: "#102122",
-    sidebar: "#0c1a1b",
-    card: "#162a2b",
-    cardBorder: "#1e3536",
+    bg: "var(--theme-bg)",
+    sidebar: "var(--theme-surface)",
+    card: "var(--theme-card)",
+    cardBorder: "var(--theme-border)",
     admin: "#0DD5E7",
     talent: "#39FF14",
     recruiter: "#7B2FFF",
     danger: "#E8294A",
-    textPrimary: "#F0F0F0",
-    textSecondary: "#6B8A8C",
+    textPrimary: "var(--theme-text-primary)",
+    textSecondary: "var(--theme-text-muted)",
 };
 
 const mono: React.CSSProperties = { fontFamily: "var(--font-jetbrains-mono, 'JetBrains Mono', monospace)" };
@@ -248,567 +250,565 @@ export default function AdminPage() {
     ];
 
     return (
-        // Outer glow container
-        <div className="h-screen w-screen p-1.5" style={{ background: `linear-gradient(135deg, ${T.admin}40, ${T.recruiter}40, ${T.admin}40)` }}>
-            <div className="flex h-full w-full rounded-2xl overflow-hidden" style={{ background: T.bg }}>
+        <div className="h-screen w-screen flex bg-[var(--theme-bg)] overflow-hidden">
 
-                {/* ═══════════ SIDEBAR ═══════════ */}
-                <aside className="hidden lg:flex flex-col w-[200px] shrink-0 border-r" style={{ background: T.sidebar, borderColor: T.cardBorder }}>
-                    {/* Logo */}
-                    <div className="px-5 pt-5 pb-4 flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: T.admin, boxShadow: `0 0 16px ${T.admin}40` }}>
-                            {I.bolt(16)}
-                        </div>
-                        <div>
-                            <div className="text-[13px] font-bold" style={{ color: T.textPrimary, ...sans }}>SkillSpill</div>
-                            <div className="text-[8px] uppercase tracking-[2px] font-bold" style={{ color: T.admin, ...mono }}>Admin Nexus</div>
-                        </div>
+            {/* ═══════════ SIDEBAR ═══════════ */}
+            <aside className="hidden lg:flex flex-col w-[200px] shrink-0 border-r" style={{ background: T.sidebar, borderColor: T.cardBorder }}>
+                {/* Logo */}
+                <div className="px-5 pt-5 pb-4 flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: T.admin, boxShadow: `0 0 16px ${T.admin}40` }}>
+                        {I.bolt(16)}
                     </div>
+                    <div>
+                        <div className="text-[13px] font-bold" style={{ color: T.textPrimary, ...sans }}>SkillSpill</div>
+                        <div className="text-[8px] uppercase tracking-[2px] font-bold" style={{ color: T.admin, ...mono }}>Admin Nexus</div>
+                    </div>
+                </div>
 
-                    {/* Nav */}
-                    <nav className="flex flex-col gap-1 px-3 py-2 flex-1">
+                {/* Nav */}
+                <nav className="flex flex-col gap-1 px-3 py-2 flex-1">
+                    {navItems.map((item) => (
+                        <button key={item.key} onClick={() => setActiveTab(item.key)}
+                            className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-200 border-none cursor-pointer w-full text-left"
+                            style={{ ...sans, ...(activeTab === item.key ? { background: `${T.admin}20`, color: T.admin } : { background: "transparent", color: T.textSecondary }) }}
+                            id={`admin-nav-${item.key}`}>
+                            {item.icon}<span>{item.label}</span>
+                        </button>
+                    ))}
+                    <button className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] font-medium border-none cursor-default w-full text-left"
+                        style={{ ...sans, background: "transparent", color: T.textSecondary }}>
+                        {I.server()}<span>System Health</span>
+                    </button>
+                </nav>
+
+                {/* System Uptime */}
+                <div className="px-5 pb-3">
+                    <div className="text-[9px] uppercase tracking-[1.5px] mb-1" style={{ color: T.textSecondary, ...mono }}>System Uptime</div>
+                    <div className="text-xl font-bold" style={{ color: T.admin, ...mono }}>99.998%</div>
+                </div>
+
+                {/* Terminate */}
+                <div className="px-3 pb-4">
+                    <button onClick={async () => { await fetch("/api/auth/logout", { method: "POST" }); window.location.href = "/login"; }}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] font-semibold w-full border-none cursor-pointer transition-all"
+                        style={{ background: "transparent", color: T.danger, ...sans }} id="admin-logout">
+                        {I.logout()}<span>Terminate Session</span>
+                    </button>
+                </div>
+            </aside>
+
+            {/* ═══════════ MAIN ═══════════ */}
+            <main className="flex-1 overflow-y-auto">
+                {/* Top header bar */}
+                <div className="flex items-center justify-between px-6 md:px-8 py-5 border-b" style={{ borderColor: T.cardBorder }}>
+                    <div>
+                        <h1 className="text-xl font-bold" style={{ color: T.textPrimary, ...sans }}>
+                            {activeTab === "dashboard" ? "Executive Dashboard" : activeTab === "users" ? "User Management" : "Appeal Management"}
+                        </h1>
+                        <p className="text-[12px] mt-0.5" style={{ color: T.textSecondary, ...sans }}>
+                            {activeTab === "dashboard" ? "Real-time platform vitality and administrative control." : activeTab === "users" ? "Browse, search, and manage user accounts." : "Review and manage user account appeals."}
+                        </p>
+                    </div>
+                    <div className="hidden sm:flex items-center gap-2">
+                        <ThemeToggle size="sm" />
+                        <button className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-[11px] font-semibold border cursor-pointer"
+                            style={{ background: "transparent", borderColor: T.cardBorder, color: T.textSecondary, ...mono }}>
+                            {I.calendar()}<span>Last 24 Hours</span>
+                        </button>
+                        <button className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-[11px] font-bold border-none cursor-pointer"
+                            style={{ background: T.admin, color: "#0a1415", ...mono }}>
+                            {I.download()}<span>Export Intelligence</span>
+                        </button>
+                    </div>
+                    {/* Mobile nav */}
+                    <div className="flex lg:hidden gap-1.5">
                         {navItems.map((item) => (
                             <button key={item.key} onClick={() => setActiveTab(item.key)}
-                                className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-200 border-none cursor-pointer w-full text-left"
-                                style={{ ...sans, ...(activeTab === item.key ? { background: `${T.admin}20`, color: T.admin } : { background: "transparent", color: T.textSecondary }) }}
-                                id={`admin-nav-${item.key}`}>
-                                {item.icon}<span>{item.label}</span>
+                                className="p-2 rounded-lg border cursor-pointer transition-all"
+                                style={activeTab === item.key ? { background: `${T.admin}20`, color: T.admin, borderColor: `${T.admin}40` } : { background: "transparent", color: T.textSecondary, borderColor: T.cardBorder }}>
+                                {item.icon}
                             </button>
                         ))}
-                        <button className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] font-medium border-none cursor-default w-full text-left"
-                            style={{ ...sans, background: "transparent", color: T.textSecondary }}>
-                            {I.server()}<span>System Health</span>
-                        </button>
-                    </nav>
-
-                    {/* System Uptime */}
-                    <div className="px-5 pb-3">
-                        <div className="text-[9px] uppercase tracking-[1.5px] mb-1" style={{ color: T.textSecondary, ...mono }}>System Uptime</div>
-                        <div className="text-xl font-bold" style={{ color: T.admin, ...mono }}>99.998%</div>
                     </div>
+                </div>
 
-                    {/* Terminate */}
-                    <div className="px-3 pb-4">
-                        <button onClick={async () => { await fetch("/api/auth/logout", { method: "POST" }); window.location.href = "/login"; }}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] font-semibold w-full border-none cursor-pointer transition-all"
-                            style={{ background: "transparent", color: T.danger, ...sans }} id="admin-logout">
-                            {I.logout()}<span>Terminate Session</span>
-                        </button>
-                    </div>
-                </aside>
+                <div className="px-6 md:px-8 py-6">
 
-                {/* ═══════════ MAIN ═══════════ */}
-                <main className="flex-1 overflow-y-auto">
-                    {/* Top header bar */}
-                    <div className="flex items-center justify-between px-6 md:px-8 py-5 border-b" style={{ borderColor: T.cardBorder }}>
-                        <div>
-                            <h1 className="text-xl font-bold" style={{ color: T.textPrimary, ...sans }}>
-                                {activeTab === "dashboard" ? "Executive Dashboard" : activeTab === "users" ? "User Management" : "Appeal Management"}
-                            </h1>
-                            <p className="text-[12px] mt-0.5" style={{ color: T.textSecondary, ...sans }}>
-                                {activeTab === "dashboard" ? "Real-time platform vitality and administrative control." : activeTab === "users" ? "Browse, search, and manage user accounts." : "Review and manage user account appeals."}
-                            </p>
-                        </div>
-                        <div className="hidden sm:flex items-center gap-2">
-                            <button className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-[11px] font-semibold border cursor-pointer"
-                                style={{ background: "transparent", borderColor: T.cardBorder, color: T.textSecondary, ...mono }}>
-                                {I.calendar()}<span>Last 24 Hours</span>
-                            </button>
-                            <button className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-[11px] font-bold border-none cursor-pointer"
-                                style={{ background: T.admin, color: "#0a1415", ...mono }}>
-                                {I.download()}<span>Export Intelligence</span>
-                            </button>
-                        </div>
-                        {/* Mobile nav */}
-                        <div className="flex lg:hidden gap-1.5">
-                            {navItems.map((item) => (
-                                <button key={item.key} onClick={() => setActiveTab(item.key)}
-                                    className="p-2 rounded-lg border cursor-pointer transition-all"
-                                    style={activeTab === item.key ? { background: `${T.admin}20`, color: T.admin, borderColor: `${T.admin}40` } : { background: "transparent", color: T.textSecondary, borderColor: T.cardBorder }}>
-                                    {item.icon}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="px-6 md:px-8 py-6">
-
-                        {/* ══════════ DASHBOARD TAB ══════════ */}
-                        {activeTab === "dashboard" && (
-                            <div className="flex flex-col gap-5">
-                                {/* Platform Vitality Chart */}
-                                <div className="rounded-xl p-5 pb-2" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
-                                    <div className="flex items-start justify-between mb-1">
-                                        <div>
-                                            <h3 className="text-sm font-bold flex items-center gap-2" style={{ color: T.textPrimary, ...sans }}>
-                                                {I.activity()} Platform Vitality
-                                            </h3>
-                                            <p className="text-[11px] mt-0.5" style={{ color: T.textSecondary, ...sans }}>Active global connections &amp; throughput</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="text-2xl font-bold" style={{ color: T.admin, ...mono }}>{totalUsers > 0 ? `${totalUsers}` : "—"}</div>
-                                            <div className="text-[10px] font-bold flex items-center gap-0.5 justify-end" style={{ color: T.talent, ...mono }}>
-                                                {I.arrowUp()} +12.5%
-                                            </div>
+                    {/* ══════════ DASHBOARD TAB ══════════ */}
+                    {activeTab === "dashboard" && (
+                        <div className="flex flex-col gap-5">
+                            {/* Platform Vitality Chart */}
+                            <div className="rounded-xl p-5 pb-2" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
+                                <div className="flex items-start justify-between mb-1">
+                                    <div>
+                                        <h3 className="text-sm font-bold flex items-center gap-2" style={{ color: T.textPrimary, ...sans }}>
+                                            {I.activity()} Platform Vitality
+                                        </h3>
+                                        <p className="text-[11px] mt-0.5" style={{ color: T.textSecondary, ...sans }}>Active global connections &amp; throughput</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-2xl font-bold" style={{ color: T.admin, ...mono }}>{totalUsers > 0 ? `${totalUsers}` : "—"}</div>
+                                        <div className="text-[10px] font-bold flex items-center gap-0.5 justify-end" style={{ color: T.talent, ...mono }}>
+                                            {I.arrowUp()} +12.5%
                                         </div>
                                     </div>
-                                    <div className="h-[160px] -mx-2 mt-2"><VitalityChart /></div>
-                                    <div className="flex justify-between mt-1 px-1">
-                                        {timeLabels.map((t) => <span key={t} className="text-[9px]" style={{ color: T.textSecondary, ...mono }}>{t}</span>)}
-                                    </div>
                                 </div>
-
-                                {/* Stat Cards */}
-                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                                    {[
-                                        { label: "Total Users", value: totalUsers, delta: "+18%", up: true, color: T.admin },
-                                        { label: "Admins", value: adminCount, delta: "+5%", up: true, color: T.admin },
-                                        { label: "Talent", value: talentCount, delta: "+8%", up: true, color: T.talent },
-                                        { label: "Recruiters", value: recruiterCount, delta: "+12%", up: true, color: T.recruiter },
-                                    ].map((s) => (
-                                        <div key={s.label} className="rounded-xl p-5" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
-                                            <div className="text-[10px] uppercase tracking-[1.5px] font-bold mb-3" style={{ color: T.textSecondary, ...mono }}>{s.label}</div>
-                                            <div className="flex items-end justify-between">
-                                                <div className="text-2xl font-bold" style={{ color: T.textPrimary, ...mono }}>{s.value}</div>
-                                                <span className="text-[10px] font-bold flex items-center gap-0.5" style={{ color: s.up ? T.talent : T.danger, ...mono }}>
-                                                    {s.up ? I.arrowUp() : I.arrowDown()} {s.delta}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ))}
+                                <div className="h-[160px] -mx-2 mt-2"><VitalityChart /></div>
+                                <div className="flex justify-between mt-1 px-1">
+                                    {timeLabels.map((t) => <span key={t} className="text-[9px]" style={{ color: T.textSecondary, ...mono }}>{t}</span>)}
                                 </div>
+                            </div>
 
-                                {/* Bottom row: Recent Users + System Health */}
-                                <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
-                                    {/* Recent Users (3 cols) */}
-                                    <div className="lg:col-span-3 rounded-xl" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
-                                        <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: T.cardBorder }}>
-                                            <h3 className="text-sm font-bold flex items-center gap-2" style={{ color: T.textPrimary, ...sans }}>
-                                                {I.activity()} Recent Users
-                                            </h3>
-                                            <span className="px-2 py-0.5 rounded text-[9px] font-bold" style={{ background: `${T.admin}15`, color: T.admin, ...mono }}>
-                                                {users.length} USERS
+                            {/* Stat Cards */}
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                {[
+                                    { label: "Total Users", value: totalUsers, delta: "+18%", up: true, color: T.admin },
+                                    { label: "Admins", value: adminCount, delta: "+5%", up: true, color: T.admin },
+                                    { label: "Talent", value: talentCount, delta: "+8%", up: true, color: T.talent },
+                                    { label: "Recruiters", value: recruiterCount, delta: "+12%", up: true, color: T.recruiter },
+                                ].map((s) => (
+                                    <div key={s.label} className="rounded-xl p-5" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
+                                        <div className="text-[10px] uppercase tracking-[1.5px] font-bold mb-3" style={{ color: T.textSecondary, ...mono }}>{s.label}</div>
+                                        <div className="flex items-end justify-between">
+                                            <div className="text-2xl font-bold" style={{ color: T.textPrimary, ...mono }}>{s.value}</div>
+                                            <span className="text-[10px] font-bold flex items-center gap-0.5" style={{ color: s.up ? T.talent : T.danger, ...mono }}>
+                                                {s.up ? I.arrowUp() : I.arrowDown()} {s.delta}
                                             </span>
                                         </div>
-                                        <div className="divide-y" style={{ borderColor: T.cardBorder }}>
-                                            {users.slice(0, 4).map((u) => (
-                                                <div key={u.id} className="flex items-center justify-between px-5 py-3.5 transition-all hover:bg-white/[0.02]">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-9 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold text-white" style={{ background: roleColor(u.role), ...mono }}>
-                                                            {u.fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
-                                                        </div>
-                                                        <div>
-                                                            <div className="text-[13px] font-medium" style={{ color: T.textPrimary, ...sans }}>{u.fullName}</div>
-                                                            <div className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>
-                                                                Joined {new Date(u.createdAt).toLocaleDateString()} • @{u.username || u.email.split("@")[0]}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <RoleBadge role={u.role} />
-                                                        <button onClick={() => u.isActive ? handleDisableClick(u.id, u.fullName) : handleEnableUser(u.id)}
-                                                            className="px-2.5 py-1 rounded text-[9px] font-bold uppercase border cursor-pointer transition-all"
-                                                            style={u.isActive
-                                                                ? { background: `${T.talent}15`, borderColor: `${T.talent}30`, color: T.talent, ...mono }
-                                                                : { background: `${T.danger}15`, borderColor: `${T.danger}30`, color: T.danger, ...mono }
-                                                            }>{u.isActive ? "Active" : "Suspended"}</button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                            {users.length === 0 && !usersLoading && (
-                                                <div className="text-center py-10 text-sm" style={{ color: T.textSecondary }}>No users found</div>
-                                            )}
-                                            {usersLoading && (
-                                                <div className="text-center py-10 text-sm" style={{ color: T.textSecondary }}>
-                                                    <span className="inline-block w-4 h-4 border-2 rounded-full animate-spin mr-2 align-middle" style={{ borderColor: `${T.admin}30`, borderTopColor: T.admin }} />Loading...
-                                                </div>
-                                            )}
-                                        </div>
                                     </div>
-
-                                    {/* System Health (2 cols) */}
-                                    <div className="lg:col-span-2 rounded-xl" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
-                                        <div className="px-5 py-4 border-b" style={{ borderColor: T.cardBorder }}>
-                                            <h3 className="text-sm font-bold flex items-center gap-2" style={{ color: T.textPrimary, ...sans }}>{I.server()} System Health</h3>
-                                        </div>
-                                        <div className="p-5 flex flex-col gap-4">
-                                            <ProgressBar label="Mainframe Load" value={24} color={T.admin} metric="24%" />
-                                            <ProgressBar label="Database Latency" value={8} color={T.talent} metric="12ms" />
-                                            <ProgressBar label="Storage API" value={68} color={T.recruiter} metric="68%" />
-                                        </div>
-                                        <div className="px-5 pb-5">
-                                            <div className="text-[9px] uppercase tracking-[1.5px] font-bold mb-2.5" style={{ color: T.textSecondary, ...mono }}>Live Log Stream</div>
-                                            <div className="flex flex-col gap-1.5 rounded-lg p-3" style={{ background: T.sidebar }}>
-                                                {logLines.map((l, i) => (
-                                                    <div key={i} className="text-[10px] leading-relaxed" style={{ ...mono }}>
-                                                        <span className="font-bold" style={{ color: l.color }}>[{l.type}]</span>{" "}
-                                                        <span style={{ color: T.textSecondary }}>{l.text}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                ))}
                             </div>
-                        )}
 
-                        {/* ══════════ USERS TAB ══════════ */}
-                        {activeTab === "users" && (
-                            <div className="flex flex-col gap-5">
-                                <div className="rounded-xl p-5" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
-                                    <div className="flex flex-col sm:flex-row gap-3">
-                                        <div className="flex-1 flex items-center gap-3 rounded-lg px-4 py-2.5" style={{ background: T.bg, border: `1px solid ${T.cardBorder}` }}>
-                                            {I.search()}
-                                            <input type="text" placeholder="Search by name, email, or username..." value={searchQuery}
-                                                onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && fetchUsers()}
-                                                className="flex-1 bg-transparent border-none outline-none text-sm" style={{ color: T.textPrimary, ...mono }} id="admin-user-search" />
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <div className="relative">
-                                                <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} id="admin-role-filter"
-                                                    className="appearance-none rounded-lg px-4 py-2.5 pr-8 text-sm cursor-pointer outline-none"
-                                                    style={{ background: T.bg, border: `1px solid ${T.cardBorder}`, color: T.textPrimary, ...mono }}>
-                                                    <option value="">All Roles</option><option value="ADMIN">Admin</option><option value="TALENT">Talent</option><option value="RECRUITER">Recruiter</option>
-                                                </select>
-                                                <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: T.textSecondary }}>{I.chevDown()}</span>
-                                            </div>
-                                            <button onClick={() => fetchUsers()} className="px-5 py-2.5 rounded-lg text-sm font-bold border-none cursor-pointer" style={{ background: T.admin, color: "#0a1415", ...mono }} id="admin-search-btn">Search</button>
-                                        </div>
+                            {/* Bottom row: Recent Users + System Health */}
+                            <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+                                {/* Recent Users (3 cols) */}
+                                <div className="lg:col-span-3 rounded-xl" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
+                                    <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: T.cardBorder }}>
+                                        <h3 className="text-sm font-bold flex items-center gap-2" style={{ color: T.textPrimary, ...sans }}>
+                                            {I.activity()} Recent Users
+                                        </h3>
+                                        <span className="px-2 py-0.5 rounded text-[9px] font-bold" style={{ background: `${T.admin}15`, color: T.admin, ...mono }}>
+                                            {users.length} USERS
+                                        </span>
                                     </div>
-                                    <div className="flex gap-2 mt-3 flex-wrap">
-                                        {[{ l: "All", v: "", c: T.admin }, { l: "Admin", v: "ADMIN", c: T.admin }, { l: "Talent", v: "TALENT", c: T.talent }, { l: "Recruiter", v: "RECRUITER", c: T.recruiter }].map((tag) => (
-                                            <button key={tag.v} onClick={() => { setRoleFilter(tag.v); setTimeout(() => fetchUsers(), 0); }}
-                                                className="px-3 py-1.5 rounded-md text-[11px] font-bold border-none cursor-pointer transition-all"
-                                                style={roleFilter === tag.v ? { background: tag.c, color: "#0a1415", ...mono } : { background: T.cardBorder, color: T.textSecondary, ...mono }}>{tag.l}</button>
+                                    <div className="divide-y" style={{ borderColor: T.cardBorder }}>
+                                        {users.slice(0, 4).map((u) => (
+                                            <div key={u.id} className="flex items-center justify-between px-5 py-3.5 transition-all hover:bg-white/[0.02]">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-9 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold text-white" style={{ background: roleColor(u.role), ...mono }}>
+                                                        {u.fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-[13px] font-medium" style={{ color: T.textPrimary, ...sans }}>{u.fullName}</div>
+                                                        <div className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>
+                                                            Joined {new Date(u.createdAt).toLocaleDateString()} • @{u.username || u.email.split("@")[0]}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <RoleBadge role={u.role} />
+                                                    <button onClick={() => u.isActive ? handleDisableClick(u.id, u.fullName) : handleEnableUser(u.id)}
+                                                        className="px-2.5 py-1 rounded text-[9px] font-bold uppercase border cursor-pointer transition-all"
+                                                        style={u.isActive
+                                                            ? { background: `${T.talent}15`, borderColor: `${T.talent}30`, color: T.talent, ...mono }
+                                                            : { background: `${T.danger}15`, borderColor: `${T.danger}30`, color: T.danger, ...mono }
+                                                        }>{u.isActive ? "Active" : "Suspended"}</button>
+                                                </div>
+                                            </div>
                                         ))}
-                                    </div>
-                                </div>
-                                <div className="rounded-xl overflow-hidden" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
-                                    <table className="w-full text-left">
-                                        <thead><tr style={{ borderBottom: `1px solid ${T.cardBorder}` }}>
-                                            {["User", "Role", "Status", "Last Login", "Joined", "Actions"].map((h, i) => (
-                                                <th key={h} className={`text-[10px] uppercase tracking-[1.5px] font-bold py-3.5 px-5 ${i >= 3 && i < 5 ? "hidden lg:table-cell" : ""} ${i === 5 ? "text-right" : ""}`}
-                                                    style={{ color: T.textSecondary, ...mono }}>{h}</th>
-                                            ))}
-                                        </tr></thead>
-                                        <tbody>
-                                            {users.map((u) => (
-                                                <tr key={u.id} className="group transition-all" style={{ borderBottom: `1px solid ${T.cardBorder}20` }}>
-                                                    <td className="py-3.5 px-5 group-hover:bg-white/[0.02]">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-9 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{ background: roleColor(u.role), ...mono }}>
-                                                                {u.fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
-                                                            </div>
-                                                            <div>
-                                                                <div className="text-[13px] font-medium" style={{ color: T.textPrimary, ...sans }}>{u.fullName}</div>
-                                                                <div className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>{u.email}</div>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="py-3.5 px-5 group-hover:bg-white/[0.02]"><RoleBadge role={u.role} /></td>
-                                                    <td className="py-3.5 px-5 group-hover:bg-white/[0.02]">
-                                                        <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: u.isActive ? T.talent : T.danger, ...mono }}>{u.isActive ? "Active" : "Suspended"}</span>
-                                                    </td>
-                                                    <td className="py-3.5 px-5 hidden lg:table-cell group-hover:bg-white/[0.02]"><span className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString() : "Never"}</span></td>
-                                                    <td className="py-3.5 px-5 hidden lg:table-cell group-hover:bg-white/[0.02]"><span className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>{new Date(u.createdAt).toLocaleDateString()}</span></td>
-                                                    <td className="py-3.5 px-5 text-right group-hover:bg-white/[0.02]">
-                                                        <button onClick={() => u.isActive ? handleDisableClick(u.id, u.fullName) : handleEnableUser(u.id)}
-                                                            className="px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider border cursor-pointer transition-all"
-                                                            style={u.isActive ? { background: `${T.danger}15`, borderColor: `${T.danger}30`, color: T.danger, ...mono } : { background: `${T.talent}15`, borderColor: `${T.talent}30`, color: T.talent, ...mono }}>
-                                                            {u.isActive ? "Suspend" : "Enable"}
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                            {users.length === 0 && !usersLoading && <tr><td colSpan={6} className="text-center py-12 text-sm" style={{ color: T.textSecondary }}>No users found</td></tr>}
-                                            {usersLoading && <tr><td colSpan={6} className="text-center py-12 text-sm" style={{ color: T.textSecondary }}>
+                                        {users.length === 0 && !usersLoading && (
+                                            <div className="text-center py-10 text-sm" style={{ color: T.textSecondary }}>No users found</div>
+                                        )}
+                                        {usersLoading && (
+                                            <div className="text-center py-10 text-sm" style={{ color: T.textSecondary }}>
                                                 <span className="inline-block w-4 h-4 border-2 rounded-full animate-spin mr-2 align-middle" style={{ borderColor: `${T.admin}30`, borderTopColor: T.admin }} />Loading...
-                                            </td></tr>}
-                                        </tbody>
-                                    </table>
-                                    {pagination.totalPages > 1 && (
-                                        <div className="flex items-center justify-between px-5 py-3 border-t" style={{ borderColor: T.cardBorder }}>
-                                            <span className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>Page {pagination.page}/{pagination.totalPages}</span>
-                                            <div className="flex gap-2">
-                                                <button onClick={() => fetchUsers(pagination.page - 1)} disabled={pagination.page <= 1} className="px-3 py-1.5 rounded-md text-xs border cursor-pointer disabled:opacity-30" style={{ background: "transparent", borderColor: T.cardBorder, color: T.textSecondary, ...mono }}>← Prev</button>
-                                                <button onClick={() => fetchUsers(pagination.page + 1)} disabled={pagination.page >= pagination.totalPages} className="px-3 py-1.5 rounded-md text-xs border cursor-pointer disabled:opacity-30" style={{ background: "transparent", borderColor: T.cardBorder, color: T.textSecondary, ...mono }}>Next →</button>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* ══════════ APPEALS TAB ══════════ */}
-                        {activeTab === "appeals" && (
-                            <div className="flex flex-col gap-5">
-                                {/* Search & Filter Bar */}
-                                <div className="rounded-xl p-5" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
-                                    <div className="flex flex-col sm:flex-row gap-3">
-                                        <div className="flex-1 flex items-center gap-3 rounded-lg px-4 py-2.5" style={{ background: T.bg, border: `1px solid ${T.cardBorder}` }}>
-                                            {I.search()}
-                                            <input type="text" placeholder="Search appeals by user name or email..." value={appealSearch}
-                                                onChange={(e) => setAppealSearch(e.target.value)} onKeyDown={(e) => e.key === "Enter" && fetchAppeals()}
-                                                className="flex-1 bg-transparent border-none outline-none text-sm" style={{ color: T.textPrimary, ...mono }} id="admin-appeal-search" />
-                                        </div>
-                                        <button onClick={() => fetchAppeals()} className="px-5 py-2.5 rounded-lg text-sm font-bold border-none cursor-pointer" style={{ background: T.admin, color: "#0a1415", ...mono }} id="admin-appeal-search-btn">Search</button>
-                                    </div>
-                                    <div className="flex gap-2 mt-3 flex-wrap">
-                                        {[{ l: "All", v: "", c: T.admin }, { l: "Pending", v: "PENDING", c: "#F59E0B" }, { l: "Approved", v: "APPROVED", c: T.talent }, { l: "Rejected", v: "REJECTED", c: T.danger }].map((tag) => (
-                                            <button key={tag.v} onClick={() => { setAppealStatusFilter(tag.v); setTimeout(() => fetchAppeals(), 0); }}
-                                                className="px-3 py-1.5 rounded-md text-[11px] font-bold border-none cursor-pointer transition-all"
-                                                style={appealStatusFilter === tag.v ? { background: tag.c, color: "#0a1415", ...mono } : { background: T.cardBorder, color: T.textSecondary, ...mono }}>{tag.l}</button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Appeals Count Summary */}
-                                <div className="grid grid-cols-3 gap-4">
-                                    {[
-                                        { label: "Pending", count: appeals.filter(a => a.status === "PENDING").length, color: "#F59E0B" },
-                                        { label: "Approved", count: appeals.filter(a => a.status === "APPROVED").length, color: T.talent },
-                                        { label: "Rejected", count: appeals.filter(a => a.status === "REJECTED").length, color: T.danger },
-                                    ].map(s => (
-                                        <div key={s.label} className="rounded-xl p-4" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
-                                            <div className="text-[10px] uppercase tracking-[1.5px] font-bold mb-2" style={{ color: T.textSecondary, ...mono }}>{s.label}</div>
-                                            <div className="text-2xl font-bold" style={{ color: s.color, ...mono }}>{s.count}</div>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Appeals Table */}
-                                <div className="rounded-xl overflow-hidden" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
-                                    <table className="w-full text-left">
-                                        <thead><tr style={{ borderBottom: `1px solid ${T.cardBorder}` }}>
-                                            {["User", "Reason", "Status", "Submitted", "Reviewed", "Actions"].map((h, i) => (
-                                                <th key={h} className={`text-[10px] uppercase tracking-[1.5px] font-bold py-3.5 px-5 ${i >= 3 && i < 5 ? "hidden lg:table-cell" : ""} ${i === 5 ? "text-right" : ""}`}
-                                                    style={{ color: T.textSecondary, ...mono }}>{h}</th>
-                                            ))}
-                                        </tr></thead>
-                                        <tbody>
-                                            {appeals.map((a) => {
-                                                const statusColor = a.status === "PENDING" ? "#F59E0B" : a.status === "APPROVED" ? T.talent : T.danger;
-                                                return (
-                                                    <tr key={a.id} className="group transition-all" style={{ borderBottom: `1px solid ${T.cardBorder}20` }}>
-                                                        <td className="py-3.5 px-5 group-hover:bg-white/[0.02]">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="w-9 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{ background: roleColor(a.user.role), ...mono }}>
-                                                                    {a.user.fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
-                                                                </div>
-                                                                <div>
-                                                                    <div className="text-[13px] font-medium" style={{ color: T.textPrimary, ...sans }}>{a.user.fullName}</div>
-                                                                    <div className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>{a.user.email}</div>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="py-3.5 px-5 group-hover:bg-white/[0.02]">
-                                                            <div className="text-[12px] max-w-[200px] truncate" style={{ color: T.textPrimary, ...sans }}>{a.reason}</div>
-                                                        </td>
-                                                        <td className="py-3.5 px-5 group-hover:bg-white/[0.02]">
-                                                            <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-[1.5px] inline-flex items-center gap-1.5"
-                                                                style={{ background: `${statusColor}15`, color: statusColor, border: `1px solid ${statusColor}25`, ...mono }}>
-                                                                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statusColor }} />{a.status}
-                                                            </span>
-                                                        </td>
-                                                        <td className="py-3.5 px-5 hidden lg:table-cell group-hover:bg-white/[0.02]">
-                                                            <div className="flex items-center gap-1.5">
-                                                                {I.clock()}
-                                                                <span className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>{new Date(a.createdAt).toLocaleDateString()}</span>
-                                                            </div>
-                                                        </td>
-                                                        <td className="py-3.5 px-5 hidden lg:table-cell group-hover:bg-white/[0.02]">
-                                                            <span className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>{a.reviewedAt ? new Date(a.reviewedAt).toLocaleDateString() : "—"}</span>
-                                                        </td>
-                                                        <td className="py-3.5 px-5 text-right group-hover:bg-white/[0.02]">
-                                                            <button onClick={() => { setSelectedAppeal(a); setAdminResponse(a.adminResponse || ""); }}
-                                                                className="px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider border cursor-pointer transition-all"
-                                                                style={{ background: `${T.admin}15`, borderColor: `${T.admin}30`, color: T.admin, ...mono }}
-                                                                id={`review-appeal-${a.id}`}>
-                                                                {a.status === "PENDING" ? "Review" : "View"}
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })}
-                                            {appeals.length === 0 && !appealsLoading && <tr><td colSpan={6} className="text-center py-12 text-sm" style={{ color: T.textSecondary }}>
-                                                <div className="flex flex-col items-center gap-2">
-                                                    {I.gavel()}
-                                                    <span>No appeals found</span>
-                                                </div>
-                                            </td></tr>}
-                                            {appealsLoading && <tr><td colSpan={6} className="text-center py-12 text-sm" style={{ color: T.textSecondary }}>
-                                                <span className="inline-block w-4 h-4 border-2 rounded-full animate-spin mr-2 align-middle" style={{ borderColor: `${T.admin}30`, borderTopColor: T.admin }} />Loading...
-                                            </td></tr>}
-                                        </tbody>
-                                    </table>
-                                    {appealsPagination.totalPages > 1 && (
-                                        <div className="flex items-center justify-between px-5 py-3 border-t" style={{ borderColor: T.cardBorder }}>
-                                            <span className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>Page {appealsPagination.page}/{appealsPagination.totalPages}</span>
-                                            <div className="flex gap-2">
-                                                <button onClick={() => fetchAppeals(appealsPagination.page - 1)} disabled={appealsPagination.page <= 1} className="px-3 py-1.5 rounded-md text-xs border cursor-pointer disabled:opacity-30" style={{ background: "transparent", borderColor: T.cardBorder, color: T.textSecondary, ...mono }}>← Prev</button>
-                                                <button onClick={() => fetchAppeals(appealsPagination.page + 1)} disabled={appealsPagination.page >= appealsPagination.totalPages} className="px-3 py-1.5 rounded-md text-xs border cursor-pointer disabled:opacity-30" style={{ background: "transparent", borderColor: T.cardBorder, color: T.textSecondary, ...mono }}>Next →</button>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* ══════════ APPEAL DETAIL MODAL ══════════ */}
-                        {selectedAppeal && (
-                            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
-                                <div className="w-full max-w-lg rounded-2xl overflow-hidden" style={{ background: T.card, border: `1px solid ${T.cardBorder}`, boxShadow: `0 0 60px ${T.admin}15` }}>
-                                    {/* Modal Header */}
-                                    <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: T.cardBorder }}>
-                                        <div className="flex items-center gap-3">
-                                            {I.gavel()}
-                                            <h2 className="text-base font-bold" style={{ color: T.textPrimary, ...sans }}>Appeal Review</h2>
-                                        </div>
-                                        <button onClick={() => { setSelectedAppeal(null); setAdminResponse(""); }}
-                                            className="w-8 h-8 rounded-lg flex items-center justify-center border-none cursor-pointer transition-all hover:bg-white/10"
-                                            style={{ color: T.textSecondary, background: "transparent" }}>{I.x()}</button>
-                                    </div>
-
-                                    {/* Modal Body */}
-                                    <div className="p-6 flex flex-col gap-5">
-                                        {/* User Info */}
-                                        <div className="flex items-center gap-4 p-4 rounded-xl" style={{ background: T.bg }}>
-                                            <div className="w-12 h-12 rounded-xl flex items-center justify-center text-sm font-bold text-white shrink-0" style={{ background: roleColor(selectedAppeal.user.role), ...mono }}>
-                                                {selectedAppeal.user.fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="text-sm font-semibold" style={{ color: T.textPrimary, ...sans }}>{selectedAppeal.user.fullName}</div>
-                                                <div className="text-[11px]" style={{ color: T.textSecondary, ...mono }}>{selectedAppeal.user.email}</div>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <RoleBadge role={selectedAppeal.user.role} />
-                                                    <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: selectedAppeal.user.isActive ? T.talent : T.danger, ...mono }}>
-                                                        {selectedAppeal.user.isActive ? "● Active" : "● Disabled"}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Appeal Reason */}
-                                        <div>
-                                            <div className="text-[10px] uppercase tracking-[1.5px] font-bold mb-2" style={{ color: T.textSecondary, ...mono }}>Appeal Reason</div>
-                                            <div className="p-4 rounded-xl text-[13px] leading-relaxed" style={{ background: T.bg, color: T.textPrimary, ...sans, border: `1px solid ${T.cardBorder}` }}>
-                                                {selectedAppeal.reason}
-                                            </div>
-                                        </div>
-
-                                        {/* Status */}
-                                        <div className="flex items-center gap-3">
-                                            <div className="text-[10px] uppercase tracking-[1.5px] font-bold" style={{ color: T.textSecondary, ...mono }}>Status:</div>
-                                            {(() => {
-                                                const statusColor = selectedAppeal.status === "PENDING" ? "#F59E0B" : selectedAppeal.status === "APPROVED" ? T.talent : T.danger;
-                                                return (
-                                                    <span className="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-[1.5px] inline-flex items-center gap-1.5"
-                                                        style={{ background: `${statusColor}15`, color: statusColor, border: `1px solid ${statusColor}25`, ...mono }}>
-                                                        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statusColor }} />{selectedAppeal.status}
-                                                    </span>
-                                                );
-                                            })()}
-                                            {selectedAppeal.reviewedAt && (
-                                                <span className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>Reviewed {new Date(selectedAppeal.reviewedAt).toLocaleDateString()}</span>
-                                            )}
-                                        </div>
-
-                                        {/* Admin Response */}
-                                        <div>
-                                            <div className="text-[10px] uppercase tracking-[1.5px] font-bold mb-2" style={{ color: T.textSecondary, ...mono }}>Admin Response</div>
-                                            {selectedAppeal.status === "PENDING" ? (
-                                                <textarea value={adminResponse} onChange={(e) => setAdminResponse(e.target.value)}
-                                                    placeholder="Write your response to the user..."
-                                                    rows={3}
-                                                    className="w-full p-4 rounded-xl text-[13px] leading-relaxed resize-none outline-none"
-                                                    style={{ background: T.bg, color: T.textPrimary, ...sans, border: `1px solid ${T.cardBorder}` }}
-                                                    id="admin-appeal-response" />
-                                            ) : (
-                                                <div className="p-4 rounded-xl text-[13px] leading-relaxed" style={{ background: T.bg, color: T.textPrimary, ...sans, border: `1px solid ${T.cardBorder}` }}>
-                                                    {selectedAppeal.adminResponse || <span style={{ color: T.textSecondary, fontStyle: "italic" }}>No response provided</span>}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Actions */}
-                                        {selectedAppeal.status === "PENDING" && (
-                                            <div className="flex gap-3 pt-2">
-                                                <button onClick={() => handleAppealAction(selectedAppeal.id, "APPROVED")}
-                                                    disabled={appealActionLoading}
-                                                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold border-none cursor-pointer transition-all disabled:opacity-50"
-                                                    style={{ background: T.talent, color: "#0a1415", ...mono }}
-                                                    id="approve-appeal-btn">
-                                                    {appealActionLoading ? <span className="inline-block w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: "#0a141530", borderTopColor: "#0a1415" }} /> : I.check()} Approve
-                                                </button>
-                                                <button onClick={() => handleAppealAction(selectedAppeal.id, "REJECTED")}
-                                                    disabled={appealActionLoading}
-                                                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold border-none cursor-pointer transition-all disabled:opacity-50"
-                                                    style={{ background: T.danger, color: "#fff", ...mono }}
-                                                    id="reject-appeal-btn">
-                                                    {appealActionLoading ? <span className="inline-block w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: "#ffffff30", borderTopColor: "#fff" }} /> : I.x()} Reject
-                                                </button>
                                             </div>
                                         )}
                                     </div>
                                 </div>
-                            </div>
-                        )}
 
-                        {/* ══════════ SUSPENSION REASON MODAL ══════════ */}
-                        {suspendUserId && (
-                            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
-                                <div className="w-full max-w-md rounded-2xl overflow-hidden" style={{ background: T.card, border: `1px solid ${T.danger}30`, boxShadow: `0 0 60px ${T.danger}15` }}>
-                                    {/* Danger stripe */}
-                                    <div className="h-[2px]" style={{ background: `linear-gradient(90deg, transparent, ${T.danger}, transparent)` }} />
-                                    {/* Modal Header */}
-                                    <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: T.cardBorder }}>
-                                        <div className="flex items-center gap-3" style={{ color: T.danger }}>
-                                            {I.shield()}
-                                            <h2 className="text-base font-bold" style={{ color: T.textPrimary, ...sans }}>Suspend Account</h2>
-                                        </div>
-                                        <button onClick={() => { setSuspendUserId(null); setSuspensionReason(""); }}
-                                            className="w-8 h-8 rounded-lg flex items-center justify-center border-none cursor-pointer transition-all hover:bg-white/10"
-                                            style={{ color: T.textSecondary, background: "transparent" }}>{I.x()}</button>
+                                {/* System Health (2 cols) */}
+                                <div className="lg:col-span-2 rounded-xl" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
+                                    <div className="px-5 py-4 border-b" style={{ borderColor: T.cardBorder }}>
+                                        <h3 className="text-sm font-bold flex items-center gap-2" style={{ color: T.textPrimary, ...sans }}>{I.server()} System Health</h3>
                                     </div>
-                                    {/* Modal Body */}
-                                    <div className="p-6 flex flex-col gap-4">
-                                        <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: `${T.danger}08`, border: `1px solid ${T.danger}20` }}>
-                                            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: T.danger, boxShadow: `0 0 6px ${T.danger}` }} />
-                                            <span className="text-[12px]" style={{ color: T.textSecondary, ...sans }}>
-                                                You are about to suspend <strong style={{ color: T.textPrimary }}>{suspendUserName}</strong>. They will see this reason when they try to log in.
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <div className="text-[10px] uppercase tracking-[1.5px] font-bold mb-2" style={{ color: T.textSecondary, ...mono }}>Suspension Reason <span style={{ color: T.danger }}>*</span></div>
-                                            <textarea value={suspensionReason} onChange={(e) => setSuspensionReason(e.target.value)}
-                                                placeholder="Describe the reason for suspending this account..."
-                                                rows={4}
-                                                className="w-full p-4 rounded-xl text-[13px] leading-relaxed resize-none outline-none"
-                                                style={{ background: T.bg, color: T.textPrimary, ...sans, border: `1px solid ${T.cardBorder}` }}
-                                                id="suspension-reason-input" />
-                                        </div>
-                                        <div className="flex gap-3 pt-1">
-                                            <button onClick={() => { setSuspendUserId(null); setSuspensionReason(""); }}
-                                                className="flex-1 py-3 rounded-xl text-[12px] font-bold border cursor-pointer transition-all"
-                                                style={{ background: "transparent", borderColor: T.cardBorder, color: T.textSecondary, ...mono }}>
-                                                Cancel
-                                            </button>
-                                            <button onClick={handleSuspendConfirm}
-                                                disabled={suspensionLoading || suspensionReason.trim().length === 0}
-                                                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[12px] font-bold border-none cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                                                style={{ background: T.danger, color: "#fff", ...mono }}
-                                                id="confirm-suspend-btn">
-                                                {suspensionLoading ? <span className="inline-block w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: "#ffffff30", borderTopColor: "#fff" }} /> : <span style={{ color: "#fff" }}>{I.shield()}</span>} Suspend Account
-                                            </button>
+                                    <div className="p-5 flex flex-col gap-4">
+                                        <ProgressBar label="Mainframe Load" value={24} color={T.admin} metric="24%" />
+                                        <ProgressBar label="Database Latency" value={8} color={T.talent} metric="12ms" />
+                                        <ProgressBar label="Storage API" value={68} color={T.recruiter} metric="68%" />
+                                    </div>
+                                    <div className="px-5 pb-5">
+                                        <div className="text-[9px] uppercase tracking-[1.5px] font-bold mb-2.5" style={{ color: T.textSecondary, ...mono }}>Live Log Stream</div>
+                                        <div className="flex flex-col gap-1.5 rounded-lg p-3" style={{ background: T.sidebar }}>
+                                            {logLines.map((l, i) => (
+                                                <div key={i} className="text-[10px] leading-relaxed" style={{ ...mono }}>
+                                                    <span className="font-bold" style={{ color: l.color }}>[{l.type}]</span>{" "}
+                                                    <span style={{ color: T.textSecondary }}>{l.text}</span>
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        )}
+                        </div>
+                    )}
 
-                    </div>
-                </main>
-            </div>
+                    {/* ══════════ USERS TAB ══════════ */}
+                    {activeTab === "users" && (
+                        <div className="flex flex-col gap-5">
+                            <div className="rounded-xl p-5" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
+                                <div className="flex flex-col sm:flex-row gap-3">
+                                    <div className="flex-1 flex items-center gap-3 rounded-lg px-4 py-2.5" style={{ background: T.bg, border: `1px solid ${T.cardBorder}` }}>
+                                        {I.search()}
+                                        <input type="text" placeholder="Search by name, email, or username..." value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && fetchUsers()}
+                                            className="flex-1 bg-transparent border-none outline-none text-sm" style={{ color: T.textPrimary, ...mono }} id="admin-user-search" />
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <div className="relative">
+                                            <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} id="admin-role-filter"
+                                                className="appearance-none rounded-lg px-4 py-2.5 pr-8 text-sm cursor-pointer outline-none"
+                                                style={{ background: T.bg, border: `1px solid ${T.cardBorder}`, color: T.textPrimary, ...mono }}>
+                                                <option value="">All Roles</option><option value="ADMIN">Admin</option><option value="TALENT">Talent</option><option value="RECRUITER">Recruiter</option>
+                                            </select>
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: T.textSecondary }}>{I.chevDown()}</span>
+                                        </div>
+                                        <button onClick={() => fetchUsers()} className="px-5 py-2.5 rounded-lg text-sm font-bold border-none cursor-pointer" style={{ background: T.admin, color: "#0a1415", ...mono }} id="admin-search-btn">Search</button>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2 mt-3 flex-wrap">
+                                    {[{ l: "All", v: "", c: T.admin }, { l: "Admin", v: "ADMIN", c: T.admin }, { l: "Talent", v: "TALENT", c: T.talent }, { l: "Recruiter", v: "RECRUITER", c: T.recruiter }].map((tag) => (
+                                        <button key={tag.v} onClick={() => { setRoleFilter(tag.v); setTimeout(() => fetchUsers(), 0); }}
+                                            className="px-3 py-1.5 rounded-md text-[11px] font-bold border-none cursor-pointer transition-all"
+                                            style={roleFilter === tag.v ? { background: tag.c, color: "#0a1415", ...mono } : { background: T.cardBorder, color: T.textSecondary, ...mono }}>{tag.l}</button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="rounded-xl overflow-hidden" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
+                                <table className="w-full text-left">
+                                    <thead><tr style={{ borderBottom: `1px solid ${T.cardBorder}` }}>
+                                        {["User", "Role", "Status", "Last Login", "Joined", "Actions"].map((h, i) => (
+                                            <th key={h} className={`text-[10px] uppercase tracking-[1.5px] font-bold py-3.5 px-5 ${i >= 3 && i < 5 ? "hidden lg:table-cell" : ""} ${i === 5 ? "text-right" : ""}`}
+                                                style={{ color: T.textSecondary, ...mono }}>{h}</th>
+                                        ))}
+                                    </tr></thead>
+                                    <tbody>
+                                        {users.map((u) => (
+                                            <tr key={u.id} className="group transition-all" style={{ borderBottom: `1px solid ${T.cardBorder}20` }}>
+                                                <td className="py-3.5 px-5 group-hover:bg-white/[0.02]">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-9 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{ background: roleColor(u.role), ...mono }}>
+                                                            {u.fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-[13px] font-medium" style={{ color: T.textPrimary, ...sans }}>{u.fullName}</div>
+                                                            <div className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>{u.email}</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="py-3.5 px-5 group-hover:bg-white/[0.02]"><RoleBadge role={u.role} /></td>
+                                                <td className="py-3.5 px-5 group-hover:bg-white/[0.02]">
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: u.isActive ? T.talent : T.danger, ...mono }}>{u.isActive ? "Active" : "Suspended"}</span>
+                                                </td>
+                                                <td className="py-3.5 px-5 hidden lg:table-cell group-hover:bg-white/[0.02]"><span className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString() : "Never"}</span></td>
+                                                <td className="py-3.5 px-5 hidden lg:table-cell group-hover:bg-white/[0.02]"><span className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>{new Date(u.createdAt).toLocaleDateString()}</span></td>
+                                                <td className="py-3.5 px-5 text-right group-hover:bg-white/[0.02]">
+                                                    <button onClick={() => u.isActive ? handleDisableClick(u.id, u.fullName) : handleEnableUser(u.id)}
+                                                        className="px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider border cursor-pointer transition-all"
+                                                        style={u.isActive ? { background: `${T.danger}15`, borderColor: `${T.danger}30`, color: T.danger, ...mono } : { background: `${T.talent}15`, borderColor: `${T.talent}30`, color: T.talent, ...mono }}>
+                                                        {u.isActive ? "Suspend" : "Enable"}
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {users.length === 0 && !usersLoading && <tr><td colSpan={6} className="text-center py-12 text-sm" style={{ color: T.textSecondary }}>No users found</td></tr>}
+                                        {usersLoading && <tr><td colSpan={6} className="text-center py-12 text-sm" style={{ color: T.textSecondary }}>
+                                            <span className="inline-block w-4 h-4 border-2 rounded-full animate-spin mr-2 align-middle" style={{ borderColor: `${T.admin}30`, borderTopColor: T.admin }} />Loading...
+                                        </td></tr>}
+                                    </tbody>
+                                </table>
+                                {pagination.totalPages > 1 && (
+                                    <div className="flex items-center justify-between px-5 py-3 border-t" style={{ borderColor: T.cardBorder }}>
+                                        <span className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>Page {pagination.page}/{pagination.totalPages}</span>
+                                        <div className="flex gap-2">
+                                            <button onClick={() => fetchUsers(pagination.page - 1)} disabled={pagination.page <= 1} className="px-3 py-1.5 rounded-md text-xs border cursor-pointer disabled:opacity-30" style={{ background: "transparent", borderColor: T.cardBorder, color: T.textSecondary, ...mono }}>← Prev</button>
+                                            <button onClick={() => fetchUsers(pagination.page + 1)} disabled={pagination.page >= pagination.totalPages} className="px-3 py-1.5 rounded-md text-xs border cursor-pointer disabled:opacity-30" style={{ background: "transparent", borderColor: T.cardBorder, color: T.textSecondary, ...mono }}>Next →</button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ══════════ APPEALS TAB ══════════ */}
+                    {activeTab === "appeals" && (
+                        <div className="flex flex-col gap-5">
+                            {/* Search & Filter Bar */}
+                            <div className="rounded-xl p-5" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
+                                <div className="flex flex-col sm:flex-row gap-3">
+                                    <div className="flex-1 flex items-center gap-3 rounded-lg px-4 py-2.5" style={{ background: T.bg, border: `1px solid ${T.cardBorder}` }}>
+                                        {I.search()}
+                                        <input type="text" placeholder="Search appeals by user name or email..." value={appealSearch}
+                                            onChange={(e) => setAppealSearch(e.target.value)} onKeyDown={(e) => e.key === "Enter" && fetchAppeals()}
+                                            className="flex-1 bg-transparent border-none outline-none text-sm" style={{ color: T.textPrimary, ...mono }} id="admin-appeal-search" />
+                                    </div>
+                                    <button onClick={() => fetchAppeals()} className="px-5 py-2.5 rounded-lg text-sm font-bold border-none cursor-pointer" style={{ background: T.admin, color: "#0a1415", ...mono }} id="admin-appeal-search-btn">Search</button>
+                                </div>
+                                <div className="flex gap-2 mt-3 flex-wrap">
+                                    {[{ l: "All", v: "", c: T.admin }, { l: "Pending", v: "PENDING", c: "#F59E0B" }, { l: "Approved", v: "APPROVED", c: T.talent }, { l: "Rejected", v: "REJECTED", c: T.danger }].map((tag) => (
+                                        <button key={tag.v} onClick={() => { setAppealStatusFilter(tag.v); setTimeout(() => fetchAppeals(), 0); }}
+                                            className="px-3 py-1.5 rounded-md text-[11px] font-bold border-none cursor-pointer transition-all"
+                                            style={appealStatusFilter === tag.v ? { background: tag.c, color: "#0a1415", ...mono } : { background: T.cardBorder, color: T.textSecondary, ...mono }}>{tag.l}</button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Appeals Count Summary */}
+                            <div className="grid grid-cols-3 gap-4">
+                                {[
+                                    { label: "Pending", count: appeals.filter(a => a.status === "PENDING").length, color: "#F59E0B" },
+                                    { label: "Approved", count: appeals.filter(a => a.status === "APPROVED").length, color: T.talent },
+                                    { label: "Rejected", count: appeals.filter(a => a.status === "REJECTED").length, color: T.danger },
+                                ].map(s => (
+                                    <div key={s.label} className="rounded-xl p-4" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
+                                        <div className="text-[10px] uppercase tracking-[1.5px] font-bold mb-2" style={{ color: T.textSecondary, ...mono }}>{s.label}</div>
+                                        <div className="text-2xl font-bold" style={{ color: s.color, ...mono }}>{s.count}</div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Appeals Table */}
+                            <div className="rounded-xl overflow-hidden" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
+                                <table className="w-full text-left">
+                                    <thead><tr style={{ borderBottom: `1px solid ${T.cardBorder}` }}>
+                                        {["User", "Reason", "Status", "Submitted", "Reviewed", "Actions"].map((h, i) => (
+                                            <th key={h} className={`text-[10px] uppercase tracking-[1.5px] font-bold py-3.5 px-5 ${i >= 3 && i < 5 ? "hidden lg:table-cell" : ""} ${i === 5 ? "text-right" : ""}`}
+                                                style={{ color: T.textSecondary, ...mono }}>{h}</th>
+                                        ))}
+                                    </tr></thead>
+                                    <tbody>
+                                        {appeals.map((a) => {
+                                            const statusColor = a.status === "PENDING" ? "#F59E0B" : a.status === "APPROVED" ? T.talent : T.danger;
+                                            return (
+                                                <tr key={a.id} className="group transition-all" style={{ borderBottom: `1px solid ${T.cardBorder}20` }}>
+                                                    <td className="py-3.5 px-5 group-hover:bg-white/[0.02]">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-9 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{ background: roleColor(a.user.role), ...mono }}>
+                                                                {a.user.fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+                                                            </div>
+                                                            <div>
+                                                                <div className="text-[13px] font-medium" style={{ color: T.textPrimary, ...sans }}>{a.user.fullName}</div>
+                                                                <div className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>{a.user.email}</div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-3.5 px-5 group-hover:bg-white/[0.02]">
+                                                        <div className="text-[12px] max-w-[200px] truncate" style={{ color: T.textPrimary, ...sans }}>{a.reason}</div>
+                                                    </td>
+                                                    <td className="py-3.5 px-5 group-hover:bg-white/[0.02]">
+                                                        <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-[1.5px] inline-flex items-center gap-1.5"
+                                                            style={{ background: `${statusColor}15`, color: statusColor, border: `1px solid ${statusColor}25`, ...mono }}>
+                                                            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statusColor }} />{a.status}
+                                                        </span>
+                                                    </td>
+                                                    <td className="py-3.5 px-5 hidden lg:table-cell group-hover:bg-white/[0.02]">
+                                                        <div className="flex items-center gap-1.5">
+                                                            {I.clock()}
+                                                            <span className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>{new Date(a.createdAt).toLocaleDateString()}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-3.5 px-5 hidden lg:table-cell group-hover:bg-white/[0.02]">
+                                                        <span className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>{a.reviewedAt ? new Date(a.reviewedAt).toLocaleDateString() : "—"}</span>
+                                                    </td>
+                                                    <td className="py-3.5 px-5 text-right group-hover:bg-white/[0.02]">
+                                                        <button onClick={() => { setSelectedAppeal(a); setAdminResponse(a.adminResponse || ""); }}
+                                                            className="px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider border cursor-pointer transition-all"
+                                                            style={{ background: `${T.admin}15`, borderColor: `${T.admin}30`, color: T.admin, ...mono }}
+                                                            id={`review-appeal-${a.id}`}>
+                                                            {a.status === "PENDING" ? "Review" : "View"}
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                        {appeals.length === 0 && !appealsLoading && <tr><td colSpan={6} className="text-center py-12 text-sm" style={{ color: T.textSecondary }}>
+                                            <div className="flex flex-col items-center gap-2">
+                                                {I.gavel()}
+                                                <span>No appeals found</span>
+                                            </div>
+                                        </td></tr>}
+                                        {appealsLoading && <tr><td colSpan={6} className="text-center py-12 text-sm" style={{ color: T.textSecondary }}>
+                                            <span className="inline-block w-4 h-4 border-2 rounded-full animate-spin mr-2 align-middle" style={{ borderColor: `${T.admin}30`, borderTopColor: T.admin }} />Loading...
+                                        </td></tr>}
+                                    </tbody>
+                                </table>
+                                {appealsPagination.totalPages > 1 && (
+                                    <div className="flex items-center justify-between px-5 py-3 border-t" style={{ borderColor: T.cardBorder }}>
+                                        <span className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>Page {appealsPagination.page}/{appealsPagination.totalPages}</span>
+                                        <div className="flex gap-2">
+                                            <button onClick={() => fetchAppeals(appealsPagination.page - 1)} disabled={appealsPagination.page <= 1} className="px-3 py-1.5 rounded-md text-xs border cursor-pointer disabled:opacity-30" style={{ background: "transparent", borderColor: T.cardBorder, color: T.textSecondary, ...mono }}>← Prev</button>
+                                            <button onClick={() => fetchAppeals(appealsPagination.page + 1)} disabled={appealsPagination.page >= appealsPagination.totalPages} className="px-3 py-1.5 rounded-md text-xs border cursor-pointer disabled:opacity-30" style={{ background: "transparent", borderColor: T.cardBorder, color: T.textSecondary, ...mono }}>Next →</button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ══════════ APPEAL DETAIL MODAL ══════════ */}
+                    {selectedAppeal && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
+                            <div className="w-full max-w-lg rounded-2xl overflow-hidden" style={{ background: T.card, border: `1px solid ${T.cardBorder}`, boxShadow: `0 0 60px ${T.admin}15` }}>
+                                {/* Modal Header */}
+                                <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: T.cardBorder }}>
+                                    <div className="flex items-center gap-3">
+                                        {I.gavel()}
+                                        <h2 className="text-base font-bold" style={{ color: T.textPrimary, ...sans }}>Appeal Review</h2>
+                                    </div>
+                                    <button onClick={() => { setSelectedAppeal(null); setAdminResponse(""); }}
+                                        className="w-8 h-8 rounded-lg flex items-center justify-center border-none cursor-pointer transition-all hover:bg-white/10"
+                                        style={{ color: T.textSecondary, background: "transparent" }}>{I.x()}</button>
+                                </div>
+
+                                {/* Modal Body */}
+                                <div className="p-6 flex flex-col gap-5">
+                                    {/* User Info */}
+                                    <div className="flex items-center gap-4 p-4 rounded-xl" style={{ background: T.bg }}>
+                                        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-sm font-bold text-white shrink-0" style={{ background: roleColor(selectedAppeal.user.role), ...mono }}>
+                                            {selectedAppeal.user.fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="text-sm font-semibold" style={{ color: T.textPrimary, ...sans }}>{selectedAppeal.user.fullName}</div>
+                                            <div className="text-[11px]" style={{ color: T.textSecondary, ...mono }}>{selectedAppeal.user.email}</div>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <RoleBadge role={selectedAppeal.user.role} />
+                                                <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: selectedAppeal.user.isActive ? T.talent : T.danger, ...mono }}>
+                                                    {selectedAppeal.user.isActive ? "● Active" : "● Disabled"}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Appeal Reason */}
+                                    <div>
+                                        <div className="text-[10px] uppercase tracking-[1.5px] font-bold mb-2" style={{ color: T.textSecondary, ...mono }}>Appeal Reason</div>
+                                        <div className="p-4 rounded-xl text-[13px] leading-relaxed" style={{ background: T.bg, color: T.textPrimary, ...sans, border: `1px solid ${T.cardBorder}` }}>
+                                            {selectedAppeal.reason}
+                                        </div>
+                                    </div>
+
+                                    {/* Status */}
+                                    <div className="flex items-center gap-3">
+                                        <div className="text-[10px] uppercase tracking-[1.5px] font-bold" style={{ color: T.textSecondary, ...mono }}>Status:</div>
+                                        {(() => {
+                                            const statusColor = selectedAppeal.status === "PENDING" ? "#F59E0B" : selectedAppeal.status === "APPROVED" ? T.talent : T.danger;
+                                            return (
+                                                <span className="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-[1.5px] inline-flex items-center gap-1.5"
+                                                    style={{ background: `${statusColor}15`, color: statusColor, border: `1px solid ${statusColor}25`, ...mono }}>
+                                                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statusColor }} />{selectedAppeal.status}
+                                                </span>
+                                            );
+                                        })()}
+                                        {selectedAppeal.reviewedAt && (
+                                            <span className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>Reviewed {new Date(selectedAppeal.reviewedAt).toLocaleDateString()}</span>
+                                        )}
+                                    </div>
+
+                                    {/* Admin Response */}
+                                    <div>
+                                        <div className="text-[10px] uppercase tracking-[1.5px] font-bold mb-2" style={{ color: T.textSecondary, ...mono }}>Admin Response</div>
+                                        {selectedAppeal.status === "PENDING" ? (
+                                            <textarea value={adminResponse} onChange={(e) => setAdminResponse(e.target.value)}
+                                                placeholder="Write your response to the user..."
+                                                rows={3}
+                                                className="w-full p-4 rounded-xl text-[13px] leading-relaxed resize-none outline-none"
+                                                style={{ background: T.bg, color: T.textPrimary, ...sans, border: `1px solid ${T.cardBorder}` }}
+                                                id="admin-appeal-response" />
+                                        ) : (
+                                            <div className="p-4 rounded-xl text-[13px] leading-relaxed" style={{ background: T.bg, color: T.textPrimary, ...sans, border: `1px solid ${T.cardBorder}` }}>
+                                                {selectedAppeal.adminResponse || <span style={{ color: T.textSecondary, fontStyle: "italic" }}>No response provided</span>}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Actions */}
+                                    {selectedAppeal.status === "PENDING" && (
+                                        <div className="flex gap-3 pt-2">
+                                            <button onClick={() => handleAppealAction(selectedAppeal.id, "APPROVED")}
+                                                disabled={appealActionLoading}
+                                                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold border-none cursor-pointer transition-all disabled:opacity-50"
+                                                style={{ background: T.talent, color: "#0a1415", ...mono }}
+                                                id="approve-appeal-btn">
+                                                {appealActionLoading ? <span className="inline-block w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: "#0a141530", borderTopColor: "#0a1415" }} /> : I.check()} Approve
+                                            </button>
+                                            <button onClick={() => handleAppealAction(selectedAppeal.id, "REJECTED")}
+                                                disabled={appealActionLoading}
+                                                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold border-none cursor-pointer transition-all disabled:opacity-50"
+                                                style={{ background: T.danger, color: "#fff", ...mono }}
+                                                id="reject-appeal-btn">
+                                                {appealActionLoading ? <span className="inline-block w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: "#ffffff30", borderTopColor: "#fff" }} /> : I.x()} Reject
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ══════════ SUSPENSION REASON MODAL ══════════ */}
+                    {suspendUserId && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
+                            <div className="w-full max-w-md rounded-2xl overflow-hidden" style={{ background: T.card, border: `1px solid ${T.danger}30`, boxShadow: `0 0 60px ${T.danger}15` }}>
+                                {/* Danger stripe */}
+                                <div className="h-[2px]" style={{ background: `linear-gradient(90deg, transparent, ${T.danger}, transparent)` }} />
+                                {/* Modal Header */}
+                                <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: T.cardBorder }}>
+                                    <div className="flex items-center gap-3" style={{ color: T.danger }}>
+                                        {I.shield()}
+                                        <h2 className="text-base font-bold" style={{ color: T.textPrimary, ...sans }}>Suspend Account</h2>
+                                    </div>
+                                    <button onClick={() => { setSuspendUserId(null); setSuspensionReason(""); }}
+                                        className="w-8 h-8 rounded-lg flex items-center justify-center border-none cursor-pointer transition-all hover:bg-white/10"
+                                        style={{ color: T.textSecondary, background: "transparent" }}>{I.x()}</button>
+                                </div>
+                                {/* Modal Body */}
+                                <div className="p-6 flex flex-col gap-4">
+                                    <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: `${T.danger}08`, border: `1px solid ${T.danger}20` }}>
+                                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: T.danger, boxShadow: `0 0 6px ${T.danger}` }} />
+                                        <span className="text-[12px]" style={{ color: T.textSecondary, ...sans }}>
+                                            You are about to suspend <strong style={{ color: T.textPrimary }}>{suspendUserName}</strong>. They will see this reason when they try to log in.
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] uppercase tracking-[1.5px] font-bold mb-2" style={{ color: T.textSecondary, ...mono }}>Suspension Reason <span style={{ color: T.danger }}>*</span></div>
+                                        <textarea value={suspensionReason} onChange={(e) => setSuspensionReason(e.target.value)}
+                                            placeholder="Describe the reason for suspending this account..."
+                                            rows={4}
+                                            className="w-full p-4 rounded-xl text-[13px] leading-relaxed resize-none outline-none"
+                                            style={{ background: T.bg, color: T.textPrimary, ...sans, border: `1px solid ${T.cardBorder}` }}
+                                            id="suspension-reason-input" />
+                                    </div>
+                                    <div className="flex gap-3 pt-1">
+                                        <button onClick={() => { setSuspendUserId(null); setSuspensionReason(""); }}
+                                            className="flex-1 py-3 rounded-xl text-[12px] font-bold border cursor-pointer transition-all"
+                                            style={{ background: "transparent", borderColor: T.cardBorder, color: T.textSecondary, ...mono }}>
+                                            Cancel
+                                        </button>
+                                        <button onClick={handleSuspendConfirm}
+                                            disabled={suspensionLoading || suspensionReason.trim().length === 0}
+                                            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[12px] font-bold border-none cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                                            style={{ background: T.danger, color: "#fff", ...mono }}
+                                            id="confirm-suspend-btn">
+                                            {suspensionLoading ? <span className="inline-block w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: "#ffffff30", borderTopColor: "#fff" }} /> : <span style={{ color: "#fff" }}>{I.shield()}</span>} Suspend Account
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                </div>
+            </main>
 
             {/* Mobile bottom nav */}
             <div className="fixed bottom-0 left-0 right-0 lg:hidden border-t z-50" style={{ background: T.sidebar, borderColor: T.cardBorder }}>

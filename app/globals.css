@@ -73,7 +73,15 @@
   --theme-scrollbar-thumb: #404040;
 }
 
-/* Smooth theme transition */
+/* Disable ALL transitions during initial page load to prevent theme flash */
+html.no-transitions,
+html.no-transitions *,
+html.no-transitions *::before,
+html.no-transitions *::after {
+  transition: none !important;
+}
+
+/* Smooth theme transition (only applies after initial load) */
 html {
   transition: background-color 0.4s ease, color 0.4s ease;
 }

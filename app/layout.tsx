@@ -36,6 +36,32 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('skillspill-theme');
+                  if (theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                  }
+                  // Disable transitions on initial load to prevent flash
+                  document.documentElement.classList.add('no-transitions');
+                  // Re-enable transitions after paint
+                  window.addEventListener('DOMContentLoaded', function() {
+                    requestAnimationFrame(function() {
+                      requestAnimationFrame(function() {
+                        document.documentElement.classList.remove('no-transitions');
+                      });
+                    });
+                  });
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
       <body
         className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} ${dmSans.variable} antialiased`}
         suppressHydrationWarning
