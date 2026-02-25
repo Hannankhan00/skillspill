@@ -3,22 +3,19 @@
 import React, { useState } from "react";
 import Link from "next/link";
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   S K I L L S P I L L  â€”  M Y  S P I L L S
-   Talent spills management page
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ===== SKILLSPILL - MY SPILLS ===== */
 
-/* â”€â”€ Mock Data â”€â”€ */
+/* -- Mock Data -- */
 const mySpills = [
     {
         id: 1,
-        content: "Just shipped a recursive search optimizer in Rust â€” 24% latency reduction using zero-cost abstractions. Sometimes the compiler really is your best friend. âš¡",
+        content: "Just shipped a recursive search optimizer in Rust \u2014 24% latency reduction using zero-cost abstractions. Sometimes the compiler really is your best friend. \u26A1",
         code: `fn optimized_search<T: PartialEq>(data: &[T], query: &T) -> Option<usize> {
     data.iter().position(|item| item == query)
 }
 
 // Benchmark: 0.8ms avg on 1M items
-// Previous: 1.05ms â€” 24% improvement`,
+// Previous: 1.05ms \u2014 24% improvement`,
         codeLang: "rust",
         tags: ["Rust", "Performance", "Algorithms"],
         likes: 128,
@@ -50,7 +47,7 @@ const mySpills = [
     },
     {
         id: 3,
-        content: "Hot take: TypeScript's type system is basically a functional programming language that generates JavaScript as a side effect. Change my mind. ðŸ¤¯",
+        content: "Hot take: TypeScript's type system is basically a functional programming language that generates JavaScript as a side effect. Change my mind. \uD83E\uDD2F",
         code: null,
         codeLang: null,
         tags: ["TypeScript", "Opinion"],
@@ -63,7 +60,7 @@ const mySpills = [
     },
     {
         id: 4,
-        content: "Working on a new algorithm for distributed consensus in edge computing environments. Early results are promising â€” 60% reduction in message rounds.",
+        content: "Working on a new algorithm for distributed consensus in edge computing environments. Early results are promising \u2014 60% reduction in message rounds.",
         code: null,
         codeLang: null,
         tags: ["Distributed Systems", "Research"],
@@ -118,7 +115,7 @@ export default function TalentSpillsPage() {
         <div style={{ background: "var(--theme-bg)" }} className="min-h-full">
             <div className="max-w-[800px] mx-auto px-4 sm:px-6 py-5 pb-20 lg:pb-8">
 
-                {/* â•â•â•â•â•â•â•â• HEADER â•â•â•â•â•â•â•â• */}
+                {/* ===== HEADER ===== */}
                 <div className="flex items-center justify-between mb-5">
                     <div>
                         <h1 className="text-xl sm:text-2xl font-bold text-[var(--theme-text-primary)]">My Spills</h1>
@@ -134,7 +131,7 @@ export default function TalentSpillsPage() {
                     </button>
                 </div>
 
-                {/* â•â•â•â•â•â•â•â• COMPOSER (expandable) â•â•â•â•â•â•â•â• */}
+                {/* ===== COMPOSER (expandable) ===== */}
                 {composerOpen && (
                     <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5 mb-5 animate-in">
                         <div className="flex items-center gap-3 mb-3">
@@ -157,7 +154,7 @@ export default function TalentSpillsPage() {
                                 value={composerCode}
                                 onChange={e => setComposerCode(e.target.value)}
                                 placeholder="Paste your code snippet here..."
-                                className="w-full min-h-[120px] p-3 mt-2 rounded-xl bg-gray-900 border border-gray-700 text-[12px] text-green-400 placeholder:text-[var(--theme-text-tertiary)] font-mono resize-none outline-none focus:border-[#3CF91A] transition-all"
+                                className="w-full min-h-[120px] p-3 mt-2 rounded-xl bg-[#0D1117] border border-[var(--theme-code-border)] text-[12px] text-green-400 placeholder:text-[var(--theme-text-tertiary)] font-mono resize-none outline-none focus:border-[#3CF91A] transition-all"
                             />
                         )}
 
@@ -191,13 +188,13 @@ export default function TalentSpillsPage() {
                     </div>
                 )}
 
-                {/* â•â•â•â•â•â•â•â• STATS OVERVIEW â•â•â•â•â•â•â•â• */}
+                {/* ===== STATS OVERVIEW ===== */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
                     {[
-                        { label: "Total Spills", value: statsOverview.totalSpills, icon: "ðŸ“" },
-                        { label: "Total Views", value: statsOverview.totalViews.toLocaleString(), icon: "ðŸ‘" },
-                        { label: "Total Likes", value: statsOverview.totalLikes.toLocaleString(), icon: "â¤ï¸" },
-                        { label: "Engagement", value: statsOverview.avgEngagement, icon: "ðŸ“Š" },
+                        { label: "Total Spills", value: statsOverview.totalSpills, icon: "\uD83D\uDCDD" },
+                        { label: "Total Views", value: statsOverview.totalViews.toLocaleString(), icon: "\uD83D\uDC41" },
+                        { label: "Total Likes", value: statsOverview.totalLikes.toLocaleString(), icon: "\u2764\uFE0F" },
+                        { label: "Engagement", value: statsOverview.avgEngagement, icon: "\uD83D\uDCCA" },
                     ].map(stat => (
                         <div key={stat.label} className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-3 sm:p-4 text-center">
                             <p className="text-lg">{stat.icon}</p>
@@ -207,7 +204,7 @@ export default function TalentSpillsPage() {
                     ))}
                 </div>
 
-                {/* â•â•â•â•â•â•â•â• FILTER TABS â•â•â•â•â•â•â•â• */}
+                {/* ===== FILTER TABS ===== */}
                 <div className="flex gap-0 border-b border-[var(--theme-border)] mb-4">
                     {filters.map(filter => {
                         const count = filter === "All" ? mySpills.length : filter === "Published" ? mySpills.filter(s => s.status === "published").length : mySpills.filter(s => s.status === "draft").length;
@@ -225,21 +222,21 @@ export default function TalentSpillsPage() {
                     })}
                 </div>
 
-                {/* â•â•â•â•â•â•â•â• SPILLS LIST â•â•â•â•â•â•â•â• */}
+                {/* ===== SPILLS LIST ===== */}
                 <div className="space-y-4">
                     {filteredSpills.map(spill => (
                         <article key={spill.id} className={`rounded-2xl border bg-[var(--theme-card)] shadow-sm overflow-hidden transition-all hover:shadow-md
-                            ${spill.status === "draft" ? "border-dashed border-amber-300" : "border-[var(--theme-border)]"}`}>
+                            ${spill.status === "draft" ? "border-dashed border-amber-500/40" : "border-[var(--theme-border)]"}`}>
 
                             {/* Draft badge */}
                             {spill.status === "draft" && (
-                                <div className="px-4 py-1.5 bg-amber-50 border-b border-amber-200 flex items-center justify-between">
-                                    <span className="text-[10px] font-bold text-amber-700 flex items-center gap-1">
+                                <div className="px-4 py-1.5 border-b flex items-center justify-between" style={{ background: 'var(--theme-badge-bg)', borderColor: 'var(--theme-border)' }}>
+                                    <span className="text-[10px] font-bold text-amber-500 flex items-center gap-1">
                                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
                                         DRAFT
                                     </span>
-                                    <button className="text-[10px] font-medium text-amber-600 hover:text-amber-800 cursor-pointer bg-transparent border-none">
-                                        Continue Editing â†’
+                                    <button className="text-[10px] font-medium text-amber-500 hover:text-amber-400 cursor-pointer bg-transparent border-none">
+                                        Continue Editing &rarr;
                                     </button>
                                 </div>
                             )}
@@ -258,7 +255,7 @@ export default function TalentSpillsPage() {
                                     {/* Actions dropdown */}
                                     <div className="flex items-center gap-1">
                                         {spill.status === "published" && (
-                                            <span className="text-[9px] font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 hidden sm:inline-block">Published</span>
+                                            <span className="text-[9px] font-medium px-2 py-0.5 rounded-full bg-green-500/15 text-green-500 hidden sm:inline-block">Published</span>
                                         )}
                                         <button className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--theme-text-muted)] hover:text-[var(--theme-text-secondary)] hover:bg-[var(--theme-input-bg)] cursor-pointer bg-transparent border-none transition-all">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" /></svg>
@@ -271,10 +268,10 @@ export default function TalentSpillsPage() {
 
                                 {/* Code block */}
                                 {spill.code && (
-                                    <div className="rounded-xl bg-[#0D1117] border border-gray-800 overflow-hidden mb-3">
-                                        <div className="flex items-center justify-between px-3 py-1.5 bg-[#161B22] border-b border-gray-800">
+                                    <div className="rounded-xl bg-[#0D1117] border border-[var(--theme-code-border)] overflow-hidden mb-3">
+                                        <div className="flex items-center justify-between px-3 py-1.5 bg-[#161B22] border-b border-[var(--theme-code-border)]">
                                             <span className="text-[10px] text-[var(--theme-text-muted)] font-mono">{spill.codeLang}</span>
-                                            <button className="text-[9px] text-[var(--theme-text-muted)] hover:text-gray-300 cursor-pointer bg-transparent border-none transition-colors">
+                                            <button className="text-[9px] text-[var(--theme-text-muted)] hover:text-[var(--theme-text-tertiary)] cursor-pointer bg-transparent border-none transition-colors">
                                                 Copy
                                             </button>
                                         </div>
@@ -317,7 +314,7 @@ export default function TalentSpillsPage() {
                                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
                                                 Edit
                                             </button>
-                                            <span className="text-gray-200">Â·</span>
+                                            <span style={{ color: 'var(--theme-text-muted)' }}>&middot;</span>
                                             <button className="text-[10px] font-medium text-[var(--theme-text-muted)] hover:text-red-500 cursor-pointer bg-transparent border-none transition-colors flex items-center gap-1">
                                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
                                                 Delete
@@ -336,7 +333,7 @@ export default function TalentSpillsPage() {
                                         <button className="px-4 py-2 rounded-xl text-[11px] font-medium border border-[var(--theme-border)] bg-[var(--theme-card)] text-[var(--theme-text-tertiary)] cursor-pointer hover:bg-[var(--theme-bg-secondary)] transition-all">
                                             Edit
                                         </button>
-                                        <button className="px-3 py-2 rounded-xl text-[11px] font-medium border border-[var(--theme-border)] bg-[var(--theme-card)] text-red-400 cursor-pointer hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all ml-auto">
+                                        <button className="px-3 py-2 rounded-xl text-[11px] font-medium border border-[var(--theme-border)] bg-[var(--theme-card)] text-red-400 cursor-pointer hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30 transition-all ml-auto">
                                             Delete
                                         </button>
                                     </div>
@@ -348,8 +345,8 @@ export default function TalentSpillsPage() {
 
                 {/* Empty state */}
                 {filteredSpills.length === 0 && (
-                    <div className="rounded-2xl border border-dashed border-gray-300 bg-[var(--theme-card)] p-8 text-center">
-                        <p className="text-3xl mb-2">ðŸ“</p>
+                    <div className="rounded-2xl border border-dashed bg-[var(--theme-card)] p-8 text-center" style={{ borderColor: 'var(--theme-border)' }}>
+                        <p className="text-3xl mb-2">{"\uD83D\uDCDD"}</p>
                         <p className="text-[14px] font-bold text-[var(--theme-text-secondary)] mb-1">No spills yet</p>
                         <p className="text-[12px] text-[var(--theme-text-muted)] mb-4">Start sharing your code, insights, and hot takes</p>
                         <button onClick={() => setComposerOpen(true)}
@@ -363,7 +360,3 @@ export default function TalentSpillsPage() {
         </div>
     );
 }
-
-
-
-

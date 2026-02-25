@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { ThemeToggle } from "../components/ThemeProvider";
 
-/* â”€â”€ SVG Icon Components â”€â”€ */
+/* -- SVG Icon Components -- */
 function FeedIcon() {
     return (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -76,7 +76,7 @@ function PlusIcon() {
     );
 }
 
-/* â”€â”€ Nav Items â”€â”€ */
+/* -- Nav Items -- */
 const talentNavItems = [
     { label: "Feed", icon: <FeedIcon />, href: "/talent" },
     { label: "My Spills", icon: <SpillsIcon />, href: "/talent/spills" },
@@ -87,7 +87,7 @@ const talentNavItems = [
     { label: "Settings", icon: <SettingsIcon />, href: "/talent/settings" },
 ];
 
-/* â”€â”€ Bottom nav items (mobile â€” LinkedIn-style) â”€â”€ */
+/* -- Bottom nav items (mobile - LinkedIn-style) -- */
 const mobileNavItems = [
     {
         label: "Home", href: "/talent",
@@ -156,9 +156,7 @@ export default function TalentShell({
     return (
         <div className="h-screen overflow-hidden flex" style={{ background: 'var(--theme-bg)', color: 'var(--theme-text-primary)' }}>
 
-            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-                DESKTOP SIDEBAR (hidden on mobile)
-               â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+            {/* ===== DESKTOP SIDEBAR (hidden on mobile) ===== */}
             <aside className="hidden lg:flex w-[220px] flex-col shrink-0" style={{ background: 'var(--theme-surface)', borderRight: '1px solid var(--theme-border)' }}>
                 {/* Logo */}
                 <div className="h-14 flex items-center px-5" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
@@ -241,13 +239,10 @@ export default function TalentShell({
                 </div>
             </aside>
 
-            {/* â”€â”€ Main Content Area â”€â”€ */}
+            {/* -- Main Content Area -- */}
             <div className="flex-1 flex flex-col overflow-hidden">
 
-                {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-                    MOBILE HEADER (LinkedIn-style)
-                    Profile pic | Search bar | Chat icon
-                   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+                {/* ===== MOBILE HEADER (LinkedIn-style) ===== */}
                 <header className="shrink-0 h-12 flex items-center gap-3 px-3 lg:hidden" style={{ background: 'var(--theme-surface)', borderBottom: '1px solid var(--theme-border)' }}>
                     {/* Profile pic */}
                     <Link href="/talent/profile" className="shrink-0">
@@ -287,9 +282,7 @@ export default function TalentShell({
                     </Link>
                 </header>
 
-                {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-                    DESKTOP HEADER (full header bar)
-                   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+                {/* ===== DESKTOP HEADER (full header bar) ===== */}
                 <header className="shrink-0 h-14 hidden lg:flex items-center justify-between px-6 backdrop-blur-xl z-30" style={{ background: 'var(--theme-header-bg)', borderBottom: '1px solid var(--theme-border)' }}>
                     {/* Search bar */}
                     <div className="flex items-center gap-2 rounded-xl px-3.5 py-2 focus-within:border-[#3CF91A] focus-within:ring-2 focus-within:ring-[#3CF91A]/10 transition-all max-w-[360px] w-full" style={{ background: 'var(--theme-input-bg)', border: '1px solid var(--theme-border)' }}>
@@ -369,12 +362,12 @@ export default function TalentShell({
                                             className="flex items-center gap-3 px-4 py-2.5 text-[12px] hover:text-[#3CF91A] transition-colors no-underline" style={{ color: 'var(--theme-text-tertiary)' }}>
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
                                             Notifications
-                                            <span className="ml-auto text-[9px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 font-bold">5</span>
+                                            <span className="ml-auto text-[9px] px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-500 font-bold">5</span>
                                         </Link>
                                     </div>
                                     <div className="pt-1" style={{ borderTop: '1px solid var(--theme-border-light)' }}>
                                         <button onClick={handleLogout}
-                                            className="flex items-center gap-3 px-4 py-2.5 text-[12px] text-red-500 hover:bg-red-50 transition-colors w-full bg-transparent border-none cursor-pointer text-left">
+                                            className="flex items-center gap-3 px-4 py-2.5 text-[12px] text-red-500 transition-colors w-full bg-transparent border-none cursor-pointer text-left hover:bg-red-500/10">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
                                             Sign Out
                                         </button>
@@ -385,15 +378,13 @@ export default function TalentShell({
                     </div >
                 </header >
 
-                {/* Page Content â€” pb-16 on mobile for bottom nav space */}
+                {/* Page Content - pb-16 on mobile for bottom nav space */}
                 < main className="flex-1 overflow-y-auto pb-16 lg:pb-0" style={{ scrollbarWidth: "thin", scrollbarColor: 'var(--theme-scrollbar-thumb) var(--theme-scrollbar-track)' }
                 }>
                     {children}
                 </main >
 
-                {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-                    MOBILE BOTTOM NAV (LinkedIn-style)
-                   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+                {/* ===== MOBILE BOTTOM NAV (LinkedIn-style) ===== */}
                 < nav className="fixed bottom-0 left-0 right-0 h-14 flex items-center justify-around px-2 z-40 lg:hidden" style={{ background: 'var(--theme-surface)', borderTop: '1px solid var(--theme-border)' }}>
                     {
                         mobileNavItems.map((item) => {
@@ -417,7 +408,8 @@ export default function TalentShell({
                             return (
                                 <Link key={item.label} href={item.href}
                                     className={`flex flex-col items-center justify-center gap-0.5 py-1 px-2 no-underline transition-colors
-                                    ${active ? "text-[#2edb13]" : "text-gray-400"}`}>
+                                    ${active ? "text-[#2edb13]" : ""}`}
+                                    style={active ? {} : { color: 'var(--theme-text-muted)' }}>
                                     {active ? item.iconFilled : item.icon}
                                     <span className="text-[9px] font-medium">{item.label}</span>
                                 </Link>

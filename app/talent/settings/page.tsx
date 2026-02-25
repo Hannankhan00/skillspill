@@ -322,7 +322,7 @@ export default function SettingsPage() {
                                             <label className="text-[10px] uppercase tracking-widest font-semibold block mb-3" style={{ color: 'var(--theme-text-muted)' }}>Theme</label>
                                             <div className="flex items-center gap-4 p-4 rounded-xl" style={{ background: 'var(--theme-bg)', border: '1px solid var(--theme-border)' }}>
                                                 <div className="flex items-center gap-3">
-                                                    <span className="text-[20px]"></span>
+                                                    <span className="text-[20px]">{theme === 'light' ? '☀️' : '🌙'}</span>
                                                     <div>
                                                         <p className="text-[13px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>
                                                             {theme === 'light' ? 'Light Mode' : 'Dark Mode'}

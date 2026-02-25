@@ -3,16 +3,13 @@
 import React, { useState } from "react";
 import Link from "next/link";
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   S K I L L S P I L L  â€”  T A L E N T  P R O F I L E
-   LinkedIn-style profile page for talent users
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ===== SKILLSPILL - TALENT PROFILE ===== */
 
-/* â”€â”€ Mock Data â”€â”€ */
+/* -- Mock Data -- */
 const profileData = {
     name: "Ghost_Protocol",
-    tagline: "Full-Stack Developer â€¢ Open Source Contributor",
-    bio: "Passionate full-stack developer with 5+ years of experience building scalable web applications. I specialize in React, Node.js, and cloud architecture. Currently exploring Rust and WebAssembly. Love contributing to open-source and mentoring junior developers. ðŸš€",
+    tagline: "Full-Stack Developer \u2022 Open Source Contributor",
+    bio: "Passionate full-stack developer with 5+ years of experience building scalable web applications. I specialize in React, Node.js, and cloud architecture. Currently exploring Rust and WebAssembly. Love contributing to open-source and mentoring junior developers. \uD83D\uDE80",
     level: 42,
     rank: "Shadow",
     location: "London, UK",
@@ -38,21 +35,21 @@ const profileData = {
         {
             title: "Senior Full-Stack Developer",
             company: "NeuralForge AI",
-            period: "2023 â€“ Present",
+            period: "2023 \u2013 Present",
             description: "Leading development of AI-powered developer tools. Built real-time collaboration engine using CRDTs.",
             tech: ["React", "TypeScript", "Rust", "WebSockets"],
         },
         {
             title: "Full-Stack Developer",
             company: "CloudNine Studios",
-            period: "2021 â€“ 2023",
+            period: "2021 \u2013 2023",
             description: "Developed and maintained microservices architecture serving 2M+ users. Reduced API latency by 40%.",
             tech: ["Node.js", "React", "PostgreSQL", "Docker"],
         },
         {
             title: "Junior Developer",
             company: "StartupHub",
-            period: "2019 â€“ 2021",
+            period: "2019 \u2013 2021",
             description: "Built MVPs for 3 startups. Gained full-stack expertise across multiple technology stacks.",
             tech: ["JavaScript", "Python", "MongoDB", "AWS"],
         },
@@ -98,21 +95,21 @@ const profileData = {
     recentSpills: [
         {
             id: 1,
-            content: "Just shipped a recursive search optimizer in Rust â€” 24% latency reduction using zero-cost abstractions. âš¡",
+            content: "Just shipped a recursive search optimizer in Rust \u2014 24% latency reduction using zero-cost abstractions. \u26A1",
             likes: 128,
             comments: 24,
             time: "2h",
         },
         {
             id: 2,
-            content: "Built a real-time collaborative editor using CRDTs. The conflict resolution is surprisingly elegant when you get the data structures right. ðŸ”§",
+            content: "Built a real-time collaborative editor using CRDTs. The conflict resolution is surprisingly elegant when you get the data structures right. \uD83D\uDD27",
             likes: 203,
             comments: 41,
             time: "1d",
         },
         {
             id: 3,
-            content: "Hot take: TypeScript's type system is basically a functional programming language that generates JavaScript as a side effect. ðŸ¤¯",
+            content: "Hot take: TypeScript's type system is basically a functional programming language that generates JavaScript as a side effect. \uD83E\uDD2F",
             likes: 456,
             comments: 78,
             time: "3d",
@@ -129,7 +126,7 @@ export default function TalentProfilePage() {
     return (
         <div style={{ background: "var(--theme-bg)" }} className="min-h-full">
 
-            {/* â•â•â•â•â•â•â•â• COVER / BANNER â•â•â•â•â•â•â•â• */}
+            {/* ===== COVER / BANNER ===== */}
             <div className="relative">
                 <div className="h-32 sm:h-44 lg:h-52 w-full bg-gradient-to-r from-[#3CF91A] via-green-400 to-cyan-500 relative overflow-hidden">
                     {/* Pattern overlay */}
@@ -147,7 +144,7 @@ export default function TalentProfilePage() {
                 {/* Avatar */}
                 <div className="max-w-[900px] mx-auto px-4 sm:px-6">
                     <div className="relative -mt-12 sm:-mt-16 flex items-end gap-4">
-                        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl bg-gradient-to-br from-green-400 to-[#2edb13] flex items-center justify-center text-white text-2xl sm:text-3xl font-bold border-4 border-white shadow-xl shrink-0">
+                        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl bg-gradient-to-br from-green-400 to-[#2edb13] flex items-center justify-center text-white text-2xl sm:text-3xl font-bold border-4 shadow-xl shrink-0" style={{ borderColor: 'var(--theme-surface)' }}>
                             GP
                         </div>
                         <div className="pb-1 sm:pb-2 min-w-0 hidden sm:block">
@@ -176,10 +173,10 @@ export default function TalentProfilePage() {
                 <p className="text-[12px] text-[var(--theme-text-muted)] mt-0.5">{profileData.tagline}</p>
             </div>
 
-            {/* â•â•â•â•â•â•â•â• MAIN CONTENT â•â•â•â•â•â•â•â• */}
+            {/* ===== MAIN CONTENT ===== */}
             <div className="max-w-[900px] mx-auto px-4 sm:px-6 pb-20 lg:pb-8">
 
-                {/* â”€â”€ Stats row â”€â”€ */}
+                {/* -- Stats row -- */}
                 <div className="flex items-center gap-3 sm:gap-6 mt-4 sm:mt-5 pb-4 border-b border-[var(--theme-border)]">
                     {[
                         { label: "Spills", value: profileData.stats.spills },
@@ -203,7 +200,7 @@ export default function TalentProfilePage() {
                     </div>
                 </div>
 
-                {/* â”€â”€ Tabs â”€â”€ */}
+                {/* -- Tabs -- */}
                 <div className="flex gap-0 mt-0 border-b border-[var(--theme-border)] overflow-x-auto scrollbar-none">
                     {tabs.map(tab => (
                         <button key={tab} onClick={() => setActiveTab(tab)}
@@ -214,7 +211,7 @@ export default function TalentProfilePage() {
                     ))}
                 </div>
 
-                {/* â”€â”€ Tab Content â”€â”€ */}
+                {/* -- Tab Content -- */}
                 <div className="mt-5 space-y-5">
 
                     {activeTab === "Overview" && (
@@ -249,13 +246,13 @@ export default function TalentProfilePage() {
                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" /></svg>
                                             GitHub
                                         </h2>
-                                        <span className="text-[10px] px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">Connected</span>
+                                        <span className="text-[10px] px-2 py-1 rounded-full bg-green-500/15 text-green-500 font-medium">Connected</span>
                                     </div>
                                     <div className="grid grid-cols-3 gap-3">
                                         {[
-                                            { label: "Repos", value: profileData.github.repos, icon: "ðŸ“¦" },
-                                            { label: "Stars", value: profileData.github.stars.toLocaleString(), icon: "â­" },
-                                            { label: "Contributions", value: profileData.github.contributions.toLocaleString(), icon: "ðŸ”¥" },
+                                            { label: "Repos", value: profileData.github.repos, icon: "\uD83D\uDCE6" },
+                                            { label: "Stars", value: profileData.github.stars.toLocaleString(), icon: "\u2B50" },
+                                            { label: "Contributions", value: profileData.github.contributions.toLocaleString(), icon: "\uD83D\uDD25" },
                                         ].map(stat => (
                                             <div key={stat.label} className="bg-[var(--theme-bg-secondary)] rounded-xl p-3 text-center">
                                                 <p className="text-lg">{stat.icon}</p>
@@ -270,7 +267,7 @@ export default function TalentProfilePage() {
                                         <div className="flex gap-[3px] flex-wrap">
                                             {Array.from({ length: 52 * 7 }).map((_, i) => {
                                                 const intensity = Math.random();
-                                                let bg = "#EBEDF0";
+                                                let bg = "var(--theme-input-bg)";
                                                 if (intensity > 0.8) bg = "#16A34A";
                                                 else if (intensity > 0.6) bg = "#22C55E";
                                                 else if (intensity > 0.4) bg = "#4ADE80";
@@ -327,9 +324,9 @@ export default function TalentProfilePage() {
                                 <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-3">Links</h2>
                                 <div className="space-y-2">
                                     {[
-                                        { label: "Portfolio", url: profileData.links.portfolio, icon: "ðŸŒ" },
-                                        { label: "LinkedIn", url: profileData.links.linkedin, icon: "ðŸ’¼" },
-                                        { label: "GitHub", url: profileData.links.github, icon: "ðŸ™" },
+                                        { label: "Portfolio", url: profileData.links.portfolio, icon: "\uD83C\uDF10" },
+                                        { label: "LinkedIn", url: profileData.links.linkedin, icon: "\uD83D\uDCBC" },
+                                        { label: "GitHub", url: profileData.links.github, icon: "\uD83D\uDC19" },
                                     ].map(link => (
                                         <a key={link.label} href={link.url} target="_blank" rel="noopener noreferrer"
                                             className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[var(--theme-bg-secondary)] hover:bg-[#3CF91A]/10 transition-colors group no-underline">
@@ -359,8 +356,8 @@ export default function TalentProfilePage() {
                                     </div>
                                     <p className="text-[13px] text-[var(--theme-text-secondary)] leading-relaxed">{spill.content}</p>
                                     <div className="flex items-center gap-6 mt-3 pt-3 border-t border-[var(--theme-border-light)]">
-                                        <span className="text-[11px] text-[var(--theme-text-muted)] flex items-center gap-1">â¤ï¸ {spill.likes}</span>
-                                        <span className="text-[11px] text-[var(--theme-text-muted)] flex items-center gap-1">ðŸ’¬ {spill.comments}</span>
+                                        <span className="text-[11px] text-[var(--theme-text-muted)] flex items-center gap-1">{"\u2764\uFE0F"} {spill.likes}</span>
+                                        <span className="text-[11px] text-[var(--theme-text-muted)] flex items-center gap-1">{"\uD83D\uDCAC"} {spill.comments}</span>
                                     </div>
                                 </div>
                             ))}
@@ -429,7 +426,3 @@ export default function TalentProfilePage() {
         </div>
     );
 }
-
-
-
-

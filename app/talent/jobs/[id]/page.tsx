@@ -1,12 +1,12 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════
    ICON COMPONENTS
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════ */
 
 function ArrowRightIcon() {
     return (
@@ -48,23 +48,7 @@ function ChevronRightIcon() {
     );
 }
 
-function SearchIcon() {
-    return (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
-    );
-}
-
-function BellIcon() {
-    return (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" />
-        </svg>
-    );
-}
-
-/* â”€â”€â”€ Tech Stack Icons â”€â”€â”€ */
+/* ——— Tech Stack Icons ——— */
 
 function GolangIcon() {
     return (
@@ -96,9 +80,9 @@ function PostgresIcon() {
     );
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════
    MOCK JOB DATA (extended with detail info)
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════ */
 
 interface JobDetail {
     id: number;
@@ -144,24 +128,12 @@ const jobsData: Record<string, JobDetail> = {
             { name: "kubernetes", label: "KUBERNETES" },
             { name: "postgresql", label: "POSTGRESQL" },
         ],
-        objective: `CyberDyne Systems is initiating Project "Genesis"â€”a global neural infrastructure overhaul. We are seeking a Lead Backend Architect to orchestrate the distributed systems that will power the next generation of autonomous networks.`,
+        objective: `CyberDyne Systems is initiating Project "Genesis"\u2014a global neural infrastructure overhaul. We are seeking a Lead Backend Architect to orchestrate the distributed systems that will power the next generation of autonomous networks.`,
         objectiveDetail: `Your primary directive is to design, implement, and scale fault-tolerant services using Go and high-concurrency patterns. You will lead a strike team of 12 senior engineers across four continents, ensuring architectural integrity and sub-millisecond latency across our edge-node clusters.`,
         responsibilities: [
-            {
-                cmd: "architect",
-                flags: "--scale --global-distribution",
-                description: "Design and maintain ultra-high availability microservices capable of handling 10M+ req/sec."
-            },
-            {
-                cmd: "deploy",
-                flags: "--env production --no-downtime",
-                description: "Establish robust CI/CD pipelines and deployment strategies for zero-downtime updates."
-            },
-            {
-                cmd: "monitor",
-                flags: "--security --integrity",
-                description: "Implement end-to-end encryption protocols and security best practices across the entire stack."
-            },
+            { cmd: "architect", flags: "--scale --global-distribution", description: "Design and maintain ultra-high availability microservices capable of handling 10M+ req/sec." },
+            { cmd: "deploy", flags: "--env production --no-downtime", description: "Establish robust CI/CD pipelines and deployment strategies for zero-downtime updates." },
+            { cmd: "monitor", flags: "--security --integrity", description: "Implement end-to-end encryption protocols and security best practices across the entire stack." },
         ],
         teamMembers: [
             { name: "Sarah Connor", role: "VP of Engineering", initials: "SC" },
@@ -333,9 +305,9 @@ const similarMissions = [
     { id: "s4", code: "MISSION #0589-DATA", title: "Data Integrity Lead", company: "VaultDB", salary: "$145k - $195k", tags: ["PostgreSQL", "Go"] },
 ];
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════
    COMPATIBILITY RING (SVG Donut)
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════ */
 
 function CompatibilityRing({ percent }: { percent: number }) {
     const radius = 50;
@@ -346,7 +318,7 @@ function CompatibilityRing({ percent }: { percent: number }) {
         <div className="relative w-[130px] h-[130px] flex items-center justify-center">
             <svg width="130" height="130" viewBox="0 0 120 120" className="transform -rotate-90">
                 {/* Background ring */}
-                <circle cx="60" cy="60" r={radius} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="8" />
+                <circle cx="60" cy="60" r={radius} fill="none" stroke="var(--theme-border)" strokeWidth="8" />
                 {/* Progress ring */}
                 <circle
                     cx="60" cy="60" r={radius} fill="none"
@@ -365,7 +337,7 @@ function CompatibilityRing({ percent }: { percent: number }) {
                 >
                     {percent}%
                 </span>
-                <span className="text-[8px] uppercase tracking-[3px] text-white/30 font-bold mt-0.5">
+                <span className="text-[8px] uppercase tracking-[3px] font-bold mt-0.5" style={{ color: "var(--theme-text-muted)" }}>
                     MATCH SCORE
                 </span>
             </div>
@@ -373,9 +345,9 @@ function CompatibilityRing({ percent }: { percent: number }) {
     );
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════
    TECH STACK ICON CARD
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════ */
 
 function TechIconCard({ label, index }: { label: string; index: number }) {
     const icons = [<GolangIcon key={0} />, <KubernetesIcon key={1} />, <PostgresIcon key={2} />];
@@ -395,20 +367,20 @@ function TechIconCard({ label, index }: { label: string; index: number }) {
             </div>
             <div className="text-center">
                 <p
-                    className="text-[10px] font-bold text-white/60 uppercase tracking-wider"
-                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}
+                    className="text-[10px] font-bold uppercase tracking-wider"
+                    style={{ fontFamily: "var(--font-jetbrains-mono)", color: "var(--theme-text-secondary)" }}
                 >
                     {label}
                 </p>
-                <p className="text-[8px] text-white/25 mt-0.5">{sublabels[index % 3]}</p>
+                <p className="text-[8px] mt-0.5" style={{ color: "var(--theme-text-muted)" }}>{sublabels[index % 3]}</p>
             </div>
         </div>
     );
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════
    JOB DETAIL PAGE COMPONENT
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════ */
 
 export default function JobDetailPage() {
     const params = useParams();
@@ -418,10 +390,10 @@ export default function JobDetailPage() {
 
     if (!job) {
         return (
-            <div className="min-h-full bg-[#050505] flex items-center justify-center">
+            <div className="min-h-full flex items-center justify-center" style={{ background: "var(--theme-bg)" }}>
                 <div className="text-center">
-                    <p className="text-[60px] font-black text-white/10" style={{ fontFamily: "var(--font-jetbrains-mono)" }}>404</p>
-                    <p className="text-[14px] text-white/40 mt-2">Mission not found in the database.</p>
+                    <p className="text-[60px] font-black" style={{ fontFamily: "var(--font-jetbrains-mono)", color: "var(--theme-border)" }}>404</p>
+                    <p className="text-[14px] mt-2" style={{ color: "var(--theme-text-muted)" }}>Mission not found in the database.</p>
                     <Link
                         href="/talent/jobs"
                         className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-lg text-[12px] font-bold bg-[#3CF91A] text-black no-underline hover:scale-[1.02] transition-transform"
@@ -443,77 +415,15 @@ export default function JobDetailPage() {
     const formatCurrency = (v: number) => `$${v.toLocaleString()}`;
 
     return (
-        <div className="min-h-full bg-[#050505]">
+        <div className="min-h-full" style={{ background: "var(--theme-bg)" }}>
 
-            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-                TOP NAV BAR
-               â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
-            <div className="border-b border-white/[0.06] bg-[#0A0A0A]/80 backdrop-blur-xl sticky top-0 z-30">
-                <div className="max-w-[1400px] mx-auto px-6">
-                    <div className="flex items-center h-12 gap-6">
-                        {/* Logo */}
-                        <Link href="/talent" className="flex items-center gap-2 no-underline shrink-0">
-                            <img src="/assets/logo 2.png" alt="SkillSpill" className="h-7" />
-                        </Link>
-
-                        {/* Nav Links */}
-                        <nav className="hidden lg:flex items-center gap-5">
-                            {["MISSIONS", "NETWORK", "TERMINAL", "VAULT"].map((item) => (
-                                <span
-                                    key={item}
-                                    className="text-[10px] font-bold uppercase tracking-[2px] text-white/30 hover:text-white/60 cursor-pointer transition-colors"
-                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}
-                                >
-                                    {item}
-                                </span>
-                            ))}
-                        </nav>
-
-                        <div className="flex-1" />
-
-                        {/* Search */}
-                        <div className="hidden md:flex items-center relative">
-                            <div className="absolute left-3 text-white/20"><SearchIcon /></div>
-                            <input
-                                type="text"
-                                placeholder="Search..."
-                                className="w-[200px] pl-9 pr-3 py-1.5 rounded-lg bg-[var(--theme-card)]/[0.04] border border-white/[0.06] text-[11px] text-white placeholder-white/20 focus:border-[#3CF91A]/30 focus:outline-none transition-colors"
-                                style={{ fontFamily: "var(--font-jetbrains-mono)" }}
-                            />
-                        </div>
-
-                        {/* User */}
-                        <div className="flex items-center gap-3">
-                            <span
-                                className="text-[10px] font-bold text-[#3CF91A] uppercase tracking-wider hidden sm:inline"
-                                style={{ fontFamily: "var(--font-jetbrains-mono)" }}
-                            >
-                                DEV_NULL
-                            </span>
-                            <div
-                                className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold"
-                                style={{
-                                    background: "linear-gradient(135deg, #3CF91A30, #3CF91A10)",
-                                    border: "1px solid #3CF91A40",
-                                    color: "#3CF91A",
-                                }}
-                            >
-                                DN
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-                HERO BANNER
-               â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+            {/* ═══════ HERO BANNER ═══════ */}
             <div className="relative overflow-hidden">
                 {/* Background gradient/pattern */}
                 <div
                     className="absolute inset-0"
                     style={{
-                        background: "linear-gradient(135deg, #0A1A0F 0%, #050B08 30%, #0A0D14 60%, #050505 100%)",
+                        background: "linear-gradient(135deg, rgba(60,249,26,0.05) 0%, var(--theme-bg) 30%, var(--theme-bg) 60%, var(--theme-bg) 100%)",
                     }}
                 />
                 {/* Scan lines effect */}
@@ -541,11 +451,12 @@ export default function JobDetailPage() {
                 />
 
                 {/* Content */}
-                <div className="relative max-w-[1400px] mx-auto px-6 py-12 lg:py-16">
+                <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 py-12 lg:py-16">
                     {/* Back button */}
                     <Link
                         href="/talent/jobs"
-                        className="inline-flex items-center gap-1.5 text-[11px] text-white/30 hover:text-[#3CF91A] transition-colors no-underline mb-6"
+                        className="inline-flex items-center gap-1.5 text-[11px] hover:text-[#3CF91A] transition-colors no-underline mb-6"
+                        style={{ color: "var(--theme-text-muted)" }}
                     >
                         <ChevronLeftIcon /> Back to Missions
                     </Link>
@@ -568,19 +479,19 @@ export default function JobDetailPage() {
 
                     {/* Company name */}
                     <h1
-                        className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight mb-2"
-                        style={{ fontFamily: "var(--font-space-grotesk)" }}
+                        className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight mb-2"
+                        style={{ fontFamily: "var(--font-space-grotesk)", color: "var(--theme-text-primary)" }}
                     >
                         {job.company}
                     </h1>
 
                     {/* Job title */}
-                    <p className="text-[16px] lg:text-[18px] text-white/50 font-medium mb-1">
+                    <p className="text-[16px] lg:text-[18px] font-medium mb-1" style={{ color: "var(--theme-text-secondary)" }}>
                         {job.title}
                     </p>
 
                     {/* Location */}
-                    <div className="flex items-center gap-1.5 text-white/30 mb-6">
+                    <div className="flex items-center gap-1.5 mb-6" style={{ color: "var(--theme-text-muted)" }}>
                         <MapPinIcon />
                         <span className="text-[12px]">{job.location}</span>
                     </div>
@@ -599,11 +510,9 @@ export default function JobDetailPage() {
                 </div>
             </div>
 
-            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-                TAB NAVIGATION
-               â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
-            <div className="border-b border-white/[0.06] bg-[#050505] sticky top-12 z-20">
-                <div className="max-w-[1400px] mx-auto px-6">
+            {/* ═══════ TAB NAVIGATION ═══════ */}
+            <div className="border-b border-[var(--theme-border)] sticky top-0 z-20" style={{ background: "var(--theme-surface)" }}>
+                <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
                     <div className="flex items-center gap-1 overflow-x-auto">
                         {tabs.map((tab) => (
                             <button
@@ -612,7 +521,7 @@ export default function JobDetailPage() {
                                 className="relative px-4 py-3.5 text-[10px] font-bold uppercase tracking-[2px] transition-all duration-200 border-none bg-transparent cursor-pointer whitespace-nowrap"
                                 style={{
                                     fontFamily: "var(--font-jetbrains-mono)",
-                                    color: activeTab === tab.key ? "#3CF91A" : "rgba(255,255,255,0.3)",
+                                    color: activeTab === tab.key ? "#3CF91A" : "var(--theme-text-muted)",
                                 }}
                             >
                                 {tab.label}
@@ -631,17 +540,15 @@ export default function JobDetailPage() {
                 </div>
             </div>
 
-            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-                MAIN CONTENT AREA
-               â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
-            <div className="max-w-[1400px] mx-auto px-6 py-8">
+            {/* ═══════ MAIN CONTENT AREA ═══════ */}
+            <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8">
                 <div className="flex flex-col lg:flex-row gap-6">
 
-                    {/* â”€â”€â”€â”€â”€â”€â”€â”€ LEFT COLUMN â”€â”€â”€â”€â”€â”€â”€â”€ */}
-                    <div className="flex-1 min-w-0 space-y-6">
+                    {/* ———— LEFT COLUMN ———— */}
+                    <div className="flex-1 min-w-0 space-y-4">
 
-                        {/* â”€â”€ Mission Objective â”€â”€ */}
-                        <div className="rounded-xl border border-white/[0.06] bg-[#0A0A0A] p-6">
+                        {/* —— Mission Objective —— */}
+                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-5 sm:p-6">
                             <div className="flex items-center gap-2.5 mb-4">
                                 <TerminalIcon />
                                 <h2
@@ -651,16 +558,16 @@ export default function JobDetailPage() {
                                     MISSION OBJECTIVE
                                 </h2>
                             </div>
-                            <p className="text-[13px] text-white/60 leading-relaxed mb-4">
+                            <p className="text-[13px] leading-relaxed mb-4" style={{ color: "var(--theme-text-secondary)" }}>
                                 {job.objective}
                             </p>
-                            <p className="text-[13px] text-white/45 leading-relaxed">
+                            <p className="text-[13px] leading-relaxed" style={{ color: "var(--theme-text-muted)" }}>
                                 {job.objectiveDetail}
                             </p>
                         </div>
 
-                        {/* â”€â”€ The Tech Stack â”€â”€ */}
-                        <div className="rounded-xl border border-white/[0.06] bg-[#0A0A0A] p-6">
+                        {/* —— The Tech Stack —— */}
+                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-5 sm:p-6">
                             <h2
                                 className="text-[11px] font-bold uppercase tracking-[2px] text-[#3CF91A] mb-6"
                                 style={{ fontFamily: "var(--font-jetbrains-mono)" }}
@@ -677,16 +584,16 @@ export default function JobDetailPage() {
                             {/* Carousel dots */}
                             <div className="flex items-center justify-center gap-2 mt-5">
                                 <span className="w-2 h-2 rounded-full bg-[#3CF91A]" style={{ boxShadow: "0 0 6px #3CF91A80" }} />
-                                <span className="w-2 h-2 rounded-full bg-[var(--theme-card)]/10" />
-                                <span className="w-2 h-2 rounded-full bg-[var(--theme-card)]/10" />
+                                <span className="w-2 h-2 rounded-full" style={{ background: "var(--theme-input-bg)" }} />
+                                <span className="w-2 h-2 rounded-full" style={{ background: "var(--theme-input-bg)" }} />
                             </div>
                         </div>
 
-                        {/* â”€â”€ Key Responsibilities â”€â”€ */}
-                        <div className="rounded-xl border border-white/[0.06] bg-[#0A0A0A] p-6">
+                        {/* —— Key Responsibilities —— */}
+                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-5 sm:p-6">
                             <h2
-                                className="text-[11px] font-bold uppercase tracking-[2px] text-white/40 mb-5"
-                                style={{ fontFamily: "var(--font-jetbrains-mono)" }}
+                                className="text-[11px] font-bold uppercase tracking-[2px] mb-5"
+                                style={{ fontFamily: "var(--font-jetbrains-mono)", color: "var(--theme-text-muted)" }}
                             >
                                 KEY RESPONSIBILITIES v1.0
                             </h2>
@@ -697,14 +604,14 @@ export default function JobDetailPage() {
                                         {/* Terminal command */}
                                         <div className="flex items-center gap-2">
                                             <span
-                                                className="text-[11px] text-white/30"
-                                                style={{ fontFamily: "var(--font-jetbrains-mono)" }}
+                                                className="text-[11px]"
+                                                style={{ fontFamily: "var(--font-jetbrains-mono)", color: "var(--theme-text-muted)" }}
                                             >
                                                 $
                                             </span>
                                             <span
-                                                className="text-[12px] font-bold text-white/70"
-                                                style={{ fontFamily: "var(--font-jetbrains-mono)" }}
+                                                className="text-[12px] font-bold"
+                                                style={{ fontFamily: "var(--font-jetbrains-mono)", color: "var(--theme-text-primary)" }}
                                             >
                                                 {resp.cmd}
                                             </span>
@@ -716,11 +623,11 @@ export default function JobDetailPage() {
                                             </span>
                                         </div>
                                         {/* Description */}
-                                        <p className="text-[12px] text-white/40 leading-relaxed pl-5">
+                                        <p className="text-[12px] leading-relaxed pl-5" style={{ color: "var(--theme-text-muted)" }}>
                                             {resp.description}
                                         </p>
                                         {i < job.responsibilities.length - 1 && (
-                                            <div className="border-b border-white/[0.04] pt-2" />
+                                            <div className="pt-2" style={{ borderBottom: "1px solid var(--theme-border-light)" }} />
                                         )}
                                     </div>
                                 ))}
@@ -728,12 +635,12 @@ export default function JobDetailPage() {
                         </div>
                     </div>
 
-                    {/* â”€â”€â”€â”€â”€â”€â”€â”€ RIGHT COLUMN (Sidebar) â”€â”€â”€â”€â”€â”€â”€â”€ */}
-                    <div className="w-full lg:w-[320px] shrink-0 space-y-5">
+                    {/* ———— RIGHT COLUMN (Sidebar) ———— */}
+                    <div className="w-full lg:w-[320px] shrink-0 space-y-4">
 
-                        {/* â”€â”€ The Reward â”€â”€ */}
-                        <div className="rounded-xl border border-white/[0.06] bg-[#0A0A0A] overflow-hidden">
-                            <div className="px-5 py-3.5 border-b border-white/[0.04]">
+                        {/* —— The Reward —— */}
+                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
+                            <div className="px-5 py-3.5" style={{ borderBottom: "1px solid var(--theme-border-light)" }}>
                                 <h3
                                     className="text-[10px] font-bold uppercase tracking-[2px] text-[#3CF91A]"
                                     style={{ fontFamily: "var(--font-jetbrains-mono)" }}
@@ -744,30 +651,30 @@ export default function JobDetailPage() {
                             <div className="p-5 space-y-4">
                                 {/* Annual Salary */}
                                 <div>
-                                    <p className="text-[9px] uppercase tracking-widest text-white/25 font-semibold mb-1">
+                                    <p className="text-[9px] uppercase tracking-widest font-semibold mb-1" style={{ color: "var(--theme-text-muted)" }}>
                                         ANNUAL SALARY
                                     </p>
                                     <p
-                                        className="text-[18px] font-black text-white"
-                                        style={{ fontFamily: "var(--font-jetbrains-mono)" }}
+                                        className="text-[18px] font-black"
+                                        style={{ fontFamily: "var(--font-jetbrains-mono)", color: "var(--theme-text-primary)" }}
                                     >
                                         {formatCurrency(job.salaryMin)}
-                                        <span className="text-white/20 mx-2">â€”</span>
+                                        <span className="mx-2" style={{ color: "var(--theme-text-muted)" }}>&mdash;</span>
                                         {formatCurrency(job.salaryMax)}
                                     </p>
                                 </div>
 
                                 {/* Equity */}
                                 <div>
-                                    <p className="text-[9px] uppercase tracking-widest text-white/25 font-semibold mb-1">
+                                    <p className="text-[9px] uppercase tracking-widest font-semibold mb-1" style={{ color: "var(--theme-text-muted)" }}>
                                         EQUITY
                                     </p>
                                     <p
-                                        className="text-[16px] font-bold text-white/70"
-                                        style={{ fontFamily: "var(--font-jetbrains-mono)" }}
+                                        className="text-[16px] font-bold"
+                                        style={{ fontFamily: "var(--font-jetbrains-mono)", color: "var(--theme-text-secondary)" }}
                                     >
                                         {job.equityMin}
-                                        <span className="text-white/20 mx-2">â€”</span>
+                                        <span className="mx-2" style={{ color: "var(--theme-text-muted)" }}>&mdash;</span>
                                         {job.equityMax}
                                     </p>
                                 </div>
@@ -775,12 +682,12 @@ export default function JobDetailPage() {
                                 {/* Spill Tokens */}
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-[9px] uppercase tracking-widest text-white/25 font-semibold mb-1">
+                                        <p className="text-[9px] uppercase tracking-widest font-semibold mb-1" style={{ color: "var(--theme-text-muted)" }}>
                                             SPILL TOKENS
                                         </p>
                                         <p
-                                            className="text-[22px] font-black text-white"
-                                            style={{ fontFamily: "var(--font-jetbrains-mono)" }}
+                                            className="text-[22px] font-black"
+                                            style={{ fontFamily: "var(--font-jetbrains-mono)", color: "var(--theme-text-primary)" }}
                                         >
                                             {job.spillTokens.toLocaleString()}
                                         </p>
@@ -789,8 +696,8 @@ export default function JobDetailPage() {
                                         className="text-[8px] px-2.5 py-1 rounded font-black uppercase tracking-wider"
                                         style={{
                                             fontFamily: "var(--font-jetbrains-mono)",
-                                            background: job.tokenTrend === "SURGE" ? "#3CF91A" : job.tokenTrend === "RISING" ? "#3CF91A20" : "rgba(255,255,255,0.06)",
-                                            color: job.tokenTrend === "SURGE" ? "#000" : job.tokenTrend === "RISING" ? "#3CF91A" : "rgba(255,255,255,0.4)",
+                                            background: job.tokenTrend === "SURGE" ? "#3CF91A" : job.tokenTrend === "RISING" ? "#3CF91A20" : "var(--theme-input-bg)",
+                                            color: job.tokenTrend === "SURGE" ? "#000" : job.tokenTrend === "RISING" ? "#3CF91A" : "var(--theme-text-muted)",
                                             border: job.tokenTrend === "RISING" ? "1px solid #3CF91A30" : "none",
                                             boxShadow: job.tokenTrend === "SURGE" ? "0 0 12px #3CF91A40" : "none",
                                         }}
@@ -801,9 +708,9 @@ export default function JobDetailPage() {
                             </div>
                         </div>
 
-                        {/* â”€â”€ Your Compatibility â”€â”€ */}
-                        <div className="rounded-xl border border-white/[0.06] bg-[#0A0A0A] overflow-hidden">
-                            <div className="px-5 py-3.5 border-b border-white/[0.04]">
+                        {/* —— Your Compatibility —— */}
+                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
+                            <div className="px-5 py-3.5" style={{ borderBottom: "1px solid var(--theme-border-light)" }}>
                                 <h3
                                     className="text-[10px] font-bold uppercase tracking-[2px] text-[#3CF91A]"
                                     style={{ fontFamily: "var(--font-jetbrains-mono)" }}
@@ -834,12 +741,12 @@ export default function JobDetailPage() {
                             </div>
                         </div>
 
-                        {/* â”€â”€ Team Insights â”€â”€ */}
-                        <div className="rounded-xl border border-white/[0.06] bg-[#0A0A0A] overflow-hidden">
-                            <div className="px-5 py-3.5 border-b border-white/[0.04]">
+                        {/* —— Team Insights —— */}
+                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
+                            <div className="px-5 py-3.5" style={{ borderBottom: "1px solid var(--theme-border-light)" }}>
                                 <h3
-                                    className="text-[10px] font-bold uppercase tracking-[2px] text-white/40"
-                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}
+                                    className="text-[10px] font-bold uppercase tracking-[2px]"
+                                    style={{ fontFamily: "var(--font-jetbrains-mono)", color: "var(--theme-text-muted)" }}
                                 >
                                     TEAM INSIGHTS
                                 </h3>
@@ -858,15 +765,15 @@ export default function JobDetailPage() {
                                             {member.initials}
                                         </div>
                                         <div>
-                                            <p className="text-[12px] font-semibold text-white/80">{member.name}</p>
-                                            <p className="text-[10px] text-white/30">{member.role}</p>
+                                            <p className="text-[12px] font-semibold" style={{ color: "var(--theme-text-primary)" }}>{member.name}</p>
+                                            <p className="text-[10px]" style={{ color: "var(--theme-text-muted)" }}>{member.role}</p>
                                         </div>
                                     </div>
                                 ))}
 
                                 {/* View full team button */}
                                 <button
-                                    className="w-full mt-3 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-[2px] border cursor-pointer transition-all duration-200 hover:bg-[#3CF91A]/10 hover:border-[#3CF91A]/30"
+                                    className="w-full mt-3 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-[2px] cursor-pointer transition-all duration-200 hover:bg-[#3CF91A]/10 hover:border-[#3CF91A]/30"
                                     style={{
                                         fontFamily: "var(--font-jetbrains-mono)",
                                         background: "transparent",
@@ -882,21 +789,20 @@ export default function JobDetailPage() {
                 </div>
             </div>
 
-            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-                SIMILAR MISSIONS SECTION
-               â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
-            <div className="border-t border-white/[0.06] bg-[#050505]">
-                <div className="max-w-[1400px] mx-auto px-6 py-10">
+            {/* ═══════ SIMILAR MISSIONS SECTION ═══════ */}
+            <div style={{ borderTop: "1px solid var(--theme-border)", background: "var(--theme-bg)" }}>
+                <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-10">
                     <div className="flex items-center justify-between mb-6">
                         <h2
-                            className="text-[16px] font-bold text-white tracking-tight"
-                            style={{ fontFamily: "var(--font-space-grotesk)" }}
+                            className="text-[16px] font-bold tracking-tight"
+                            style={{ fontFamily: "var(--font-space-grotesk)", color: "var(--theme-text-primary)" }}
                         >
                             SIMILAR MISSIONS
                         </h2>
                         <div className="flex items-center gap-2">
                             <button
-                                className="w-8 h-8 rounded-full flex items-center justify-center border border-white/[0.1] bg-[var(--theme-card)]/[0.03] text-white/30 hover:text-white/60 hover:border-white/20 transition-all cursor-pointer"
+                                className="w-8 h-8 rounded-full flex items-center justify-center border border-[var(--theme-border)] transition-all cursor-pointer"
+                                style={{ background: "var(--theme-input-bg)", color: "var(--theme-text-muted)" }}
                             >
                                 <ChevronLeftIcon />
                             </button>
@@ -913,7 +819,7 @@ export default function JobDetailPage() {
                         {similarMissions.map((mission) => (
                             <div
                                 key={mission.id}
-                                className="rounded-xl border border-white/[0.06] bg-[#0A0A0A] p-4 hover:border-[#3CF91A]/20 transition-all duration-300 cursor-pointer group"
+                                className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 hover:border-[#3CF91A]/20 transition-all duration-300 cursor-pointer group"
                             >
                                 <p
                                     className="text-[8px] font-bold uppercase tracking-[2px] text-[#3CF91A]/50 mb-2"
@@ -922,18 +828,18 @@ export default function JobDetailPage() {
                                     {mission.code}
                                 </p>
                                 <h3
-                                    className="text-[13px] font-bold text-white/80 group-hover:text-white transition-colors mb-0.5"
-                                    style={{ fontFamily: "var(--font-space-grotesk)" }}
+                                    className="text-[13px] font-bold transition-colors mb-0.5"
+                                    style={{ fontFamily: "var(--font-space-grotesk)", color: "var(--theme-text-primary)" }}
                                 >
                                     {mission.title}
                                 </h3>
-                                <p className="text-[10px] text-white/30 mb-2">{mission.company}</p>
+                                <p className="text-[10px] mb-2" style={{ color: "var(--theme-text-muted)" }}>{mission.company}</p>
                                 <div className="flex items-center gap-1.5 mb-3 flex-wrap">
                                     {mission.tags.map((tag) => (
                                         <span
                                             key={tag}
-                                            className="text-[8px] px-2 py-[2px] rounded-full border border-white/[0.08] text-white/35"
-                                            style={{ fontFamily: "var(--font-jetbrains-mono)" }}
+                                            className="text-[8px] px-2 py-[2px] rounded-full border border-[var(--theme-border)]"
+                                            style={{ fontFamily: "var(--font-jetbrains-mono)", color: "var(--theme-text-muted)" }}
                                         >
                                             {tag}
                                         </span>
@@ -951,27 +857,25 @@ export default function JobDetailPage() {
                 </div>
             </div>
 
-            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-                FOOTER
-               â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
-            <footer className="border-t border-white/[0.06] bg-[#050505]">
-                <div className="max-w-[1400px] mx-auto px-6 py-5">
+            {/* ═══════ FOOTER ═══════ */}
+            <footer style={{ borderTop: "1px solid var(--theme-border)", background: "var(--theme-bg)" }}>
+                <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-5">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
                         <div className="flex items-center gap-2">
                             <img src="/assets/logo 2.png" alt="SkillSpill" className="h-5 opacity-40" />
                             <span
-                                className="text-[9px] text-white/20 uppercase tracking-[2px]"
-                                style={{ fontFamily: "var(--font-jetbrains-mono)" }}
+                                className="text-[9px] uppercase tracking-[2px]"
+                                style={{ fontFamily: "var(--font-jetbrains-mono)", color: "var(--theme-text-muted)" }}
                             >
-                                SKILLSPILL Â© 2077
+                                SKILLSPILL &copy; 2077
                             </span>
                         </div>
                         <div className="flex items-center gap-6">
                             {["PRIVACY PROTOCOLS", "TERMS OF SERVICE", "SYSTEM STATUS"].map((item) => (
                                 <span
                                     key={item}
-                                    className="text-[8px] text-white/15 uppercase tracking-[2px] hover:text-white/30 transition-colors cursor-pointer"
-                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}
+                                    className="text-[8px] uppercase tracking-[2px] hover:text-[var(--theme-text-secondary)] transition-colors cursor-pointer"
+                                    style={{ fontFamily: "var(--font-jetbrains-mono)", color: "var(--theme-text-muted)" }}
                                 >
                                     {item}
                                 </span>

@@ -44,11 +44,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         });
     }, []);
 
-    // Prevent hydration mismatch flash
-    if (!mounted) {
-        return <>{children}</>;
-    }
-
     return (
         <ThemeContext.Provider value={{ theme, toggleTheme }}>
             {children}
@@ -61,20 +56,44 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
    ═══════════════════════════════════════════════ */
 export function ThemeToggle({ size = "md" }: { size?: "sm" | "md" }) {
     const { theme, toggleTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
     const isDark = theme === "dark";
 
+    useEffect(() => { setMounted(true); }, []);
+
+    // sm: bar=44×24, knob=18  →  padding=3 each side  →  light=3, dark=44-18-3=23
+    // md: bar=52×28, knob=22  →  padding=3 each side  →  light=3, dark=52-22-3=27
     const dims = size === "sm"
-        ? { w: 44, h: 24, knob: 18, travel: 20, icon: 10 }
-        : { w: 52, h: 28, knob: 22, travel: 24, icon: 12 };
+        ? { w: 44, h: 24, knob: 18, lightPos: 3, darkPos: 23, icon: 10 }
+        : { w: 52, h: 28, knob: 22, lightPos: 3, darkPos: 27, icon: 12 };
+
+    // Render a placeholder before mount to avoid hydration mismatch
+    if (!mounted) {
+        return (
+            <div
+                className="rounded-full"
+                style={{
+                    width: dims.w,
+                    height: dims.h,
+                    background: "linear-gradient(135deg, #BFDBFE, #93C5FD)",
+                    opacity: 0.5,
+                }}
+            />
+        );
+    }
+
+    const knobPos = isDark ? dims.darkPos : dims.lightPos;
 
     return (
         <button
             onClick={toggleTheme}
             aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
-            className="relative rounded-full cursor-pointer border-none transition-all duration-500 ease-in-out focus:outline-none"
+            className="relative rounded-full cursor-pointer border-none focus:outline-none"
             style={{
                 width: dims.w,
                 height: dims.h,
+                overflow: "hidden",
+                transition: "background 0.4s ease, box-shadow 0.4s ease",
                 background: isDark
                     ? "linear-gradient(135deg, #1E293B, #0F172A)"
                     : "linear-gradient(135deg, #BFDBFE, #93C5FD)",
@@ -85,11 +104,13 @@ export function ThemeToggle({ size = "md" }: { size?: "sm" | "md" }) {
         >
             {/* Stars (dark mode) */}
             <span
-                className="absolute transition-all duration-500"
                 style={{
-                    top: 5, left: isDark ? dims.w - 18 : dims.w - 14,
+                    position: "absolute",
+                    top: 5,
+                    left: isDark ? dims.w - 18 : dims.w - 14,
                     opacity: isDark ? 1 : 0,
                     transform: isDark ? "scale(1)" : "scale(0.5)",
+                    transition: "all 0.4s ease",
                 }}
             >
                 <svg width="6" height="6" viewBox="0 0 10 10" fill="#FDE68A">
@@ -99,11 +120,15 @@ export function ThemeToggle({ size = "md" }: { size?: "sm" | "md" }) {
 
             {/* Knob / Sun-Moon */}
             <span
-                className="absolute top-1/2 rounded-full transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
                 style={{
+                    position: "absolute",
+                    top: "50%",
+                    left: 0,
                     width: dims.knob,
                     height: dims.knob,
-                    transform: `translateY(-50%) translateX(${isDark ? dims.travel : 2}px)`,
+                    borderRadius: "50%",
+                    transform: `translateY(-50%) translateX(${knobPos}px)`,
+                    transition: "transform 0.4s ease, background 0.4s ease, box-shadow 0.4s ease",
                     background: isDark
                         ? "#E2E8F0"
                         : "linear-gradient(135deg, #FDE68A, #FBBF24)",
@@ -114,8 +139,16 @@ export function ThemeToggle({ size = "md" }: { size?: "sm" | "md" }) {
             >
                 {/* Sun rays (light mode) */}
                 <span
-                    className="absolute inset-0 flex items-center justify-center transition-all duration-500"
-                    style={{ opacity: isDark ? 0 : 1, transform: isDark ? "rotate(-90deg) scale(0.5)" : "rotate(0deg) scale(1)" }}
+                    style={{
+                        position: "absolute",
+                        inset: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        opacity: isDark ? 0 : 1,
+                        transform: isDark ? "rotate(-90deg) scale(0.5)" : "rotate(0deg) scale(1)",
+                        transition: "opacity 0.4s ease, transform 0.4s ease",
+                    }}
                 >
                     <svg width={dims.icon} height={dims.icon} viewBox="0 0 24 24" fill="none" stroke="#B45309" strokeWidth="2.5">
                         <circle cx="12" cy="12" r="4" />

@@ -139,12 +139,14 @@ export default function Home() {
   const searchPlaceholder = useTypingEffect("e.g. React developer with Rust experience...", 40, 1800);
   const ripple = useRipple();
 
+
+
   useEffect(() => { const fn = () => setScrolled(window.scrollY > 30); window.addEventListener("scroll", fn); return () => window.removeEventListener("scroll", fn); }, []);
 
   const skills = ["Python", "Rust", "React", "TypeScript", "Solidity", "Go", "Next.js"];
 
   return (
-    <div className="relative w-full min-h-screen overflow-hidden">
+    <div className="relative w-full min-h-screen overflow-hidden bg-[#050505] text-white">
       {/* Ripple keyframe injected once */}
       <style>{`@keyframes ripple-expand { to { transform: scale(1); opacity: 0; } }`}</style>
       <ParticlesCanvas />

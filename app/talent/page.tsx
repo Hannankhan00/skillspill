@@ -3,12 +3,12 @@
 import React, { useState } from "react";
 import Link from "next/link";
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   S K I L L S P I L L  â€”  T A L E N T  F E E D
-   Social feed â€” like LinkedIn meets GitHub
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ═══════════════════════════════════════════════
+   S K I L L S P I L L  —  T A L E N T  F E E D
+   Social feed — like LinkedIn meets GitHub
+   ═══════════════════════════════════════════════ */
 
-/* â”€â”€ Icons â”€â”€ */
+/* —— Icons —— */
 const HeartIcon = ({ filled }: { filled?: boolean }) => filled
     ? <svg width="18" height="18" viewBox="0 0 24 24" fill="#EF4444" stroke="#EF4444" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
     : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>;
@@ -21,19 +21,19 @@ const BookmarkIcon = ({ filled }: { filled?: boolean }) => filled
 const CodeIcon = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg>;
 const ImageIcon = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>;
 
-/* â”€â”€ Mock Data â”€â”€ */
+/* —— Mock Data —— */
 const feedPosts = [
     {
         id: 1, username: "Sarah_Codes", role: "Full-Stack Engineer",
         initials: "SC", grad: "from-violet-500 to-purple-600",
         time: "25m", verified: true,
-        content: "Just shipped a recursive search optimizer in Rust â€” 24% latency reduction using zero-cost abstractions. Sometimes the compiler really is your best friend. âš¡\n\nHere's the core function:",
+        content: "Just shipped a recursive search optimizer in Rust \u2014 24% latency reduction using zero-cost abstractions. Sometimes the compiler really is your best friend. \u26A1\n\nHere's the core function:",
         code: `fn optimized_search<T: PartialEq>(data: &[T], query: &T) -> Option<usize> {
     data.iter().position(|item| item == query)
 }
 
 // Benchmark: 0.8ms avg on 1M items
-// Previous: 1.05ms â€” 24% improvement`,
+// Previous: 1.05ms \u2014 24% improvement`,
         codeLang: "rust",
         tags: ["Rust", "Performance", "Algorithms"],
         likes: 128, comments: 24, shares: 8, liked: false, saved: false,
@@ -42,7 +42,7 @@ const feedPosts = [
         id: 2, username: "Neon_Cipher", role: "Web3 Developer",
         initials: "NC", grad: "from-amber-400 to-orange-500",
         time: "2h", verified: true,
-        content: "New smart contract for the bounty system is live on testnet. Audits coming back clean! ðŸ”’ Gas costs down 40% from the previous iteration.\n\nNo CV needed, just prove your skills on-chain. That's the future of hiring.",
+        content: "New smart contract for the bounty system is live on testnet. Audits coming back clean! \uD83D\uDD12 Gas costs down 40% from the previous iteration.\n\nNo CV needed, just prove your skills on-chain. That's the future of hiring.",
         code: null, codeLang: null,
         tags: ["Web3", "Solidity", "Smart Contracts"],
         likes: 87, comments: 15, shares: 12, liked: true, saved: true,
@@ -51,7 +51,7 @@ const feedPosts = [
         id: 3, username: "Zero_Day", role: "Systems Engineer",
         initials: "ZD", grad: "from-cyan-400 to-blue-600",
         time: "4h", verified: false,
-        content: "Built a real-time collaboration engine using WebSockets + CRDTs. Zero merge conflicts in live editing sessions. ðŸš€\n\nThe trick was using a last-writer-wins strategy with vector clocks for causal ordering:",
+        content: "Built a real-time collaboration engine using WebSockets + CRDTs. Zero merge conflicts in live editing sessions. \uD83D\uDE80\n\nThe trick was using a last-writer-wins strategy with vector clocks for causal ordering:",
         code: `const syncEngine = new CRDTEngine({
   strategy: 'last-writer-wins',
   vectorClock: true,
@@ -68,7 +68,7 @@ const feedPosts = [
         id: 4, username: "Data_Witch", role: "ML Engineer",
         initials: "DW", grad: "from-[#3CF91A] to-teal-500",
         time: "6h", verified: true,
-        content: "Trained a transformer model that predicts skill compatibility between developers and projects. 94% accuracy after fine-tuning on SkillSpill data.\n\nThe model looks at code patterns, not CVs. Skills > Credentials every time. ðŸ§ ",
+        content: "Trained a transformer model that predicts skill compatibility between developers and projects. 94% accuracy after fine-tuning on SkillSpill data.\n\nThe model looks at code patterns, not CVs. Skills > Credentials every time. \uD83E\uDDE0",
         code: `model = SkillTransformer(
     n_heads=8, d_model=512,
     skill_vocab=48203,
@@ -84,7 +84,7 @@ const feedPosts = [
         id: 5, username: "Pixel_Punk", role: "Frontend Developer",
         initials: "PP", grad: "from-pink-400 to-rose-500",
         time: "8h", verified: false,
-        content: "Recreated the entire iOS lock screen in pure CSS. No JavaScript. No images. Just 847 lines of carefully crafted gradients and animations. ðŸŽ¨\n\nMy brain hurts but the dopamine is real.",
+        content: "Recreated the entire iOS lock screen in pure CSS. No JavaScript. No images. Just 847 lines of carefully crafted gradients and animations. \uD83C\uDFA8\n\nMy brain hurts but the dopamine is real.",
         code: null, codeLang: null,
         tags: ["CSS", "UI", "Creative Coding"],
         likes: 456, comments: 78, shares: 92, liked: false, saved: false,
@@ -111,7 +111,7 @@ const jobSuggestions = [
     { title: "Full-Stack Lead", company: "SkillDAO", budget: "$10k", match: "87%" },
 ];
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• MAIN FEED â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ═══════════════ MAIN FEED ═══════════════ */
 export default function TalentFeed() {
     const [feedTab, setFeedTab] = useState("For You");
     const [composerText, setComposerText] = useState("");
@@ -128,10 +128,10 @@ export default function TalentFeed() {
             <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-5">
                 <div className="flex flex-col lg:flex-row gap-6">
 
-                    {/* â•â•â•â•â•â•â•â• MAIN FEED â•â•â•â•â•â•â•â• */}
+                    {/* ════════ MAIN FEED ════════ */}
                     <div className="flex-1 min-w-0 space-y-4">
 
-                        {/* â”€â”€ Composer â”€â”€ */}
+                        {/* —— Composer —— */}
                         <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4">
                             <div className="flex items-start gap-3">
                                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-[#2edb13] flex items-center justify-center text-white text-[11px] font-bold shadow-md shrink-0">
@@ -161,14 +161,14 @@ export default function TalentFeed() {
                                                 }`}
                                             disabled={!composerText.trim()}
                                         >
-                                            Spill It ðŸ”¥
+                                            Spill It 🔥
                                         </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* â”€â”€ Feed Tabs â”€â”€ */}
+                        {/* —— Feed Tabs —— */}
                         <div className="flex items-center gap-1 px-1 overflow-x-auto">
                             {tabs.map((tab) => (
                                 <button
@@ -185,7 +185,7 @@ export default function TalentFeed() {
                             ))}
                         </div>
 
-                        {/* â”€â”€ Posts â”€â”€ */}
+                        {/* —— Posts —— */}
                         {feedPosts.map((post) => {
                             const isLiked = likedPosts[post.id] ?? post.liked;
                             const isSaved = savedPosts[post.id] ?? post.saved;
@@ -205,11 +205,11 @@ export default function TalentFeed() {
                                                     )}
                                                 </div>
                                                 <p className="text-[11px] text-[var(--theme-text-muted)]">
-                                                    {post.role} â€¢ <span style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{post.time} ago</span>
+                                                    {post.role} &bull; <span style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{post.time} ago</span>
                                                 </p>
                                             </div>
                                         </div>
-                                        <button className="text-gray-300 hover:text-[var(--theme-text-muted)] transition-colors bg-transparent border-none cursor-pointer p-1">
+                                        <button className="text-[var(--theme-text-muted)] hover:text-[var(--theme-text-tertiary)] transition-colors bg-transparent border-none cursor-pointer p-1">
                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" /></svg>
                                         </button>
                                     </div>
@@ -264,7 +264,7 @@ export default function TalentFeed() {
                                             </button>
                                         </div>
                                         <button onClick={() => toggleSave(post.id)}
-                                            className={`transition-all bg-transparent border-none cursor-pointer ${isSaved ? "text-purple-500" : "text-gray-300 hover:text-purple-500"}`}>
+                                            className={`transition-all bg-transparent border-none cursor-pointer ${isSaved ? "text-purple-500" : "text-[var(--theme-text-muted)] hover:text-purple-500"}`}>
                                             <BookmarkIcon filled={isSaved} />
                                         </button>
                                     </div>
@@ -273,29 +273,29 @@ export default function TalentFeed() {
                         })}
                     </div>
 
-                    {/* â•â•â•â•â•â•â•â• RIGHT SIDEBAR (hidden on mobile) â•â•â•â•â•â•â•â• */}
+                    {/* ════════ RIGHT SIDEBAR (hidden on mobile) ════════ */}
                     <div className="hidden lg:block w-[300px] shrink-0 space-y-5">
 
-                        {/* â”€â”€ Profile Card Mini â”€â”€ */}
+                        {/* —— Profile Card Mini —— */}
                         <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
                             <div className="h-16 bg-gradient-to-r from-[#3CF91A] to-cyan-500" />
                             <div className="px-4 pb-4 -mt-6">
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-[#2edb13] flex items-center justify-center text-white text-[13px] font-bold shadow-lg border-2 border-white">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-[#2edb13] flex items-center justify-center text-white text-[13px] font-bold shadow-lg border-2 border-[var(--theme-card)]">
                                     GP
                                 </div>
                                 <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mt-2">Ghost_Protocol</h3>
-                                <p className="text-[11px] text-[var(--theme-text-muted)] mb-3">Full-Stack Developer â€¢ Lv.42</p>
+                                <p className="text-[11px] text-[var(--theme-text-muted)] mb-3">Full-Stack Developer &bull; Lv.42</p>
                                 <div className="flex items-center gap-4 text-center">
                                     <div>
                                         <p className="text-[14px] font-bold text-[var(--theme-text-secondary)]">23</p>
                                         <p className="text-[9px] text-[var(--theme-text-muted)] uppercase tracking-wider">Spills</p>
                                     </div>
-                                    <div className="w-px h-6 bg-gray-200" />
+                                    <div className="w-px h-6" style={{ background: "var(--theme-border)" }} />
                                     <div>
                                         <p className="text-[14px] font-bold text-[var(--theme-text-secondary)]">1.2k</p>
                                         <p className="text-[9px] text-[var(--theme-text-muted)] uppercase tracking-wider">Followers</p>
                                     </div>
-                                    <div className="w-px h-6 bg-gray-200" />
+                                    <div className="w-px h-6" style={{ background: "var(--theme-border)" }} />
                                     <div>
                                         <p className="text-[14px] font-bold text-[var(--theme-text-secondary)]">847</p>
                                         <p className="text-[9px] text-[var(--theme-text-muted)] uppercase tracking-wider">Following</p>
@@ -304,17 +304,17 @@ export default function TalentFeed() {
                             </div>
                         </div>
 
-                        {/* â”€â”€ Trending Skills â”€â”€ */}
+                        {/* —— Trending Skills —— */}
                         <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
                             <div className="px-4 py-3 border-b border-[var(--theme-border-light)]">
                                 <h3 className="text-[11px] font-bold text-[var(--theme-text-muted)] uppercase tracking-[2px]"
-                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}>ðŸ”¥ Trending Skills</h3>
+                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}>🔥 Trending Skills</h3>
                             </div>
-                            <div className="divide-y divide-gray-50">
+                            <div className="divide-y divide-[var(--theme-border-light)]">
                                 {trendingSkills.map((skill, i) => (
-                                    <div key={skill.name} className="flex items-center justify-between px-4 py-2.5 hover:bg-[var(--theme-bg-secondary)] transition-colors cursor-pointer">
+                                    <div key={skill.name} className="flex items-center justify-between px-4 py-2.5 hover:bg-[var(--theme-bg-secondary)] transition-colors cursor-pointer" style={{ borderColor: "var(--theme-border-light)" }}>
                                         <div className="flex items-center gap-3">
-                                            <span className="text-[11px] font-bold text-gray-300 w-4">{i + 1}</span>
+                                            <span className="text-[11px] font-bold text-[var(--theme-text-faint)] w-4">{i + 1}</span>
                                             <div>
                                                 <p className="text-[12px] font-semibold text-[var(--theme-text-secondary)]">{skill.name}</p>
                                                 <p className="text-[10px] text-[var(--theme-text-muted)]">{skill.posts} spills</p>
@@ -327,25 +327,25 @@ export default function TalentFeed() {
                             </div>
                         </div>
 
-                        {/* â”€â”€ Job Suggestions â”€â”€ */}
+                        {/* —— Job Suggestions —— */}
                         <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
                             <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--theme-border-light)]">
                                 <h3 className="text-[11px] font-bold text-[var(--theme-text-muted)] uppercase tracking-[2px]"
-                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}>ðŸ’¼ Jobs For You</h3>
+                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}>💼 Jobs For You</h3>
                                 <Link href="/talent/jobs"
                                     className="text-[9px] text-[#3CF91A] hover:text-[#2edb13] font-bold no-underline transition-colors">
-                                    ALL â†’
+                                    ALL →
                                 </Link>
                             </div>
-                            <div className="divide-y divide-gray-50">
+                            <div className="divide-y divide-[var(--theme-border-light)]">
                                 {jobSuggestions.map((job) => (
-                                    <div key={job.title} className="px-4 py-3 hover:bg-[#3CF91A]/10 transition-colors cursor-pointer group">
+                                    <div key={job.title} className="px-4 py-3 hover:bg-[#3CF91A]/10 transition-colors cursor-pointer group" style={{ borderColor: "var(--theme-border-light)" }}>
                                         <div className="flex items-start justify-between">
                                             <div>
                                                 <p className="text-[12px] font-semibold text-[var(--theme-text-secondary)] group-hover:text-[var(--theme-text-primary)] transition-colors">{job.title}</p>
-                                                <p className="text-[10px] text-[var(--theme-text-muted)]">{job.company} â€¢ {job.budget}</p>
+                                                <p className="text-[10px] text-[var(--theme-text-muted)]">{job.company} &bull; {job.budget}</p>
                                             </div>
-                                            <span className="text-[10px] font-bold text-black px-2 py-0.5 rounded-full bg-[#3CF91A10] border border-[#3CF91A20]"
+                                            <span className="text-[10px] font-bold text-[#3CF91A] px-2 py-0.5 rounded-full bg-[#3CF91A]/10 border border-[#3CF91A]/20"
                                                 style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{job.match}</span>
                                         </div>
                                     </div>
@@ -353,15 +353,15 @@ export default function TalentFeed() {
                             </div>
                         </div>
 
-                        {/* â”€â”€ Suggested Connections â”€â”€ */}
+                        {/* —— Suggested Connections —— */}
                         <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
                             <div className="px-4 py-3 border-b border-[var(--theme-border-light)]">
                                 <h3 className="text-[11px] font-bold text-[var(--theme-text-muted)] uppercase tracking-[2px]"
-                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}>ðŸ‘¥ People to Follow</h3>
+                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}>👥 People to Follow</h3>
                             </div>
-                            <div className="divide-y divide-gray-50">
+                            <div className="divide-y divide-[var(--theme-border-light)]">
                                 {suggestedUsers.map((user) => (
-                                    <div key={user.name} className="flex items-center justify-between px-4 py-3">
+                                    <div key={user.name} className="flex items-center justify-between px-4 py-3" style={{ borderColor: "var(--theme-border-light)" }}>
                                         <div className="flex items-center gap-2.5">
                                             <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${user.grad} flex items-center justify-center text-white text-[9px] font-bold shadow-sm`}>
                                                 {user.initials}
@@ -379,12 +379,12 @@ export default function TalentFeed() {
                             </div>
                         </div>
 
-                        {/* â”€â”€ Footer links â”€â”€ */}
+                        {/* —— Footer links —— */}
                         <div className="px-2 text-center">
-                            <p className="text-[10px] text-gray-300 leading-relaxed">
-                                About â€¢ Help â€¢ Terms â€¢ Privacy
+                            <p className="text-[10px] text-[var(--theme-text-muted)] leading-relaxed">
+                                About &bull; Help &bull; Terms &bull; Privacy
                             </p>
-                            <p className="text-[10px] text-gray-300 mt-1">Â© 2026 SkillSpill</p>
+                            <p className="text-[10px] text-[var(--theme-text-muted)] mt-1">&copy; 2026 SkillSpill</p>
                         </div>
                     </div>
                 </div>
@@ -392,6 +392,3 @@ export default function TalentFeed() {
         </div>
     );
 }
-
-
-
