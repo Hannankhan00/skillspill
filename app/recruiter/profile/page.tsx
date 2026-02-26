@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { Building2, BarChart2, Flame, Target, Trophy, Zap, Gem, Heart, MessageSquare } from "lucide-react";
 
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    S K I L L S P I L L  —  R E C R U I T E R  P R O F I L E
@@ -81,14 +82,14 @@ const profileData = {
     recentPosts: [
         {
             id: 1,
-            content: "🚀 We just opened a Senior Rust Systems Engineer bounty on SkillSpill! Looking for someone passionate about zero-cost abstractions and high-performance systems. $15k budget. Let's connect!",
+            content: "We just opened a Senior Rust Systems Engineer bounty on SkillSpill! Looking for someone passionate about zero-cost abstractions and high-performance systems. $15k budget. Let's connect!",
             likes: 89,
             comments: 14,
             time: "3h",
         },
         {
             id: 2,
-            content: "Just closed our Full-Stack Lead position in record time — 8 days from posting to hire! SkillSpill's skills-first approach made it incredibly easy to find the right candidate. 💜",
+            content: "Just closed our Full-Stack Lead position in record time — 8 days from posting to hire! SkillSpill's skills-first approach made it incredibly easy to find the right candidate.",
             likes: 234,
             comments: 42,
             time: "2d",
@@ -107,7 +108,7 @@ const accent = "#A855F7";
 
 export default function RecruiterProfilePage() {
     const [activeTab, setActiveTab] = useState("Overview");
-    const tabs = ["Overview", "Bounties", "Posts", "Hires"];
+    const tabs = ["Overview", "Posts", "Hires"];
 
     return (
         <div style={{ background: "var(--theme-bg)" }} className="min-h-full">
@@ -167,7 +168,6 @@ export default function RecruiterProfilePage() {
                 {/* ── Stats row ── */}
                 <div className="flex items-center gap-3 sm:gap-6 mt-4 sm:mt-5 pb-4 border-b border-[var(--theme-border)]">
                     {[
-                        { label: "Bounties", value: profileData.stats.bounties },
                         { label: "Hires", value: profileData.stats.hires },
                         { label: "Applicants", value: profileData.stats.applicants.toLocaleString() },
                         { label: "Response", value: profileData.stats.responseRate },
@@ -227,7 +227,7 @@ export default function RecruiterProfilePage() {
                             {/* Company Info */}
                             <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
                                 <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-3 flex items-center gap-2">
-                                    🏢 Company
+                                    <Building2 className="w-4 h-4" /> Company
                                 </h2>
                                 <div className="flex items-center gap-3 mb-3">
                                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-400 to-violet-600 flex items-center justify-center text-white text-[11px] font-bold">TF</div>
@@ -256,14 +256,14 @@ export default function RecruiterProfilePage() {
 
                             {/* Skill Demand */}
                             <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
-                                <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-3">📊 Skills In Demand</h2>
+                                <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-3 flex items-center gap-2"><BarChart2 className="w-4 h-4" /> Skills In Demand</h2>
                                 <div className="space-y-3">
                                     {profileData.skillDemand.map(skill => (
                                         <div key={skill.name}>
                                             <div className="flex items-center justify-between mb-1">
                                                 <span className="text-[12px] font-medium text-[var(--theme-text-secondary)] flex items-center gap-1.5">
                                                     {skill.name}
-                                                    {skill.trending && <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-500 font-bold">🔥 HOT</span>}
+                                                    {skill.trending && <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-500 font-bold flex items-center gap-1"><Flame className="w-2.5 h-2.5" /> HOT</span>}
                                                 </span>
                                                 <span className="text-[10px] text-[var(--theme-text-muted)]">{skill.demand}%</span>
                                             </div>
@@ -278,7 +278,7 @@ export default function RecruiterProfilePage() {
 
                             {/* Recent Hires Preview */}
                             <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
-                                <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-3">🎯 Recent Successful Hires</h2>
+                                <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-3 flex items-center gap-2"><Target className="w-4 h-4" /> Recent Successful Hires</h2>
                                 <div className="space-y-2.5">
                                     {profileData.recentHires.slice(0, 3).map(hire => (
                                         <div key={hire.name} className="flex items-center gap-3 p-2.5 rounded-xl bg-[var(--theme-bg-secondary)] hover:bg-[#A855F7]/10 transition-colors">
@@ -293,44 +293,6 @@ export default function RecruiterProfilePage() {
                                 </div>
                             </div>
                         </>
-                    )}
-
-                    {activeTab === "Bounties" && (
-                        <div className="space-y-4">
-                            {profileData.activeBounties.map((bounty, i) => (
-                                <div key={i} className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5 hover:border-[#A855F7]/40 hover:shadow-md transition-all">
-                                    <div className="flex items-start justify-between mb-2">
-                                        <div>
-                                            <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)]">{bounty.title}</h3>
-                                            <p className="text-[12px] text-[#A855F7] font-semibold mt-0.5">{bounty.budget}</p>
-                                        </div>
-                                        <span className={`text-[9px] font-bold px-2 py-1 rounded-full ${bounty.status === "Active" ? "bg-green-500/20 text-green-500" : "bg-orange-500/20 text-orange-500"}`}>
-                                            {bounty.status}
-                                        </span>
-                                    </div>
-                                    <div className="flex flex-wrap gap-1.5 mb-3">
-                                        {bounty.tags.map(tag => (
-                                            <span key={tag} className="text-[9px] px-2 py-0.5 rounded-full bg-[#A855F7]/10 text-[#A855F7] font-medium">{tag}</span>
-                                        ))}
-                                    </div>
-                                    <div className="flex items-center justify-between text-[11px] text-[var(--theme-text-muted)] pt-3 border-t border-[var(--theme-border-light)]">
-                                        <div className="flex items-center gap-4">
-                                            <span className="flex items-center gap-1">
-                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg>
-                                                {bounty.applicants} applicants
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-                                                {bounty.daysLeft} days left
-                                            </span>
-                                        </div>
-                                        <button className="text-[11px] font-medium text-[#A855F7] hover:text-[#A855F7] cursor-pointer bg-transparent border-none transition-colors flex items-center gap-1">
-                                            View Details <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
                     )}
 
                     {activeTab === "Posts" && (
@@ -349,8 +311,8 @@ export default function RecruiterProfilePage() {
                                     </div>
                                     <p className="text-[13px] text-[var(--theme-text-secondary)] leading-relaxed">{post.content}</p>
                                     <div className="flex items-center gap-6 mt-3 pt-3 border-t border-[var(--theme-border-light)]">
-                                        <span className="text-[11px] text-[var(--theme-text-muted)] flex items-center gap-1">❤️ {post.likes}</span>
-                                        <span className="text-[11px] text-[var(--theme-text-muted)] flex items-center gap-1">💬 {post.comments}</span>
+                                        <span className="text-[11px] text-[var(--theme-text-muted)] flex items-center gap-1"><Heart className="w-3 h-3" /> {post.likes}</span>
+                                        <span className="text-[11px] text-[var(--theme-text-muted)] flex items-center gap-1"><MessageSquare className="w-3 h-3" /> {post.comments}</span>
                                     </div>
                                 </div>
                             ))}
@@ -366,10 +328,10 @@ export default function RecruiterProfilePage() {
                                 {/* Stats cards */}
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
                                     {[
-                                        { label: "Total Hires", value: "47", icon: "🏆", bg: "bg-[#A855F7]/10" },
-                                        { label: "Avg Match", value: "92%", icon: "🎯", bg: "bg-green-500/10" },
-                                        { label: "Time to Hire", value: "11d", icon: "⚡", bg: "bg-orange-500/10" },
-                                        { label: "Retention", value: "95%", icon: "💎", bg: "bg-blue-500/10" },
+                                        { label: "Total Hires", value: "47", icon: <Trophy className="w-5 h-5 text-[#A855F7]" />, bg: "bg-[#A855F7]/10" },
+                                        { label: "Avg Match", value: "92%", icon: <Target className="w-5 h-5 text-green-500" />, bg: "bg-green-500/10" },
+                                        { label: "Time to Hire", value: "11d", icon: <Zap className="w-5 h-5 text-orange-500" />, bg: "bg-orange-500/10" },
+                                        { label: "Retention", value: "95%", icon: <Gem className="w-5 h-5 text-blue-500" />, bg: "bg-blue-500/10" },
                                     ].map(card => (
                                         <div key={card.label} className={`${card.bg} rounded-xl p-3 text-center`}>
                                             <p className="text-lg">{card.icon}</p>
@@ -403,6 +365,6 @@ export default function RecruiterProfilePage() {
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

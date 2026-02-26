@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { Sparkles } from "lucide-react";
 
 const accent = "#A855F7";
 
@@ -42,7 +43,7 @@ export default function RecruiterApplicationsPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 sm:mb-6 shrink-0">
                     <div>
                         <h1 className="text-xl sm:text-2xl font-bold text-[var(--theme-text-primary)]">Applicant Tracking</h1>
-                        <p className="text-[12px] sm:text-[13px] text-[var(--theme-text-muted)] mt-0.5 sm:mt-1">Manage pipeline across all active bounties</p>
+                        <p className="text-[12px] sm:text-[13px] text-[var(--theme-text-muted)] mt-0.5 sm:mt-1">Manage pipeline across all active jobs</p>
                     </div>
                     <div className="flex bg-[var(--theme-input-bg)] border border-[var(--theme-border)] rounded-xl p-1 shrink-0 w-max sm:w-auto">
                         <button className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-[11px] font-bold bg-[#A855F7]/10 text-[#A855F7] border border-[#A855F7]/30 transition-all cursor-pointer">List</button>
@@ -81,7 +82,7 @@ export default function RecruiterApplicationsPage() {
                                 <div className="min-w-0 flex-1">
                                     <div className="flex items-center justify-between md:hidden mb-0.5">
                                         <div className="px-2 py-0.5 rounded-lg text-[9px] font-bold flex items-center gap-1 shrink-0" style={{ background: `linear-gradient(135deg, ${accent}20, ${accent}05)`, color: accent, border: `1px solid ${accent}30` }}>
-                                            ✨ {app.match}%
+                                            <Sparkles className="w-3 h-3 inline-block" /> {app.match}%
                                         </div>
                                     </div>
                                     <p className="text-[13px] sm:text-[15px] font-bold text-[var(--theme-text-primary)] truncate">{app.name}</p>
@@ -108,7 +109,7 @@ export default function RecruiterApplicationsPage() {
                                 {/* DESKTOP MATCH */}
                                 <div className="hidden md:flex flex-col items-center">
                                     <div className="px-2.5 py-1 rounded-lg text-[10px] sm:text-[11px] font-bold flex flex-col justify-center min-w-[70px] text-center shrink-0" style={{ background: `linear-gradient(135deg, ${accent}20, ${accent}05)`, color: accent, border: `1px solid ${accent}30` }}>
-                                        <span>✨ {app.match}%</span>
+                                        <span><Sparkles className="w-3 h-3 inline-block" /> {app.match}%</span>
                                     </div>
                                     <span className="text-[8px] mt-1 font-bold tracking-widest text-[#A855F7] uppercase uppercase">Match</span>
                                 </div>
@@ -133,7 +134,7 @@ export default function RecruiterApplicationsPage() {
                     {filtered.length === 0 && (
                         <div className="py-12 sm:py-16 text-center rounded-2xl border-2 border-dashed border-[var(--theme-border)]">
                             <p className="text-[13px] sm:text-[15px] font-bold text-[var(--theme-text-secondary)]">No applications found in this stage.</p>
-                            <p className="text-[11px] sm:text-[12px] mt-1 text-[var(--theme-text-muted)]">Check back later or adjust your bounties.</p>
+                            <p className="text-[11px] sm:text-[12px] mt-1 text-[var(--theme-text-muted)]">Check back later or adjust your jobs.</p>
                         </div>
                     )}
                 </div>

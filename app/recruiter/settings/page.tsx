@@ -111,7 +111,7 @@ export default function RecruiterSettingsPage() {
     /* Notifications */
     const [notifApplication, setNotifApplication] = useState(true);
     const [notifSpill, setNotifSpill] = useState(true);
-    const [notifBounty, setNotifBounty] = useState(true);
+    const [notifJob, setNotifJob] = useState(true);
     const [notifEmail, setNotifEmail] = useState(true);
     const [notifPush, setNotifPush] = useState(false);
 
@@ -212,9 +212,9 @@ export default function RecruiterSettingsPage() {
                                     <Section title="Notifications" desc="Choose what alerts you want to receive">
                                         <div>
                                             <h3 className="text-[11px] uppercase tracking-widest font-semibold mb-2" style={{ color: 'var(--theme-text-muted)' }}>Activity</h3>
-                                            <ToggleRow label="New Applications" desc="When candidates apply to your bounties" enabled={notifApplication} onToggle={() => setNotifApplication(!notifApplication)} />
+                                            <ToggleRow label="New Applications" desc="When candidates apply to your jobs" enabled={notifApplication} onToggle={() => setNotifApplication(!notifApplication)} />
                                             <ToggleRow label="Spill Interactions" desc="Likes, comments, and shares on your spills" enabled={notifSpill} onToggle={() => setNotifSpill(!notifSpill)} />
-                                            <ToggleRow label="Bounty Updates" desc="Status changes on your posted bounties" enabled={notifBounty} onToggle={() => setNotifBounty(!notifBounty)} />
+                                            <ToggleRow label="Job Updates" desc="Status changes on your posted jobs" enabled={notifJob} onToggle={() => setNotifJob(!notifJob)} />
                                         </div>
 
                                         <div>

@@ -2,39 +2,40 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { FileText, Sparkles, MessageSquare, Rocket, AlertTriangle, MailOpen } from "lucide-react";
 
 const accent = "#A855F7";
 
 const notifications = [
     {
-        id: 1, type: "application", icon: "📄", title: "New Application",
-        message: "Sarah Codes applied to your Senior Rust Systems Engineer bounty.",
+        id: 1, type: "application", icon: <FileText className="w-5 h-5" />, title: "New Application",
+        message: "Sarah Codes applied to your Senior Rust Systems Engineer job.",
         time: "2 hours ago", read: false,
         actionLink: "/recruiter/applications"
     },
     {
-        id: 2, type: "match", icon: "✨", title: "High Match Found",
+        id: 2, type: "match", icon: <Sparkles className="w-5 h-5" />, title: "High Match Found",
         message: "We found a 96% match for your Full-Stack Lead position. Invite them to apply!",
         time: "5 hours ago", read: false,
         actionLink: "/recruiter/search"
     },
     {
-        id: 3, type: "spill", icon: "💬", title: "New Comment",
+        id: 3, type: "spill", icon: <MessageSquare className="w-5 h-5" />, title: "New Comment",
         message: "David_Dev commented on your recent hiring insights spill.",
         time: "1 day ago", read: true,
         actionLink: "/recruiter/spills"
     },
     {
-        id: 4, type: "system", icon: "🚀", title: "Bounty Published",
-        message: "Your ML Engineer bounty is now live and being matched with candidates.",
+        id: 4, type: "system", icon: <Rocket className="w-5 h-5" />, title: "Job Published",
+        message: "Your ML Engineer job is now live and being matched with candidates.",
         time: "2 days ago", read: true,
-        actionLink: "/recruiter/bounties"
+        actionLink: "/recruiter/applications"
     },
     {
-        id: 5, type: "alert", icon: "⚠️", title: "Bounty Expiring Soon",
-        message: "Your DevOps/SRE bounty expires in 5 days. Consider boosting it.",
+        id: 5, type: "alert", icon: <AlertTriangle className="w-5 h-5" />, title: "Job Expiring Soon",
+        message: "Your DevOps/SRE job expires in 5 days. Consider boosting it.",
         time: "3 days ago", read: true,
-        actionLink: "/recruiter/bounties"
+        actionLink: "/recruiter/applications"
     }
 ];
 
@@ -62,8 +63,8 @@ export default function RecruiterNotificationsPage() {
                 {/* HEADER */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 sm:mb-6">
                     <div>
-                        <h1 className="text-xl sm:text-2xl font-bold text-[var(--theme-text-primary)]">Notifications</h1>
-                        <p className="text-[12px] sm:text-[13px] text-[var(--theme-text-muted)] mt-0.5 sm:mt-1">Stay updated on your bounties, matches, and network.</p>
+                        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--theme-text-primary)] fade-up">Notifications</h1>
+                        <p className="text-[12px] sm:text-[13px] text-[var(--theme-text-muted)] mt-0.5 sm:mt-1">Stay updated on your jobs, matches, and network.</p>
                     </div>
                 </div>
 
@@ -137,7 +138,9 @@ export default function RecruiterNotificationsPage() {
 
                     {filteredNotifs.length === 0 && (
                         <div className="py-12 sm:py-16 text-center rounded-2xl border-2 border-dashed border-[var(--theme-border)]">
-                            <div className="w-16 h-16 rounded-full bg-[#A855F7]/10 flex items-center justify-center text-[24px] mb-4 mx-auto border border-[#A855F7]/20 shadow-inner">📭</div>
+                            <div className="w-16 h-16 rounded-full bg-[#A855F7]/10 flex items-center justify-center text-[24px] mb-4 mx-auto border border-[#A855F7]/20 shadow-inner">
+                                <MailOpen className="w-8 h-8 text-[#A855F7]" />
+                            </div>
                             <p className="text-[13px] sm:text-[15px] font-bold text-[var(--theme-text-secondary)]">All caught up!</p>
                             <p className="text-[11px] sm:text-[12px] mt-1 text-[var(--theme-text-muted)]">You have no {activeTab === "Unread" ? "unread " : ""}notifications.</p>
                         </div>

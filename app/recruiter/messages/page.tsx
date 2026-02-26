@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { MessageSquare } from "lucide-react";
 
 const accent = "#A855F7";
 
@@ -166,7 +167,7 @@ export default function RecruiterMessagesPage() {
                         ) : (
                             <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[var(--theme-bg)] text-center h-full">
                                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#A855F7]/10 flex items-center justify-center text-[30px] sm:text-[40px] mb-4 sm:mb-6 shadow-inset">
-                                    💬
+                                    <MessageSquare className="w-10 h-10 text-[#A855F7]" />
                                 </div>
                                 <h3 className="text-[18px] sm:text-[20px] font-bold text-[var(--theme-text-primary)] mb-2">Your Messages</h3>
                                 <p className="text-[13px] sm:text-[14px] text-[var(--theme-text-muted)] max-w-[300px] leading-relaxed">Select an active conversation from the sidebar to start chatting with elite talent.</p>

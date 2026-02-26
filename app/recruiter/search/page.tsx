@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { Sparkles } from "lucide-react";
 
 const accent = "#A855F7";
 
@@ -47,8 +48,8 @@ export default function RecruiterSearchPage() {
                 {/* HEADER */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
                     <div>
-                        <h1 className="text-xl sm:text-2xl font-bold text-[var(--theme-text-primary)]">Candidate Search</h1>
-                        <p className="text-[12px] sm:text-[13px] text-[var(--theme-text-muted)] mt-0.5 sm:mt-1.5">Find the perfect match for your active bounties</p>
+                        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--theme-text-primary)]">Talent Search</h1>
+                        <p className="text-[12px] sm:text-[13px] text-[var(--theme-text-muted)] mt-0.5 sm:mt-1.5">Find the perfect match for your active jobs</p>
                     </div>
                 </div>
 
@@ -95,7 +96,7 @@ export default function RecruiterSearchPage() {
                                             )}
                                         </div>
                                         <div className="px-2 py-0.5 rounded-lg text-[10px] sm:text-[11px] font-bold flex items-center gap-1" style={{ background: `linear-gradient(135deg, ${accent}20, ${accent}05)`, color: accent, border: `1px solid ${accent}30` }}>
-                                            ✨ {candidate.match}% Match
+                                            <Sparkles className="w-3 h-3 inline-block" /> {candidate.match}% Match
                                         </div>
                                     </div>
                                 </div>
@@ -112,7 +113,7 @@ export default function RecruiterSearchPage() {
                                         <div className="flex items-center gap-1.5 shrink-0">
                                             {/* Match Pill */}
                                             <div className="px-2.5 py-1 rounded-lg text-[10px] sm:text-[11px] font-bold flex items-center gap-1" style={{ background: `linear-gradient(135deg, ${accent}20, ${accent}05)`, color: accent, border: `1px solid ${accent}30` }}>
-                                                ✨ {candidate.match}% Match
+                                                <Sparkles className="w-3 h-3 inline-block" /> {candidate.match}% Match
                                             </div>
                                         </div>
                                     </div>

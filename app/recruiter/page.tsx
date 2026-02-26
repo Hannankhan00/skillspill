@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { Sparkles, Briefcase, Target, BarChart2 } from "lucide-react";
 
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    S K I L L S P I L L  —  R E C R U I T E R  F E E D
@@ -27,7 +28,7 @@ const feedPosts = [
         id: 1, username: "Sarah_Codes", role: "Full-Stack Engineer",
         initials: "SC", grad: "from-violet-500 to-purple-600",
         time: "25m", verified: true,
-        content: "Just shipped a recursive search optimizer in Rust — 24% latency reduction using zero-cost abstractions. Sometimes the compiler really is your best friend. ⚡\n\nHere's the core function:",
+        content: "Just shipped a recursive search optimizer in Rust — 24% latency reduction using zero-cost abstractions. Sometimes the compiler really is your best friend.\n\nHere's the core function:",
         code: `fn optimized_search<T: PartialEq>(data: &[T], query: &T) -> Option<usize> {
     data.iter().position(|item| item == query)
 }
@@ -43,7 +44,7 @@ const feedPosts = [
         id: 2, username: "Neon_Cipher", role: "Web3 Developer",
         initials: "NC", grad: "from-amber-400 to-orange-500",
         time: "2h", verified: true,
-        content: "New smart contract for the bounty system is live on testnet. Audits coming back clean! 🔒 Gas costs down 40% from the previous iteration.\n\nNo CV needed, just prove your skills on-chain. That's the future of hiring.",
+        content: "New smart contract for the bounty system is live on testnet. Audits coming back clean! Gas costs down 40% from the previous iteration.\n\nNo CV needed, just prove your skills on-chain. That's the future of hiring.",
         code: null, codeLang: null,
         tags: ["Web3", "Solidity", "Smart Contracts"],
         likes: 87, comments: 15, shares: 12, liked: true, saved: false,
@@ -53,7 +54,7 @@ const feedPosts = [
         id: 3, username: "Zero_Day", role: "Systems Engineer",
         initials: "ZD", grad: "from-cyan-400 to-blue-600",
         time: "4h", verified: false,
-        content: "Built a real-time collaboration engine using WebSockets + CRDTs. Zero merge conflicts in live editing sessions. 🚀\n\nThe trick was using a last-writer-wins strategy with vector clocks for causal ordering:",
+        content: "Built a real-time collaboration engine using WebSockets + CRDTs. Zero merge conflicts in live editing sessions.\n\nThe trick was using a last-writer-wins strategy with vector clocks for causal ordering:",
         code: `const syncEngine = new CRDTEngine({
   strategy: 'last-writer-wins',
   vectorClock: true,
@@ -71,7 +72,7 @@ const feedPosts = [
         id: 4, username: "Data_Witch", role: "ML Engineer",
         initials: "DW", grad: "from-emerald-400 to-teal-500",
         time: "6h", verified: true,
-        content: "Trained a transformer model that predicts skill compatibility between developers and projects. 94% accuracy after fine-tuning on SkillSpill data.\n\nThe model looks at code patterns, not CVs. Skills > Credentials every time. 🧠",
+        content: "Trained a transformer model that predicts skill compatibility between developers and projects. 94% accuracy after fine-tuning on SkillSpill data.\n\nThe model looks at code patterns, not CVs. Skills > Credentials every time.",
         code: `model = SkillTransformer(
     n_heads=8, d_model=512,
     skill_vocab=48203,
@@ -88,7 +89,7 @@ const feedPosts = [
         id: 5, username: "Pixel_Punk", role: "Frontend Developer",
         initials: "PP", grad: "from-pink-400 to-rose-500",
         time: "8h", verified: false,
-        content: "Recreated the entire iOS lock screen in pure CSS. No JavaScript. No images. Just 847 lines of carefully crafted gradients and animations. 🎨\n\nMy brain hurts but the dopamine is real.",
+        content: "Recreated the entire iOS lock screen in pure CSS. No JavaScript. No images. Just 847 lines of carefully crafted gradients and animations.\n\nMy brain hurts but the dopamine is real.",
         code: null, codeLang: null,
         tags: ["CSS", "UI", "Creative Coding"],
         likes: 456, comments: 78, shares: 92, liked: false, saved: false,
@@ -169,7 +170,7 @@ export default function RecruiterFeed() {
                                                 }`}
                                             disabled={!composerText.trim()}
                                         >
-                                            Post ✨
+                                            Post <Sparkles className="inline-block w-3.5 h-3.5 ml-1 flex-shrink-0" />
                                         </button>
                                     </div>
                                 </div>
@@ -327,9 +328,9 @@ export default function RecruiterFeed() {
                         <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
                             <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--theme-border-light)]">
                                 <h3 className="text-[11px] font-bold text-[var(--theme-text-muted)] uppercase tracking-[2px]"
-                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}>💼 Your Jobs</h3>
-                                <Link href="/recruiter/bounties"
-                                    className="text-[9px] text-[#A855F7] hover:text-[#A855F7] font-bold no-underline transition-colors flex items-center gap-0.5">
+                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}><Briefcase className="inline-block w-4 h-4 mr-1.5 align-text-bottom" />Your Jobs</h3>
+                                <Link href="/recruiter/applications"
+                                    className="block p-3 rounded-xl hover:bg-[var(--theme-bg-secondary)] transition-colors border border-transparent hover:border-[var(--theme-border-light)] no-underline">
                                     MANAGE <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
                                 </Link>
                             </div>
@@ -353,7 +354,7 @@ export default function RecruiterFeed() {
                                 ))}
                             </div>
                             <div className="px-4 py-3 border-t border-[var(--theme-border-light)]">
-                                <Link href="/recruiter/bounties"
+                                <Link href="/recruiter/applications"
                                     className="flex items-center justify-center gap-2 w-full py-2 rounded-xl text-[11px] font-bold text-[#A855F7] bg-[#A855F7]/10 border border-[#A855F7]/20 hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all no-underline cursor-pointer">
                                     + Post New Job
                                 </Link>
@@ -364,7 +365,7 @@ export default function RecruiterFeed() {
                         <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
                             <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--theme-border-light)]">
                                 <h3 className="text-[11px] font-bold text-[var(--theme-text-muted)] uppercase tracking-[2px]"
-                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}>🎯 Top Matches</h3>
+                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}><Target className="inline-block w-4 h-4 mr-1.5 align-text-bottom" />Top Matches</h3>
                                 <Link href="/recruiter/search"
                                     className="text-[9px] text-[#A855F7] hover:text-[#A855F7] font-bold no-underline transition-colors flex items-center gap-0.5">
                                     SEARCH <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
@@ -398,7 +399,7 @@ export default function RecruiterFeed() {
                         <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
                             <div className="px-4 py-3 border-b border-[var(--theme-border-light)]">
                                 <h3 className="text-[11px] font-bold text-[var(--theme-text-muted)] uppercase tracking-[2px]"
-                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}>📊 Skill Demand</h3>
+                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}><BarChart2 className="inline-block w-4 h-4 mr-1.5 align-text-bottom" />Skill Demand</h3>
                             </div>
                             <div className="p-4 space-y-3">
                                 {skillDemand.map((skill) => (
@@ -427,6 +428,6 @@ export default function RecruiterFeed() {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

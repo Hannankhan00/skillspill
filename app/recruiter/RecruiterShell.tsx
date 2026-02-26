@@ -77,7 +77,6 @@ const recruiterNavItems = [
     { label: "Feed", icon: <HomeIcon />, href: "/recruiter" },
     { label: "My Spills", icon: <SpillsIcon />, href: "/recruiter/spills" },
     { label: "Search Talent", icon: <SearchIcon />, href: "/recruiter/search" },
-    { label: "Bounties", icon: <BriefcaseIcon />, href: "/recruiter/bounties" },
     { label: "Applications", icon: <UsersIcon />, href: "/recruiter/applications" },
     { label: "Messages", icon: <MessageIcon />, href: "/recruiter/messages" },
     { label: "Settings", icon: <SettingsIcon />, href: "/recruiter/settings" },
@@ -100,11 +99,6 @@ const mobileNavItems = [
         label: "Alerts", href: "/recruiter/notifications",
         icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>,
         iconFilled: <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="0.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" fill="none" stroke="currentColor" strokeWidth="1.8" /></svg>,
-    },
-    {
-        label: "Jobs", href: "/recruiter/bounties",
-        icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>,
-        iconFilled: <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="0.5"><rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" fill="white" /></svg>,
     },
 ];
 
@@ -221,7 +215,7 @@ export default function RecruiterShell({
                         }}
                     >
                         <PlusIcon />
-                        NEW BOUNTY
+                        NEW APPLICATION
                     </button>
 
                     <button

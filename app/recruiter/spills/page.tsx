@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { Briefcase, Megaphone, MessageSquare, Flame, BarChart2, Edit3, Eye, Heart } from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════════
    S K I L L S P I L L  —  R E C R U I T E R  S P I L L S
@@ -9,10 +10,10 @@ import Link from "next/link";
    ══════════════════════════════════════════════════════════════ */
 
 /* ── Mock Data ── */
-const mySpills = [
+const mySpills: any[] = [
     {
         id: 1,
-        content: "🚀 We just opened a Senior Rust Systems Engineer bounty on SkillSpill! Looking for someone passionate about zero-cost abstractions and high-performance systems. $15k budget. Let's connect!",
+        content: "We just opened a Senior Rust Systems Engineer job on SkillSpill! Looking for someone passionate about zero-cost abstractions and high-performance systems. $15k budget. Let's connect!",
         type: "bounty",
         bountyInfo: { title: "Senior Rust Systems Engineer", budget: "$15,000", applicants: 23, daysLeft: 12 },
         tags: ["Hiring", "Rust", "Systems Engineering"],
@@ -25,16 +26,16 @@ const mySpills = [
     },
     {
         id: 2,
-        content: "Just closed our Full-Stack Lead position in record time — 8 days from posting to hire! SkillSpill's skills-first approach made it incredibly easy to find the right candidate. The match score was 94% and the hire has been exceptional. 💜\n\nHere's our hiring process breakdown:",
+        content: "Just closed our Full-Stack Lead position in record time — 8 days from posting to hire! SkillSpill's skills-first approach made it incredibly easy to find the right candidate. The match score was 94% and the hire has been exceptional.\n\nHere's our hiring process breakdown:",
         type: "update",
         code: `// Our hiring pipeline on SkillSpill
 const pipeline = {
-  step1: "Post bounty with skill requirements",
+  step1: "Post job with skill requirements",
   step2: "AI-powered candidate matching",
   step3: "Review code spills & GitHub activity",
   step4: "Skills assessment challenge",
   step5: "Culture fit interview",
-  result: "Hired in 8 days! 🎉"
+  result: "Hired in 8 days!"
 };`,
         codeLang: "javascript",
         bountyInfo: null,
@@ -48,7 +49,7 @@ const pipeline = {
     },
     {
         id: 3,
-        content: "Hot take: The best engineering hires I've made weren't from the most prestigious companies — they were from open-source contributors with deep domain expertise. Skills > Pedigree. 🎯\n\nStop filtering by company names and start looking at actual code contributions.",
+        content: "Hot take: The best engineering hires I've made weren't from the most prestigious companies — they were from open-source contributors with deep domain expertise. Skills > Pedigree.\n\nStop filtering by company names and start looking at actual code contributions.",
         type: "thought",
         code: null,
         codeLang: null,
@@ -63,7 +64,7 @@ const pipeline = {
     },
     {
         id: 4,
-        content: "🔥 New bounty coming soon: We're looking for a Staff ML Engineer to lead our computer vision team. Competitive budget, fully remote, and an incredible tech stack.\n\nStay tuned or DM me for early access to the posting.",
+        content: "New job coming soon: We're looking for a Staff ML Engineer to lead our computer vision team. Competitive budget, fully remote, and an incredible tech stack.\n\nStay tuned or DM me for early access to the posting.",
         type: "teaser",
         code: null,
         codeLang: null,
@@ -117,12 +118,12 @@ export default function RecruiterSpillsPage() {
             ? mySpills.filter(s => s.status === "published")
             : mySpills.filter(s => s.status === "draft");
 
-    const typeIcons: Record<string, string> = {
-        bounty: "💼",
-        update: "📢",
-        thought: "💭",
-        teaser: "🔥",
-        report: "📊",
+    const typeIcons: Record<string, React.ReactNode> = {
+        bounty: <Briefcase className="w-3 h-3 inline-block align-text-bottom" />,
+        update: <Megaphone className="w-3 h-3 inline-block align-text-bottom" />,
+        thought: <MessageSquare className="w-3 h-3 inline-block align-text-bottom" />,
+        teaser: <Flame className="w-3 h-3 inline-block align-text-bottom" />,
+        report: <BarChart2 className="w-3 h-3 inline-block align-text-bottom" />,
     };
 
     return (
@@ -133,7 +134,7 @@ export default function RecruiterSpillsPage() {
                 <div className="flex items-center justify-between mb-5">
                     <div>
                         <h1 className="text-xl sm:text-2xl font-bold text-[var(--theme-text-primary)]">My Spills</h1>
-                        <p className="text-[12px] text-[var(--theme-text-muted)] mt-0.5">Share updates, bounties, and hiring insights</p>
+                        <p className="text-[12px] text-[var(--theme-text-muted)] mt-0.5">Share updates, jobs, and hiring insights</p>
                     </div>
                     <button
                         onClick={() => setComposerOpen(!composerOpen)}
@@ -158,11 +159,15 @@ export default function RecruiterSpillsPage() {
 
                         {/* Post type selector */}
                         <div className="flex gap-2 mb-3">
-                            {([["update", "📢 Update"], ["bounty", "💼 Bounty"], ["thought", "💭 Thought"]] as const).map(([type, label]) => (
+                            {([
+                                ["update", "Update", Megaphone],
+                                ["bounty", "Job", Briefcase],
+                                ["thought", "Thought", MessageSquare]
+                            ] as const).map(([type, label, Icon]) => (
                                 <button key={type} onClick={() => setPostType(type)}
-                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold border cursor-pointer transition-all
+                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-semibold border cursor-pointer transition-all
                                         ${postType === type ? "bg-[#A855F7]/10 border-[#A855F7]/30 text-[#A855F7]" : "bg-[var(--theme-card)] border-[var(--theme-border)] text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg-secondary)]"}`}>
-                                    {label}
+                                    <Icon className="w-3 h-3" /> {label}
                                 </button>
                             ))}
                         </div>
@@ -215,10 +220,10 @@ export default function RecruiterSpillsPage() {
                 {/* ══ STATS OVERVIEW ══ */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
                     {[
-                        { label: "Total Spills", value: statsOverview.totalSpills, icon: "📝" },
-                        { label: "Total Views", value: statsOverview.totalViews.toLocaleString(), icon: "👀" },
-                        { label: "Total Likes", value: statsOverview.totalLikes.toLocaleString(), icon: "❤️" },
-                        { label: "Engagement", value: statsOverview.avgEngagement, icon: "📊" },
+                        { label: "Total Spills", value: statsOverview.totalSpills, icon: <Edit3 className="w-5 h-5 mx-auto text-purple-400" /> },
+                        { label: "Total Views", value: statsOverview.totalViews.toLocaleString(), icon: <Eye className="w-5 h-5 mx-auto text-blue-400" /> },
+                        { label: "Total Likes", value: statsOverview.totalLikes.toLocaleString(), icon: <Heart className="w-5 h-5 mx-auto text-pink-400" /> },
+                        { label: "Engagement", value: statsOverview.avgEngagement, icon: <BarChart2 className="w-5 h-5 mx-auto text-green-400" /> },
                     ].map(stat => (
                         <div key={stat.label} className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-3 sm:p-4 text-center">
                             <p className="text-lg">{stat.icon}</p>
@@ -291,7 +296,7 @@ export default function RecruiterSpillsPage() {
                                 {/* Content */}
                                 <p className="text-[13px] text-[var(--theme-text-secondary)] leading-relaxed mb-3 whitespace-pre-line">{spill.content}</p>
 
-                                {/* Bounty card (inline) */}
+                                {/* Job card (inline) */}
                                 {spill.bountyInfo && (
                                     <div className="rounded-xl border border-[#A855F7]/30 bg-[var(--theme-input-bg)] p-3.5 mb-3">
                                         <div className="flex items-start justify-between">
@@ -313,7 +318,7 @@ export default function RecruiterSpillsPage() {
                                         </div>
                                         <button className="mt-2.5 px-4 py-1.5 rounded-lg text-[10px] font-bold text-white border-none cursor-pointer hover:scale-105 transition-all flex items-center justify-center gap-1"
                                             style={{ background: `linear-gradient(135deg, ${accent}, #7C3AED)` }}>
-                                            View Bounty <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
+                                            View Job <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
                                         </button>
                                     </div>
                                 )}
@@ -335,7 +340,7 @@ export default function RecruiterSpillsPage() {
 
                                 {/* Tags */}
                                 <div className="flex flex-wrap gap-1.5 mb-3">
-                                    {spill.tags.map(tag => (
+                                    {spill.tags?.map((tag: string) => (
                                         <span key={tag} className="text-[9px] px-2 py-0.5 rounded-full bg-[#A855F7]/10 border border-[#A855F7]/20 text-[#A855F7] font-medium">#{tag}</span>
                                     ))}
                                 </div>
@@ -398,9 +403,9 @@ export default function RecruiterSpillsPage() {
                 {/* Empty state */}
                 {filteredSpills.length === 0 && (
                     <div className="rounded-2xl border border-dashed border-[var(--theme-border)] bg-[var(--theme-card)] p-8 text-center">
-                        <p className="text-3xl mb-2">📢</p>
+                        <Megaphone className="w-8 h-8 mx-auto mb-2 text-purple-400" />
                         <p className="text-[14px] font-bold text-[var(--theme-text-secondary)] mb-1">No spills yet</p>
-                        <p className="text-[12px] text-[var(--theme-text-muted)] mb-4">Start sharing bounties, hiring updates, and insights</p>
+                        <p className="text-[12px] text-[var(--theme-text-muted)] mb-4">Start sharing jobs, hiring updates, and insights</p>
                         <button onClick={() => setComposerOpen(true)}
                             className="px-5 py-2.5 rounded-xl text-[12px] font-bold text-white border-none cursor-pointer transition-all hover:scale-105"
                             style={{ background: `linear-gradient(135deg, ${accent}, #7C3AED)`, boxShadow: `0 0 15px ${accent}40` }}>
