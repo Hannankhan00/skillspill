@@ -164,6 +164,9 @@ model RecruiterProfile {
   companyWebsite String?
   companySize    String?
   location       String?
+  country        String?
+  phone          String?
+  bio            String?  @db.Text
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
         // 4. Create Session
         await createSession(user.id, user.role);
 
-        return NextResponse.json({ success: true, redirectTo: "/recruiter" }, { status: 201 });
+        return NextResponse.json({ success: true, redirectTo: "/recruiter/profile?welcome=true" }, { status: 201 });
 
     } catch (error) {
         console.error("Recruiter Signup Error:", error);

@@ -47,17 +47,23 @@ export async function POST(req: NextRequest) {
         // 4. Create Session
         await createSession(user.id, user.role);
 
-        // 5. Update Last Login
-        await prisma.user.update({
-            where: { id: user.id },
-            data: { lastLoginAt: new Date() },
-        });
-
-        // 6. Determine Redirect
+        // 5. Determine Redirect
         let redirectTo = "/dashboard";
         if (user.role === "TALENT") redirectTo = "/talent";
         else if (user.role === "RECRUITER") redirectTo = "/recruiter";
         else if (user.role === "ADMIN") redirectTo = "/admin";
+
+        // If first login, redirect to profile to complete it
+        if (!user.lastLoginAt) {
+            if (user.role === "TALENT") redirectTo = "/talent/profile?welcome=true";
+            else if (user.role === "RECRUITER") redirectTo = "/recruiter/profile?welcome=true";
+        }
+
+        // 6. Update Last Login
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { lastLoginAt: new Date() },
+        });
 
         return NextResponse.json({ success: true, redirectTo }, { status: 200 });
 

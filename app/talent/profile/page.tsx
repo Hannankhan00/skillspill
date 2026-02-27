@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 
 /* ===== SKILLSPILL - TALENT PROFILE ===== */
@@ -122,9 +122,100 @@ const accent = "#3CF91A";
 export default function TalentProfilePage() {
     const [activeTab, setActiveTab] = useState("Overview");
     const tabs = ["Overview", "Spills", "Projects", "Skills"];
+    const [showWelcome, setShowWelcome] = useState(false);
+    const [isProfileIncomplete, setIsProfileIncomplete] = useState(true);
+    const [showEditModal, setShowEditModal] = useState(false);
+
+    const [userData, setUserData] = useState({ ...profileData, email: "ghost@example.com" });
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get("welcome") === "true") {
+                setShowWelcome(true);
+            }
+        }
+
+        fetch("/api/user/profile")
+            .then(res => res.json())
+            .then(data => {
+                if (data.user) {
+                    setUserData(prev => ({
+                        ...prev,
+                        name: data.user.fullName || prev.name,
+                        email: data.user.email || prev.email,
+                        bio: data.user.talentProfile?.bio || prev.bio,
+                        links: {
+                            ...prev.links,
+                            portfolio: data.user.talentProfile?.portfolioUrl || prev.links.portfolio,
+                            github: data.user.talentProfile?.githubUsername || prev.links.github,
+                            linkedin: data.user.talentProfile?.linkedinUrl || prev.links.linkedin,
+                        }
+                    }));
+                }
+                setIsLoading(false);
+            })
+            .catch(() => setIsLoading(false));
+    }, []);
+
+    const handleSaveProfile = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        const updateData = {
+            fullName: formData.get("fullName") as string,
+            email: formData.get("email") as string,
+            talentProfile: {
+                bio: formData.get("bio") as string,
+                portfolioUrl: formData.get("portfolioUrl") as string,
+                githubUsername: formData.get("githubUsername") as string,
+                linkedinUrl: formData.get("linkedinUrl") as string,
+            }
+        };
+
+        try {
+            const res = await fetch("/api/user/profile", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updateData),
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                setUserData(prev => ({
+                    ...prev,
+                    name: updateData.fullName,
+                    email: updateData.email,
+                    bio: updateData.talentProfile.bio,
+                    links: {
+                        ...prev.links,
+                        portfolio: updateData.talentProfile.portfolioUrl,
+                        github: updateData.talentProfile.githubUsername,
+                        linkedin: updateData.talentProfile.linkedinUrl,
+                    }
+                }));
+                setShowEditModal(false);
+                setIsProfileIncomplete(false);
+            }
+        } catch (error) {
+            console.error("Failed to update profile", error);
+        }
+    };
 
     return (
         <div style={{ background: "var(--theme-bg)" }} className="min-h-full">
+
+            {/* ===== WELCOME POPUP ===== */}
+            {showWelcome && (
+                <div className="bg-[#3CF91A]/10 border-b border-[#3CF91A]/30 px-4 py-3 flex items-center justify-between">
+                    <div>
+                        <p className="text-[13px] font-bold text-[var(--theme-text-primary)]">Welcome to SkillSpill!</p>
+                        <p className="text-[11px] text-[var(--theme-text-muted)] mt-0.5">Please take a moment to complete your profile to attract recruiters.</p>
+                    </div>
+                    <button onClick={() => setShowWelcome(false)} className="px-4 py-1.5 rounded-lg text-[11px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105" style={{ background: accent }}>
+                        Complete Profile
+                    </button>
+                </div>
+            )}
 
             {/* ===== COVER / BANNER ===== */}
             <div className="relative">
@@ -149,13 +240,13 @@ export default function TalentProfilePage() {
                         </div>
                         <div className="pb-1 sm:pb-2 min-w-0 hidden sm:block">
                             <div className="flex items-center gap-2">
-                                <h1 className="text-xl sm:text-2xl font-bold text-[var(--theme-text-primary)]">{profileData.name}</h1>
+                                <h1 className="text-xl sm:text-2xl font-bold text-[var(--theme-text-primary)]">{userData.name}</h1>
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="#22C55E" stroke="var(--theme-card)" strokeWidth="2">
                                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
                                 </svg>
                                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#3CF91A]/10 text-[#2edb13]">Lv.{profileData.level}</span>
                             </div>
-                            <p className="text-[13px] text-[var(--theme-text-muted)] mt-0.5">{profileData.tagline}</p>
+                            <p className="text-[13px] text-[var(--theme-text-muted)] mt-0.5">{userData.tagline}</p>
                         </div>
                     </div>
                 </div>
@@ -164,25 +255,43 @@ export default function TalentProfilePage() {
             {/* Mobile name (below avatar) */}
             <div className="sm:hidden px-4 mt-3">
                 <div className="flex items-center gap-2">
-                    <h1 className="text-lg font-bold text-[var(--theme-text-primary)]">{profileData.name}</h1>
+                    <h1 className="text-lg font-bold text-[var(--theme-text-primary)]">{userData.name}</h1>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="#22C55E" stroke="var(--theme-card)" strokeWidth="2">
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
                     </svg>
                     <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#3CF91A]/10 text-[#2edb13]">Lv.{profileData.level}</span>
                 </div>
-                <p className="text-[12px] text-[var(--theme-text-muted)] mt-0.5">{profileData.tagline}</p>
+                <p className="text-[12px] text-[var(--theme-text-muted)] mt-0.5">{userData.tagline}</p>
             </div>
 
             {/* ===== MAIN CONTENT ===== */}
             <div className="max-w-[900px] mx-auto px-4 sm:px-6 pb-20 lg:pb-8">
 
+                {/* -- Profile Incomplete Alert -- */}
+                {!showWelcome && isProfileIncomplete && (
+                    <div className="mt-4 sm:mt-5 p-4 rounded-2xl border border-orange-500/30 bg-orange-500/5 sm:bg-orange-500/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="flex items-start gap-3">
+                            <div className="mt-0.5 shrink-0">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
+                            </div>
+                            <div>
+                                <h3 className="text-[13px] font-bold text-orange-500">Action Required: Complete Your Profile</h3>
+                                <p className="text-[11px] text-[var(--theme-text-muted)] mt-0.5 leading-relaxed">Your profile is missing key details. A complete profile increases your chances of being matched with top recruiters by up to 5x.</p>
+                            </div>
+                        </div>
+                        <button onClick={() => setIsProfileIncomplete(false)} className="px-5 py-2.5 sm:py-2 w-full sm:w-auto rounded-xl text-[11px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105 shrink-0" style={{ background: accent, boxShadow: `0 0 15px ${accent}40` }}>
+                            Complete Now
+                        </button>
+                    </div>
+                )}
+
                 {/* -- Stats row -- */}
                 <div className="flex items-center gap-3 sm:gap-6 mt-4 sm:mt-5 pb-4 border-b border-[var(--theme-border)]">
                     {[
-                        { label: "Spills", value: profileData.stats.spills },
-                        { label: "Followers", value: profileData.stats.followers.toLocaleString() },
-                        { label: "Following", value: profileData.stats.following },
-                        { label: "Profile Views", value: profileData.stats.views.toLocaleString() },
+                        { label: "Spills", value: userData.stats.spills },
+                        { label: "Followers", value: userData.stats.followers.toLocaleString() },
+                        { label: "Following", value: userData.stats.following },
+                        { label: "Profile Views", value: userData.stats.views.toLocaleString() },
                     ].map(stat => (
                         <div key={stat.label} className="text-center">
                             <p className="text-sm sm:text-lg font-bold text-[var(--theme-text-primary)]">{stat.value}</p>
@@ -190,7 +299,7 @@ export default function TalentProfilePage() {
                         </div>
                     ))}
                     <div className="ml-auto flex gap-2">
-                        <button className="px-4 sm:px-5 py-2 rounded-xl text-[11px] sm:text-[12px] font-bold border-none cursor-pointer text-black transition-all hover:scale-105"
+                        <button onClick={() => setShowEditModal(true)} className="px-4 sm:px-5 py-2 rounded-xl text-[11px] sm:text-[12px] font-bold border-none cursor-pointer text-black transition-all hover:scale-105"
                             style={{ background: accent, boxShadow: `0 0 15px ${accent}40` }}>
                             Edit Profile
                         </button>
@@ -219,17 +328,17 @@ export default function TalentProfilePage() {
                             {/* About */}
                             <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
                                 <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-2">About</h2>
-                                <p className="text-[13px] text-[var(--theme-text-tertiary)] leading-relaxed">{profileData.bio}</p>
+                                <p className="text-[13px] text-[var(--theme-text-tertiary)] leading-relaxed">{userData.bio}</p>
                                 <div className="flex flex-wrap gap-3 mt-3 text-[11px] text-[var(--theme-text-muted)]">
                                     <span className="flex items-center gap-1">
                                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
-                                        {profileData.location}
+                                        {userData.location}
                                     </span>
                                     <span className="flex items-center gap-1">
                                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
-                                        Joined {profileData.joinedDate}
+                                        Joined {userData.joinedDate}
                                     </span>
-                                    {profileData.availability && (
+                                    {userData.availability && (
                                         <span className="flex items-center gap-1 text-[#3CF91A] font-medium">
                                             <span className="w-2 h-2 rounded-full bg-[#3CF91A]" />
                                             Open to Opportunities
@@ -239,7 +348,7 @@ export default function TalentProfilePage() {
                             </div>
 
                             {/* GitHub Stats */}
-                            {profileData.github.connected && (
+                            {userData.github.connected && (
                                 <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
                                     <div className="flex items-center justify-between mb-3">
                                         <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] flex items-center gap-2">
@@ -250,9 +359,9 @@ export default function TalentProfilePage() {
                                     </div>
                                     <div className="grid grid-cols-3 gap-3">
                                         {[
-                                            { label: "Repos", value: profileData.github.repos, icon: "\uD83D\uDCE6" },
-                                            { label: "Stars", value: profileData.github.stars.toLocaleString(), icon: "\u2B50" },
-                                            { label: "Contributions", value: profileData.github.contributions.toLocaleString(), icon: "\uD83D\uDD25" },
+                                            { label: "Repos", value: userData.github.repos, icon: "\uD83D\uDCE6" },
+                                            { label: "Stars", value: userData.github.stars.toLocaleString(), icon: "\u2B50" },
+                                            { label: "Contributions", value: userData.github.contributions.toLocaleString(), icon: "\uD83D\uDD25" },
                                         ].map(stat => (
                                             <div key={stat.label} className="bg-[var(--theme-bg-secondary)] rounded-xl p-3 text-center">
                                                 <p className="text-lg">{stat.icon}</p>
@@ -283,7 +392,7 @@ export default function TalentProfilePage() {
                             <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
                                 <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-3">Top Skills</h2>
                                 <div className="space-y-3">
-                                    {profileData.skills.slice(0, 5).map(skill => (
+                                    {userData.skills.slice(0, 5).map(skill => (
                                         <div key={skill.name}>
                                             <div className="flex items-center justify-between mb-1">
                                                 <span className="text-[12px] font-medium text-[var(--theme-text-secondary)]">{skill.name}</span>
@@ -302,8 +411,8 @@ export default function TalentProfilePage() {
                             <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
                                 <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-3">Experience</h2>
                                 <div className="space-y-4">
-                                    {profileData.experience.map((exp, i) => (
-                                        <div key={i} className={`relative pl-6 ${i < profileData.experience.length - 1 ? "pb-4 border-l-2 border-[var(--theme-border-light)] ml-1.5" : "ml-1.5"}`}>
+                                    {userData.experience.map((exp, i) => (
+                                        <div key={i} className={`relative pl-6 ${i < userData.experience.length - 1 ? "pb-4 border-l-2 border-[var(--theme-border-light)] ml-1.5" : "ml-1.5"}`}>
                                             <div className="absolute left-0 top-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#3CF91A] bg-[var(--theme-card)] -translate-x-[7px]" />
                                             <h3 className="text-[13px] font-bold text-[var(--theme-text-primary)]">{exp.title}</h3>
                                             <p className="text-[11px] text-[#2edb13] font-medium">{exp.company}</p>
@@ -324,9 +433,9 @@ export default function TalentProfilePage() {
                                 <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-3">Links</h2>
                                 <div className="space-y-2">
                                     {[
-                                        { label: "Portfolio", url: profileData.links.portfolio, icon: "\uD83C\uDF10" },
-                                        { label: "LinkedIn", url: profileData.links.linkedin, icon: "\uD83D\uDCBC" },
-                                        { label: "GitHub", url: profileData.links.github, icon: "\uD83D\uDC19" },
+                                        { label: "Portfolio", url: userData.links.portfolio, icon: "\uD83C\uDF10" },
+                                        { label: "LinkedIn", url: userData.links.linkedin, icon: "\uD83D\uDCBC" },
+                                        { label: "GitHub", url: userData.links.github, icon: "\uD83D\uDC19" },
                                     ].map(link => (
                                         <a key={link.label} href={link.url} target="_blank" rel="noopener noreferrer"
                                             className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[var(--theme-bg-secondary)] hover:bg-[#3CF91A]/10 transition-colors group no-underline">
@@ -423,6 +532,107 @@ export default function TalentProfilePage() {
                     )}
                 </div>
             </div>
+            {/* ===== EDIT PROFILE MODAL ===== */}
+            {showEditModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden" style={{ background: 'var(--theme-surface)', border: `1px solid ${accent}40` }}>
+
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
+                            <h2 className="text-[16px] font-bold" style={{ color: 'var(--theme-text-primary)' }}>Edit Profile</h2>
+                            <button onClick={() => setShowEditModal(false)} className="text-[var(--theme-text-muted)] hover:text-white transition-colors cursor-pointer bg-transparent border-none">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                            </button>
+                        </div>
+
+                        {/* Body - Scrollable */}
+                        <div className="p-6 overflow-y-auto" style={{ scrollbarWidth: "thin", scrollbarColor: 'var(--theme-scrollbar-thumb) var(--theme-scrollbar-track)' }}>
+                            <div className="space-y-6">
+
+                                {/* Basic Info */}
+                                <div>
+                                    <h3 className="text-[13px] font-bold text-[#3CF91A] mb-4 uppercase tracking-wider h-[20px] flex items-center gap-2">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                                        Basic Information
+                                    </h3>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-[11px] font-medium" style={{ color: 'var(--theme-text-secondary)' }}>Full Name</label>
+                                            <input type="text" defaultValue="Ghost_Protocol" className="px-3 py-2 rounded-lg text-[13px] outline-none" style={{ background: 'var(--theme-input-bg)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }} />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-[11px] font-medium" style={{ color: 'var(--theme-text-secondary)' }}>Email</label>
+                                            <input type="email" defaultValue="ghost@example.com" className="px-3 py-2 rounded-lg text-[13px] outline-none" style={{ background: 'var(--theme-input-bg)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }} />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-[11px] font-medium" style={{ color: 'var(--theme-text-secondary)' }}>Phone Number</label>
+                                            <input type="tel" placeholder="+1 (555) 000-0000" className="px-3 py-2 rounded-lg text-[13px] outline-none border border-transparent focus:border-[#3CF91A] transition-colors" style={{ background: 'var(--theme-input-bg)', color: 'var(--theme-text-primary)' }} />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-[11px] font-medium" style={{ color: 'var(--theme-text-secondary)' }}>Tagline / Title</label>
+                                            <input type="text" defaultValue="Full-Stack Developer • Open Source Contributor" className="px-3 py-2 rounded-lg text-[13px] outline-none border border-transparent focus:border-[#3CF91A] transition-colors" style={{ background: 'var(--theme-input-bg)', color: 'var(--theme-text-primary)' }} />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-[11px] font-medium" style={{ color: 'var(--theme-text-secondary)' }}>City</label>
+                                            <input type="text" defaultValue="London" className="px-3 py-2 rounded-lg text-[13px] outline-none border border-transparent focus:border-[#3CF91A] transition-colors" style={{ background: 'var(--theme-input-bg)', color: 'var(--theme-text-primary)' }} />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-[11px] font-medium" style={{ color: 'var(--theme-text-secondary)' }}>Country</label>
+                                            <input type="text" defaultValue="UK" className="px-3 py-2 rounded-lg text-[13px] outline-none border border-transparent focus:border-[#3CF91A] transition-colors" style={{ background: 'var(--theme-input-bg)', color: 'var(--theme-text-primary)' }} />
+                                        </div>
+                                        <div className="col-span-1 sm:col-span-2 flex flex-col gap-1.5">
+                                            <label className="text-[11px] font-medium" style={{ color: 'var(--theme-text-secondary)' }}>Bio</label>
+                                            <textarea rows={4} defaultValue="Passionate full-stack developer with 5+ years of experience building scalable web applications. I specialize in React, Node.js, and cloud architecture. Currently exploring Rust and WebAssembly. Love contributing to open-source and mentoring junior developers. 🚀" className="px-3 py-2 rounded-lg text-[13px] outline-none resize-none border border-transparent focus:border-[#3CF91A] transition-colors" style={{ background: 'var(--theme-input-bg)', color: 'var(--theme-text-primary)' }} />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Links & Socials */}
+                                <div className="pt-6" style={{ borderTop: '1px solid var(--theme-border-light)' }}>
+                                    <h3 className="text-[13px] font-bold text-[#3CF91A] mb-4 uppercase tracking-wider h-[20px] flex items-center gap-2">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
+                                        Links & Portfolios
+                                    </h3>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-[11px] font-medium" style={{ color: 'var(--theme-text-secondary)' }}>Portfolio Website</label>
+                                            <input type="url" defaultValue="https://ghostprotocol.dev" className="px-3 py-2 rounded-lg text-[13px] outline-none border border-transparent focus:border-[#3CF91A] transition-colors" style={{ background: 'var(--theme-input-bg)', color: 'var(--theme-text-primary)' }} />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-[11px] font-medium" style={{ color: 'var(--theme-text-secondary)' }}>GitHub Username</label>
+                                            <input type="text" defaultValue="ghost-protocol" className="px-3 py-2 rounded-lg text-[13px] outline-none border border-transparent focus:border-[#3CF91A] transition-colors" style={{ background: 'var(--theme-input-bg)', color: 'var(--theme-text-primary)' }} />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-[11px] font-medium" style={{ color: 'var(--theme-text-secondary)' }}>LinkedIn Profile</label>
+                                            <input type="url" defaultValue="https://linkedin.com/in/ghostprotocol" className="px-3 py-2 rounded-lg text-[13px] outline-none border border-transparent focus:border-[#3CF91A] transition-colors" style={{ background: 'var(--theme-input-bg)', color: 'var(--theme-text-primary)' }} />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-[11px] font-medium" style={{ color: 'var(--theme-text-secondary)' }}>X / Twitter</label>
+                                            <input type="text" placeholder="@username" className="px-3 py-2 rounded-lg text-[13px] outline-none border border-transparent focus:border-[#3CF91A] transition-colors" style={{ background: 'var(--theme-input-bg)', color: 'var(--theme-text-primary)' }} />
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="px-6 py-4 flex items-center justify-end gap-3" style={{ borderTop: '1px solid var(--theme-border-light)', background: 'var(--theme-bg)' }}>
+                            <button onClick={() => setShowEditModal(false)} className="px-4 py-2 rounded-lg text-[12px] font-bold text-white bg-transparent border cursor-pointer hover:bg-white/5 transition-colors" style={{ borderColor: 'var(--theme-border)' }}>
+                                Cancel
+                            </button>
+                            <button onClick={() => {
+                                setShowEditModal(false);
+                                setIsProfileIncomplete(false);
+                            }} className="px-6 py-2 rounded-lg text-[12px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105" style={{ background: accent }}>
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

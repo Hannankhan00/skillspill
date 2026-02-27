@@ -47,6 +47,14 @@ function MessageIcon() {
     );
 }
 
+function ProfileIcon() {
+    return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+        </svg>
+    );
+}
+
 function SettingsIcon() {
     return (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -80,6 +88,7 @@ const recruiterNavItems = [
     { label: "Jobs", icon: <BriefcaseIcon />, href: "/recruiter/jobs" },
     { label: "Applications", icon: <UsersIcon />, href: "/recruiter/applications" },
     { label: "Messages", icon: <MessageIcon />, href: "/recruiter/messages" },
+    { label: "Profile", icon: <ProfileIcon />, href: "/recruiter/profile" },
     { label: "Settings", icon: <SettingsIcon />, href: "/recruiter/settings" },
 ];
 
@@ -192,6 +201,22 @@ export default function RecruiterShell({
                         );
                     })}
                 </nav>
+
+                <div className="px-4 mb-4 block">
+                    <div className="p-3 rounded-xl border border-orange-500/30 bg-orange-500/5 flex flex-col gap-2 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-12 h-12 bg-orange-500/10 rounded-bl-full pointer-events-none" />
+                        <h4 className="text-[11px] font-bold text-orange-500">Incomplete Profile</h4>
+                        <p className="text-[9px] text-[var(--theme-text-muted)] leading-relaxed">
+                            A complete profile attracts more top candidates.
+                        </p>
+                        <Link href="/recruiter/profile" className="mt-1 flex items-center gap-1 text-[10px] font-bold text-[#A855F7] hover:underline">
+                            Complete now
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+                            </svg>
+                        </Link>
+                    </div>
+                </div>
 
                 {/* Bottom Section */}
                 <div className="p-4 space-y-3" style={{ borderTop: '1px solid var(--theme-border-light)' }}>
