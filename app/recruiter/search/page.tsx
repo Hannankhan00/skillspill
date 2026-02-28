@@ -180,7 +180,7 @@ export default function RecruiterSearchPage() {
 
                                     {/* ACTIONS */}
                                     <div className="sm:ml-auto flex flex-row sm:flex-col gap-2 shrink-0 w-full sm:w-auto mt-3 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-none border-[var(--theme-border-light)]">
-                                        <Link href={`/talent/profile/${candidate.id}`} className="flex-1 sm:w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-[11px] sm:text-[12px] font-bold text-white border-none cursor-pointer transition-all hover:scale-105 flex items-center justify-center"
+                                        <Link href={`/recruiter/talent/${candidate.id}`} className="flex-1 sm:w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-[11px] sm:text-[12px] font-bold text-white border-none cursor-pointer transition-all hover:scale-105 flex items-center justify-center"
                                             style={{ background: `linear-gradient(135deg, ${accent}, #7C3AED)`, boxShadow: `0 0 15px ${accent}40` }}>
                                             Profile
                                         </Link>
