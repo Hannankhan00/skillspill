@@ -60,18 +60,28 @@ export default function MessagesUI({ accent }: { accent: string }) {
     const [loadingConvos, setLoadingConvos] = useState(true);
     const [loadingMessages, setLoadingMessages] = useState(false);
     const [sending, setSending] = useState(false);
+    const [sseConnected, setSseConnected] = useState(false);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-    const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-    // Fetch current user ID
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+    // Keep latest messages in a ref so SSE handler can read them without stale closures
+    const messagesRef = useRef<Message[]>([]);
+    const eventSourceRef = useRef<EventSource | null>(null);
+    const activeConvoIdRef = useRef<string | null>(null);
+
+    // Sync ref with state
+    useEffect(() => { messagesRef.current = messages; }, [messages]);
+    useEffect(() => { activeConvoIdRef.current = activeConvoId; }, [activeConvoId]);
+
+    // Fetch current user ID once
     useEffect(() => {
         fetch("/api/user/profile")
             .then(r => r.json())
             .then(d => setCurrentUserId(d.user?.id ?? null));
     }, []);
 
-    // Load conversations
+    // Load conversation list
     const loadConversations = useCallback(async () => {
         try {
             const res = await fetch("/api/conversations");
@@ -100,66 +110,144 @@ export default function MessagesUI({ accent }: { accent: string }) {
                     setActiveConvoId(d.conversation.id);
                 }
             });
-        // Clear param
         router.replace(window.location.pathname);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
 
-    // Load messages for active conversation
-    const loadMessages = useCallback(async (convoId: string) => {
-        setLoadingMessages(true);
-        try {
-            const res = await fetch(`/api/conversations/${convoId}/messages`);
-            const data = await res.json();
-            if (data.messages) setMessages(data.messages);
-        } catch { /* ignore */ } finally {
-            setLoadingMessages(false);
-        }
-    }, []);
-
+    // ── SSE connection management ──────────────────────────────────────────────
+    // Open a single long-lived SSE connection when a conversation is selected.
+    // Close it when switching to another conversation or unmounting.
     useEffect(() => {
-        if (!activeConvoId) { setMessages([]); return; }
-        loadMessages(activeConvoId);
+        // Close previous SSE connection
+        if (eventSourceRef.current) {
+            eventSourceRef.current.close();
+            eventSourceRef.current = null;
+            setSseConnected(false);
+        }
 
-        // Poll for new messages every 3s
-        pollRef.current = setInterval(() => loadMessages(activeConvoId), 3000);
-        return () => { if (pollRef.current) clearInterval(pollRef.current); };
-    }, [activeConvoId, loadMessages]);
+        if (!activeConvoId) {
+            setMessages([]);
+            return;
+        }
 
-    // Scroll to bottom on new messages
+        // Load initial messages snapshot via regular fetch (instant render)
+        setLoadingMessages(true);
+        fetch(`/api/conversations/${activeConvoId}/messages`)
+            .then(r => r.json())
+            .then(d => {
+                if (d.messages) {
+                    setMessages(d.messages);
+                    messagesRef.current = d.messages;
+                }
+            })
+            .finally(() => setLoadingMessages(false));
+
+        // Compute afterId for SSE (last message we already have, so SSE only sends NEW ones)
+        const getAfterParam = () => {
+            const last = messagesRef.current[messagesRef.current.length - 1];
+            return last ? `?afterId=${last.id}` : "";
+        };
+
+        // Open SSE stream
+        const openSSE = () => {
+            const afterParam = getAfterParam();
+            const es = new EventSource(`/api/conversations/${activeConvoId}/stream${afterParam}`);
+            eventSourceRef.current = es;
+
+            es.addEventListener("connected", () => {
+                setSseConnected(true);
+            });
+
+            es.addEventListener("messages", (e) => {
+                const newMsgs: Message[] = JSON.parse(e.data);
+                if (!newMsgs.length) return;
+
+                setMessages(prev => {
+                    // Deduplicate by id
+                    const existingIds = new Set(prev.map(m => m.id));
+                    const unique = newMsgs.filter(m => !existingIds.has(m.id));
+                    if (!unique.length) return prev;
+                    return [...prev, ...unique];
+                });
+
+                // Update sidebar last message
+                const lastNew = newMsgs[newMsgs.length - 1];
+                setConversations(prev => prev.map(c =>
+                    c.id === activeConvoId ? { ...c, lastMessage: lastNew.content, lastAt: lastNew.createdAt } : c
+                ));
+            });
+
+            es.onerror = () => {
+                // On error, close and reconnect after 3s (handles server restarts etc.)
+                es.close();
+                setSseConnected(false);
+                if (activeConvoIdRef.current === activeConvoId) {
+                    setTimeout(openSSE, 3000);
+                }
+            };
+        };
+
+        // Small delay so initial messages load first, then SSE gets the correct afterId
+        const timer = setTimeout(openSSE, 400);
+
+        return () => {
+            clearTimeout(timer);
+            if (eventSourceRef.current) {
+                eventSourceRef.current.close();
+                eventSourceRef.current = null;
+            }
+            setSseConnected(false);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeConvoId]);
+
+    // Scroll to bottom when messages change
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
+    // ── Send message ──────────────────────────────────────────────────────────
     const sendMessage = async () => {
         if (!draft.trim() || !activeConvoId || sending) return;
+        const content = draft.trim();
         setSending(true);
+        setDraft("");
+
+        // Optimistic message (shown immediately)
+        const optimisticId = `tmp-${Date.now()}`;
         const optimistic: Message = {
-            id: `tmp-${Date.now()}`,
+            id: optimisticId,
             conversationId: activeConvoId,
             senderId: currentUserId ?? "",
-            content: draft.trim(),
+            content,
             isRead: false,
             createdAt: new Date().toISOString(),
             sender: { id: currentUserId ?? "", fullName: "You", username: "you" },
         };
         setMessages(prev => [...prev, optimistic]);
-        setDraft("");
+
         try {
             const res = await fetch(`/api/conversations/${activeConvoId}/messages`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ content: optimistic.content }),
+                body: JSON.stringify({ content }),
             });
             const data = await res.json();
             if (data.message) {
-                setMessages(prev => prev.map(m => m.id === optimistic.id ? data.message : m));
+                // Replace optimistic with real message
+                setMessages(prev => prev.map(m => m.id === optimisticId ? data.message : m));
                 setConversations(prev => prev.map(c =>
-                    c.id === activeConvoId ? { ...c, lastMessage: data.message.content, lastAt: data.message.createdAt } : c
+                    c.id === activeConvoId ? { ...c, lastMessage: content, lastAt: data.message.createdAt } : c
                 ));
+                // SSE will naturally pick up the new message on the other side
             }
-        } catch { /* ignore */ }
+        } catch {
+            // Remove optimistic on failure
+            setMessages(prev => prev.filter(m => m.id !== optimisticId));
+            setDraft(content); // restore draft
+        }
         setSending(false);
+        inputRef.current?.focus();
     };
 
     const activeConvo = conversations.find(c => c.id === activeConvoId);
@@ -167,14 +255,18 @@ export default function MessagesUI({ accent }: { accent: string }) {
     return (
         <div className="h-full flex" style={{ background: "var(--theme-card)" }}>
 
-            {/* SIDEBAR */}
-            <div className={`${activeConvoId ? "hidden sm:flex" : "flex"} w-full sm:w-[300px] lg:w-[340px] flex-col shrink-0 border-r border-[var(--theme-border)]`}
+            {/* ── SIDEBAR ─────────────────────────────────────────────────────── */}
+            <div className={`${activeConvoId ? "hidden sm:flex" : "flex"} w-full sm:w-[290px] lg:w-[320px] flex-col shrink-0 border-r border-[var(--theme-border)]`}
                 style={{ background: "var(--theme-surface)" }}>
+
                 <div className="p-4 border-b border-[var(--theme-border)] shrink-0">
                     <h2 className="text-[17px] font-bold text-[var(--theme-text-primary)]">Messages</h2>
                     <div className="mt-2.5 relative">
-                        <svg className="absolute left-3 top-1/2 -translate-y-1/2" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-                        <input type="text" placeholder="Search conversations..." className="w-full pl-8 pr-3 py-2 rounded-xl text-[12px] outline-none transition-all"
+                        <svg className="absolute left-3 top-1/2 -translate-y-1/2" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2">
+                            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
+                        <input type="text" placeholder="Search conversations..."
+                            className="w-full pl-8 pr-3 py-2 rounded-xl text-[12px] outline-none transition-all"
                             style={{ background: "var(--theme-input-bg)", border: "1px solid var(--theme-border)", color: "var(--theme-text-primary)" }} />
                     </div>
                 </div>
@@ -182,19 +274,21 @@ export default function MessagesUI({ accent }: { accent: string }) {
                 <div className="flex-1 overflow-y-auto scrollbar-none">
                     {loadingConvos ? (
                         <div className="flex items-center justify-center py-12">
-                            <Loader2 className="w-6 h-6 animate-spin" style={{ color: accent }} />
+                            <Loader2 className="w-5 h-5 animate-spin" style={{ color: accent }} />
                         </div>
                     ) : conversations.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-                            <MessageSquare className="w-10 h-10 mb-3" style={{ color: accent, opacity: 0.4 }} />
+                        <div className="flex flex-col items-center justify-center py-12 px-5 text-center">
+                            <MessageSquare className="w-9 h-9 mb-3" style={{ color: accent, opacity: 0.35 }} />
                             <p className="text-[13px] font-medium text-[var(--theme-text-muted)]">No conversations yet</p>
-                            <p className="text-[11px] text-[var(--theme-text-muted)] mt-1">Start a chat from the Talent Search or profile pages</p>
+                            <p className="text-[11px] text-[var(--theme-text-muted)] mt-1 leading-relaxed">
+                                Start a chat from the Talent Search or a profile page
+                            </p>
                         </div>
                     ) : (
                         conversations.map(c => (
                             <button key={c.id} onClick={() => setActiveConvoId(c.id)}
-                                className={`w-full flex items-start gap-3 p-4 text-left transition-all border-b border-[var(--theme-border-light)] cursor-pointer border-none ${activeConvoId === c.id ? "opacity-100" : ""}`}
-                                style={{ background: activeConvoId === c.id ? `${accent}10` : "transparent" }}>
+                                className="w-full flex items-start gap-3 p-3.5 text-left border-b border-[var(--theme-border-light)] cursor-pointer border-none transition-colors"
+                                style={{ background: activeConvoId === c.id ? `${accent}12` : "transparent" }}>
                                 <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${gradientFor(c.other.role)} flex items-center justify-center text-white text-[11px] font-bold shrink-0`}>
                                     {getInitials(c.other.fullName)}
                                 </div>
@@ -203,8 +297,10 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                         <p className="text-[13px] font-semibold text-[var(--theme-text-primary)] truncate">{c.other.fullName}</p>
                                         <span className="text-[10px] text-[var(--theme-text-muted)] shrink-0 ml-2">{formatTime(c.lastAt)}</span>
                                     </div>
-                                    <p className="text-[11px] text-[var(--theme-text-muted)] truncate">{c.lastMessage ?? "Start the conversation"}</p>
-                                    <p className="text-[10px] mt-0.5" style={{ color: accent }}>@{c.other.username} · {c.other.role.toLowerCase()}</p>
+                                    <p className="text-[11px] text-[var(--theme-text-muted)] truncate">{c.lastMessage ?? "Say hello 👋"}</p>
+                                    <p className="text-[10px] mt-0.5 font-medium" style={{ color: `${accent}99` }}>
+                                        @{c.other.username} · {c.other.role.toLowerCase()}
+                                    </p>
                                 </div>
                             </button>
                         ))
@@ -212,13 +308,13 @@ export default function MessagesUI({ accent }: { accent: string }) {
                 </div>
             </div>
 
-            {/* CHAT AREA */}
+            {/* ── CHAT AREA ────────────────────────────────────────────────────── */}
             <div className={`${!activeConvoId ? "hidden sm:flex" : "flex"} flex-1 flex-col min-w-0`}
                 style={{ background: "var(--theme-bg)" }}>
 
                 {activeConvo ? (
                     <>
-                        {/* Chat Header */}
+                        {/* Header */}
                         <div className="shrink-0 h-14 flex items-center justify-between px-4 border-b border-[var(--theme-border)]"
                             style={{ background: "var(--theme-surface)" }}>
                             <div className="flex items-center gap-3">
@@ -231,7 +327,12 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                 </div>
                                 <div>
                                     <p className="text-[13px] font-bold text-[var(--theme-text-primary)]">{activeConvo.other.fullName}</p>
-                                    <p className="text-[10px] text-[var(--theme-text-muted)]">@{activeConvo.other.username} · {activeConvo.other.role.toLowerCase()}</p>
+                                    <div className="flex items-center gap-1.5">
+                                        <p className="text-[10px] text-[var(--theme-text-muted)]">@{activeConvo.other.username}</p>
+                                        {/* SSE connection indicator */}
+                                        <span className={`w-1.5 h-1.5 rounded-full transition-colors ${sseConnected ? "bg-green-500" : "bg-yellow-500 animate-pulse"}`} />
+                                        <p className="text-[10px] text-[var(--theme-text-muted)]">{sseConnected ? "Connected" : "Connecting…"}</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -240,31 +341,58 @@ export default function MessagesUI({ accent }: { accent: string }) {
                         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3 scrollbar-none">
                             {loadingMessages ? (
                                 <div className="flex items-center justify-center h-full">
-                                    <Loader2 className="w-6 h-6 animate-spin" style={{ color: accent }} />
+                                    <Loader2 className="w-5 h-5 animate-spin" style={{ color: accent }} />
                                 </div>
                             ) : messages.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center h-full text-center">
-                                    <p className="text-[13px] text-[var(--theme-text-muted)]">No messages yet.</p>
-                                    <p className="text-[11px] text-[var(--theme-text-muted)] mt-1">Say hello! 👋</p>
+                                <div className="flex flex-col items-center justify-center h-full text-center pb-8">
+                                    <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3"
+                                        style={{ background: `${accent}15` }}>
+                                        <MessageSquare className="w-6 h-6" style={{ color: accent }} />
+                                    </div>
+                                    <p className="text-[13px] font-medium text-[var(--theme-text-muted)]">No messages yet</p>
+                                    <p className="text-[11px] text-[var(--theme-text-muted)] mt-1">Say hello 👋</p>
                                 </div>
                             ) : (
-                                messages.map(msg => {
+                                messages.map((msg, i) => {
                                     const isMine = msg.senderId === currentUserId;
+                                    const isOptimistic = msg.id.startsWith("tmp-");
+                                    // Show date separator
+                                    const showDate = i === 0 || new Date(msg.createdAt).toDateString() !== new Date(messages[i - 1].createdAt).toDateString();
+
                                     return (
-                                        <div key={msg.id} className={`flex items-end gap-2.5 ${isMine ? "justify-end" : "justify-start"}`}>
-                                            {!isMine && (
-                                                <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${gradientFor(activeConvo.other.role)} flex items-center justify-center text-white text-[9px] font-bold shrink-0 mb-1`}>
-                                                    {getInitials(activeConvo.other.fullName)}
+                                        <React.Fragment key={msg.id}>
+                                            {showDate && (
+                                                <div className="flex justify-center my-2">
+                                                    <span className="text-[10px] font-semibold px-3 py-0.5 rounded-full uppercase tracking-widest"
+                                                        style={{ background: "var(--theme-input-bg)", color: "var(--theme-text-muted)", border: "1px solid var(--theme-border-light)" }}>
+                                                        {new Date(msg.createdAt).toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" })}
+                                                    </span>
                                                 </div>
                                             )}
-                                            <div className={`flex flex-col ${isMine ? "items-end" : "items-start"} max-w-[70%]`}>
-                                                <div className={`px-3.5 py-2 rounded-2xl text-[13px] leading-relaxed ${isMine ? "rounded-br-sm text-white" : "rounded-bl-sm text-[var(--theme-text-primary)] border border-[var(--theme-border)]"}`}
-                                                    style={isMine ? { background: `linear-gradient(135deg, ${accent}, ${accent}cc)` } : { background: "var(--theme-card)" }}>
-                                                    {msg.content}
+                                            <div className={`flex items-end gap-2.5 ${isMine ? "justify-end" : "justify-start"}`}>
+                                                {!isMine && (
+                                                    <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${gradientFor(activeConvo.other.role)} flex items-center justify-center text-white text-[9px] font-bold shrink-0 mb-1`}>
+                                                        {getInitials(activeConvo.other.fullName)}
+                                                    </div>
+                                                )}
+                                                <div className={`flex flex-col ${isMine ? "items-end" : "items-start"} max-w-[72%]`}>
+                                                    <div className={`px-3.5 py-2 text-[13px] leading-relaxed break-words ${isMine ? "rounded-2xl rounded-br-sm text-white" : "rounded-2xl rounded-bl-sm text-[var(--theme-text-primary)] border border-[var(--theme-border)]"} ${isOptimistic ? "opacity-70" : ""}`}
+                                                        style={isMine ? { background: `linear-gradient(135deg, ${accent}, ${accent}bb)` } : { background: "var(--theme-card)" }}>
+                                                        {msg.content}
+                                                    </div>
+                                                    <span className="text-[9px] text-[var(--theme-text-muted)] mt-0.5 px-1 flex items-center gap-1">
+                                                        {formatTime(msg.createdAt)}
+                                                        {isMine && !isOptimistic && (
+                                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                                                {msg.isRead
+                                                                    ? <><polyline points="1 12 5 16 12 8" /><polyline points="9 12 13 16 20 8" /></>
+                                                                    : <polyline points="4 12 9 17 20 6" />}
+                                                            </svg>
+                                                        )}
+                                                    </span>
                                                 </div>
-                                                <span className="text-[9px] text-[var(--theme-text-muted)] mt-0.5 px-1">{formatTime(msg.createdAt)}</span>
                                             </div>
-                                        </div>
+                                        </React.Fragment>
                                     );
                                 })
                             )}
@@ -275,20 +403,23 @@ export default function MessagesUI({ accent }: { accent: string }) {
                         <div className="shrink-0 p-3 sm:p-4 border-t border-[var(--theme-border)]"
                             style={{ background: "var(--theme-surface)" }}>
                             <form onSubmit={e => { e.preventDefault(); sendMessage(); }}
-                                className="flex items-center gap-2 px-3 py-2 rounded-2xl border border-[var(--theme-border)] transition-all focus-within:border-[var(--focus-border)]"
-                                style={{ background: "var(--theme-input-bg)" }}>
+                                className="flex items-center gap-2 px-3 py-2 rounded-2xl border transition-all"
+                                style={{ background: "var(--theme-input-bg)", border: `1px solid var(--theme-border)` }}>
                                 <input
+                                    ref={inputRef}
                                     type="text"
                                     value={draft}
                                     onChange={e => setDraft(e.target.value)}
-                                    onKeyDown={e => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), sendMessage())}
-                                    placeholder="Type a message..."
-                                    className="flex-1 bg-transparent border-none outline-none text-[13px] text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-muted)]"
+                                    onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                                    placeholder="Type a message…"
+                                    autoComplete="off"
+                                    className="flex-1 bg-transparent border-none outline-none text-[13px] placeholder:text-[var(--theme-text-muted)] py-1"
+                                    style={{ color: "var(--theme-text-primary)" }}
                                 />
                                 <button type="submit" disabled={!draft.trim() || sending}
-                                    className="w-8 h-8 rounded-full flex items-center justify-center text-white border-none cursor-pointer transition-all hover:scale-105 disabled:opacity-40 shrink-0"
-                                    style={{ background: `linear-gradient(135deg, ${accent}, ${accent}aa)` }}>
-                                    {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                                    className="w-8 h-8 rounded-full flex items-center justify-center text-white border-none cursor-pointer transition-all hover:scale-105 active:scale-95 disabled:opacity-40 shrink-0"
+                                    style={{ background: draft.trim() ? `linear-gradient(135deg, ${accent}, ${accent}aa)` : "var(--theme-border)" }}>
+                                    {sending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
                                 </button>
                             </form>
                         </div>
@@ -300,8 +431,8 @@ export default function MessagesUI({ accent }: { accent: string }) {
                             <MessageSquare className="w-8 h-8" style={{ color: accent }} />
                         </div>
                         <h3 className="text-[16px] font-bold text-[var(--theme-text-primary)] mb-1">Your Messages</h3>
-                        <p className="text-[12px] text-[var(--theme-text-muted)] max-w-[260px] leading-relaxed">
-                            Select a conversation or start a new one from the Talent Search or profile pages.
+                        <p className="text-[12px] text-[var(--theme-text-muted)] max-w-[240px] leading-relaxed">
+                            Select a conversation or start a new one from any profile or search page.
                         </p>
                     </div>
                 )}
