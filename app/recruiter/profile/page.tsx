@@ -234,7 +234,7 @@ export default function RecruiterProfilePage() {
                 {/* Avatar */}
                 <div className="max-w-[900px] mx-auto px-4 sm:px-6">
                     <div className="relative -mt-12 sm:-mt-16 flex items-end gap-4">
-                        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl bg-gradient-to-br from-purple-400 to-violet-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold border-4 border-white shadow-xl shrink-0">
+                        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-purple-400 to-violet-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold border-4 border-white shadow-xl shrink-0">
                             RC
                         </div>
                         <div className="pb-1 sm:pb-2 min-w-0 hidden sm:block">

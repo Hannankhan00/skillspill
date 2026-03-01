@@ -184,9 +184,9 @@ export default function RecruiterSearchPage() {
                                             style={{ background: `linear-gradient(135deg, ${accent}, #7C3AED)`, boxShadow: `0 0 15px ${accent}40` }}>
                                             Profile
                                         </Link>
-                                        <button className="flex-1 sm:w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-[11px] sm:text-[12px] font-medium border border-[var(--theme-border)] bg-[var(--theme-card)] text-[var(--theme-text-secondary)] cursor-pointer hover:bg-[var(--theme-bg-secondary)] transition-all">
+                                        <Link href={`/recruiter/messages?with=${candidate.id}`} className="flex-1 sm:w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-[11px] sm:text-[12px] font-medium border border-[var(--theme-border)] bg-[var(--theme-card)] text-[var(--theme-text-secondary)] cursor-pointer hover:bg-[var(--theme-bg-secondary)] transition-all text-center no-underline flex items-center justify-center">
                                             Message
-                                        </button>
+                                        </Link>
                                     </div>
                                 </div>
                             </div>

@@ -75,6 +75,9 @@ model User {
   notifications    Notification[]
   appeals          Appeal[]
   spills           Spill[]
+  conversationsAsA Conversation[] @relation("ConversationUserA")
+  conversationsAsB Conversation[] @relation("ConversationUserB")
+  messagesSent     Message[]
 
   @@map("users")
 }
@@ -115,7 +118,7 @@ model TalentProfile {
   githubRepos     Int             @default(0)
   githubStars     Int             @default(0)
   isAvailable     Boolean         @default(true)
-  
+
   contactEmail    String?
   contactPhone    String?
   showEmail       Boolean         @default(false)
@@ -170,7 +173,7 @@ model Spill {
   content     String   @db.Text
   code        String?  @db.Text
   codeLang    String?
-  tags        String?  
+  tags        String?
   status      String   @default("published")
   likes       Int      @default(0)
   comments    Int      @default(0)
@@ -323,4 +326,42 @@ model Appeal {
   @@index([userId])
   @@index([status])
   @@map("appeals")
+}
+
+// ─────────────────────────────────────────────
+// MESSAGING
+// ─────────────────────────────────────────────
+
+model Conversation {
+  id          String    @id @default(cuid())
+  userAId     String
+  userBId     String
+  lastMessage String?   @db.Text
+  lastAt      DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+
+  userA    User      @relation("ConversationUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB    User      @relation("ConversationUserB", fields: [userBId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@unique([userAId, userBId])
+  @@index([userAId])
+  @@index([userBId])
+  @@map("conversations")
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String   @db.Text
+  isRead         Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@map("messages")
 }

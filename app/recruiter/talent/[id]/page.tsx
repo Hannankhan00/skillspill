@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import { Sparkles, Trophy, Target, Zap, Gem, CheckCircle, Github, Linkedin, Briefcase, FileText, Loader2, Link as LinkIcon, Phone, Mail, MessageSquare, Heart, Eye, Share2 } from "lucide-react";
 
 const accent = "#3CF91A"; // Talent primary accent
@@ -77,7 +78,7 @@ export default function TalentProfileViewPage() {
                 {/* Avatar */}
                 <div className="max-w-[900px] mx-auto px-4 sm:px-6">
                     <div className="relative -mt-12 sm:-mt-16 flex items-end gap-4">
-                        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-[var(--theme-bg)] text-2xl sm:text-3xl font-bold border-4 border-[var(--theme-bg)] shadow-xl shrink-0">
+                        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-[var(--theme-bg)] text-2xl sm:text-3xl font-bold border-4 border-[var(--theme-bg)] shadow-xl shrink-0">
                             {initials}
                         </div>
                         <div className="pb-1 sm:pb-2 min-w-0 hidden sm:block">
@@ -127,10 +128,11 @@ export default function TalentProfileViewPage() {
                         </div>
                     )}
                     <div className="ml-auto flex gap-2">
-                        <button className="px-4 sm:px-5 py-2 rounded-xl text-[11px] sm:text-[12px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105 shadow-lg shadow-[#3CF91A]/20"
+                        <Link href={`/recruiter/messages?with=${talentData?.id}`}
+                            className="px-4 sm:px-5 py-2 rounded-xl text-[11px] sm:text-[12px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105 shadow-lg shadow-[#3CF91A]/20 no-underline"
                             style={{ background: `linear-gradient(135deg, ${accent}, #10B981)` }}>
                             Message Talent
-                        </button>
+                        </Link>
                     </div>
                 </div>
 

@@ -83,6 +83,7 @@ const talentNavItems = [
     { label: "My Spills", icon: <SpillsIcon />, href: "/talent/spills" },
     { label: "Jobs", icon: <JobsIcon />, href: "/talent/jobs" },
     { label: "GitHub Sync", icon: <GitHubIcon />, href: "/talent/github" },
+    { label: "Messages", icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>, href: "/talent/messages" },
     { label: "Profile", icon: <ProfileIcon />, href: "/talent/profile" },
     { label: "Skill Tree", icon: <SkillTreeIcon />, href: "/talent/skill-tree" },
     { label: "Settings", icon: <SettingsIcon />, href: "/talent/settings" },
@@ -396,10 +397,9 @@ export default function TalentShell({
                 </header >
 
                 {/* Page Content - pb-16 on mobile for bottom nav space */}
-                < main className="flex-1 overflow-y-auto pb-16 lg:pb-0" style={{ scrollbarWidth: "thin", scrollbarColor: 'var(--theme-scrollbar-thumb) var(--theme-scrollbar-track)' }
-                }>
+                <main className="flex-1 overflow-y-auto pb-16 lg:pb-0" style={{ scrollbarWidth: "thin", scrollbarColor: 'var(--theme-scrollbar-thumb) var(--theme-scrollbar-track)' }}>
                     {children}
-                </main >
+                </main>
 
                 {/* ===== MOBILE BOTTOM NAV (LinkedIn-style) ===== */}
                 < nav className="fixed bottom-0 left-0 right-0 h-14 flex items-center justify-around px-2 z-40 lg:hidden" style={{ background: 'var(--theme-surface)', borderTop: '1px solid var(--theme-border)' }}>
