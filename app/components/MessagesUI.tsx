@@ -115,10 +115,8 @@ export default function MessagesUI({ accent }: { accent: string }) {
     }, [searchParams]);
 
     // ── SSE connection management ──────────────────────────────────────────────
-    // Open a single long-lived SSE connection when a conversation is selected.
-    // Close it when switching to another conversation or unmounting.
     useEffect(() => {
-        // Close previous SSE connection
+        // Close any existing SSE connection immediately
         if (eventSourceRef.current) {
             eventSourceRef.current.close();
             eventSourceRef.current = null;
@@ -130,68 +128,26 @@ export default function MessagesUI({ accent }: { accent: string }) {
             return;
         }
 
-        // Load initial messages snapshot via regular fetch (instant render)
+        let cancelled = false;
+
+        // Step 1: load the initial snapshot first, then open SSE with the exact afterId
         setLoadingMessages(true);
         fetch(`/api/conversations/${activeConvoId}/messages`)
             .then(r => r.json())
             .then(d => {
-                if (d.messages) {
-                    setMessages(d.messages);
-                    messagesRef.current = d.messages;
-                }
+                if (cancelled) return;
+                const initial: Message[] = d.messages ?? [];
+                setMessages(initial);
+                messagesRef.current = initial;
+
+                // Step 2: open SSE starting AFTER the last message we already have
+                const lastId = initial[initial.length - 1]?.id ?? null;
+                openSSEFor(activeConvoId, lastId);
             })
-            .finally(() => setLoadingMessages(false));
-
-        // Compute afterId for SSE (last message we already have, so SSE only sends NEW ones)
-        const getAfterParam = () => {
-            const last = messagesRef.current[messagesRef.current.length - 1];
-            return last ? `?afterId=${last.id}` : "";
-        };
-
-        // Open SSE stream
-        const openSSE = () => {
-            const afterParam = getAfterParam();
-            const es = new EventSource(`/api/conversations/${activeConvoId}/stream${afterParam}`);
-            eventSourceRef.current = es;
-
-            es.addEventListener("connected", () => {
-                setSseConnected(true);
-            });
-
-            es.addEventListener("messages", (e) => {
-                const newMsgs: Message[] = JSON.parse(e.data);
-                if (!newMsgs.length) return;
-
-                setMessages(prev => {
-                    // Deduplicate by id
-                    const existingIds = new Set(prev.map(m => m.id));
-                    const unique = newMsgs.filter(m => !existingIds.has(m.id));
-                    if (!unique.length) return prev;
-                    return [...prev, ...unique];
-                });
-
-                // Update sidebar last message
-                const lastNew = newMsgs[newMsgs.length - 1];
-                setConversations(prev => prev.map(c =>
-                    c.id === activeConvoId ? { ...c, lastMessage: lastNew.content, lastAt: lastNew.createdAt } : c
-                ));
-            });
-
-            es.onerror = () => {
-                // On error, close and reconnect after 3s (handles server restarts etc.)
-                es.close();
-                setSseConnected(false);
-                if (activeConvoIdRef.current === activeConvoId) {
-                    setTimeout(openSSE, 3000);
-                }
-            };
-        };
-
-        // Small delay so initial messages load first, then SSE gets the correct afterId
-        const timer = setTimeout(openSSE, 400);
+            .finally(() => { if (!cancelled) setLoadingMessages(false); });
 
         return () => {
-            clearTimeout(timer);
+            cancelled = true;
             if (eventSourceRef.current) {
                 eventSourceRef.current.close();
                 eventSourceRef.current = null;
@@ -200,6 +156,48 @@ export default function MessagesUI({ accent }: { accent: string }) {
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeConvoId]);
+
+    // Extracted so reconnect logic can call it too
+    function openSSEFor(convoId: string, afterId: string | null) {
+        const param = afterId ? `?afterId=${afterId}` : "";
+        const es = new EventSource(`/api/conversations/${convoId}/stream${param}`);
+        eventSourceRef.current = es;
+
+        es.addEventListener("connected", () => setSseConnected(true));
+
+        es.addEventListener("messages", (e: MessageEvent) => {
+            const newMsgs: Message[] = JSON.parse(e.data);
+            if (!newMsgs.length) return;
+
+            setMessages(prev => {
+                const existingIds = new Set(prev.map(m => m.id));
+                // Only add messages from OTHER users — our own messages come via
+                // the optimistic path and POST confirmation, never via SSE.
+                // Also deduplicate by id to be safe.
+                const incoming = newMsgs.filter(m =>
+                    m.senderId !== currentUserId && !existingIds.has(m.id)
+                );
+                if (!incoming.length) return prev;
+                return [...prev, ...incoming];
+            });
+
+            // Update sidebar preview
+            const last = newMsgs[newMsgs.length - 1];
+            setConversations(prev => prev.map(c =>
+                c.id === convoId ? { ...c, lastMessage: last.content, lastAt: last.createdAt } : c
+            ));
+        });
+
+        es.onerror = () => {
+            es.close();
+            setSseConnected(false);
+            // Reconnect after 3s if still on the same conversation
+            if (activeConvoIdRef.current === convoId) {
+                const lastId = messagesRef.current[messagesRef.current.length - 1]?.id ?? null;
+                setTimeout(() => openSSEFor(convoId, lastId), 3000);
+            }
+        };
+    }
 
     // Scroll to bottom when messages change
     useEffect(() => {
