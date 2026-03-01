@@ -74,6 +74,7 @@ model User {
   sessions         Session[]
   notifications    Notification[]
   appeals          Appeal[]
+  spills           Spill[]
 
   @@map("users")
 }
@@ -109,11 +110,18 @@ model TalentProfile {
   portfolioUrl    String?
   linkedinUrl     String?
   resumeUrl       String?
-  githubUsername   String?
+  githubUsername  String?
   githubConnected Boolean         @default(false)
   githubRepos     Int             @default(0)
   githubStars     Int             @default(0)
   isAvailable     Boolean         @default(true)
+  
+  contactEmail    String?
+  contactPhone    String?
+  showEmail       Boolean         @default(false)
+  showPhone       Boolean         @default(false)
+  showSocials     Boolean         @default(true)
+
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
@@ -150,6 +158,31 @@ model TalentProject {
 
   @@index([talentProfileId])
   @@map("talent_projects")
+}
+
+// ─────────────────────────────────────────────
+// SPILLS (User Posts)
+// ─────────────────────────────────────────────
+
+model Spill {
+  id          String   @id @default(cuid())
+  userId      String
+  content     String   @db.Text
+  code        String?  @db.Text
+  codeLang    String?
+  tags        String?  
+  status      String   @default("published")
+  likes       Int      @default(0)
+  comments    Int      @default(0)
+  shares      Int      @default(0)
+  views       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("spills")
 }
 
 // ─────────────────────────────────────────────

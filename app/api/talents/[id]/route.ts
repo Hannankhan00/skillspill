@@ -23,6 +23,22 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
                 fullName: true,
                 username: true,
                 email: true,
+                spills: {
+                    where: { status: "published" },
+                    orderBy: { createdAt: "desc" },
+                    select: {
+                        id: true,
+                        content: true,
+                        code: true,
+                        codeLang: true,
+                        tags: true,
+                        likes: true,
+                        comments: true,
+                        shares: true,
+                        views: true,
+                        createdAt: true,
+                    }
+                },
                 talentProfile: {
                     select: {
                         bio: true,
@@ -35,6 +51,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
                         githubRepos: true,
                         githubStars: true,
                         isAvailable: true,
+                        contactEmail: true,
+                        contactPhone: true,
+                        showEmail: true,
+                        showPhone: true,
+                        showSocials: true,
                         skills: {
                             select: {
                                 skillName: true,

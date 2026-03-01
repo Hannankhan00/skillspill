@@ -16,8 +16,13 @@ function TrashIcon() {
     return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>;
 }
 
+function EyeIcon() {
+    return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>;
+}
+
 const settingsTabs = [
     { key: "security", label: "Security", icon: <ShieldIcon />, desc: "Account safety" },
+    { key: "privacy", label: "Privacy", icon: <EyeIcon />, desc: "Profile visibility" },
     { key: "notifications", label: "Notifications", icon: <BellIcon />, desc: "Alert preferences" },
     { key: "connections", label: "Connections", icon: <LinkIcon />, desc: "Linked accounts" },
 ];
@@ -116,7 +121,42 @@ export default function SettingsPage() {
     /* Connections */
     const [githubConnected, setGithubConnected] = useState(true);
     const [linkedinConnected, setLinkedinConnected] = useState(false);
+    /* Privacy Settings */
+    const [showEmail, setShowEmail] = useState(false);
+    const [showPhone, setShowPhone] = useState(false);
+    const [showSocials, setShowSocials] = useState(true);
+    const [contactEmail, setContactEmail] = useState("");
+    const [contactPhone, setContactPhone] = useState("");
+    const [isSavingPrivacy, setIsSavingPrivacy] = useState(false);
 
+    const savePrivacySettings = async () => {
+        setIsSavingPrivacy(true);
+        try {
+            const res = await fetch("/api/user/profile", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    talentProfile: {
+                        showEmail,
+                        showPhone,
+                        showSocials,
+                        contactEmail,
+                        contactPhone,
+                    }
+                })
+            });
+            if (res.ok) {
+                alert("Privacy settings saved successfully!");
+            } else {
+                alert("Failed to save privacy settings.");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Error saving settings.");
+        } finally {
+            setIsSavingPrivacy(false);
+        }
+    };
     return (
         <div className="min-h-full" style={{ background: 'var(--theme-bg)' }}>
             <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-5">
@@ -201,6 +241,39 @@ export default function SettingsPage() {
                                             Delete Account
                                         </button>
                                     </div>
+                                </div>
+                            )}
+
+                            {/*  Privacy  */}
+                            {activeTab === "privacy" && (
+                                <div className="p-6 space-y-6">
+                                    <Section title="Privacy & Visibility" desc="Manage what recruiters can see on your public profile">
+
+                                        <div>
+                                            <h3 className="text-[11px] uppercase tracking-widest font-semibold mb-2 mt-4" style={{ color: 'var(--theme-text-muted)' }}>Contact Information</h3>
+                                            <div className="space-y-4 mb-6">
+                                                <InputField label="Public Contact Email" value={contactEmail} onChange={setContactEmail} type="email" placeholder="e.g. hello@myportfolio.com" />
+                                                <ToggleRow label="Show Email on Profile" desc="Allow recruiters to see your contact email in your profile overview" enabled={showEmail} onToggle={() => setShowEmail(!showEmail)} />
+
+                                                <InputField label="Public Contact Phone" value={contactPhone} onChange={setContactPhone} type="tel" placeholder="e.g. +1 234 567 8900" />
+                                                <ToggleRow label="Show Phone on Profile" desc="Allow recruiters to see your phone number" enabled={showPhone} onToggle={() => setShowPhone(!showPhone)} />
+                                            </div>
+
+                                            <h3 className="text-[11px] uppercase tracking-widest font-semibold mb-2 mt-6" style={{ color: 'var(--theme-text-muted)' }}>Social Links</h3>
+                                            <ToggleRow label="Show Social & Project Links" desc="Display links like GitHub, LinkedIn, and Portfolio on your profile" enabled={showSocials} onToggle={() => setShowSocials(!showSocials)} />
+                                        </div>
+
+                                        <div className="pt-4 mt-6 border-t border-[var(--theme-border-light)] flex justify-end">
+                                            <button
+                                                onClick={savePrivacySettings}
+                                                disabled={isSavingPrivacy}
+                                                className="px-6 py-2.5 rounded-xl text-[12px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105"
+                                                style={{ background: '#3CF91A', opacity: isSavingPrivacy ? 0.7 : 1 }}
+                                            >
+                                                {isSavingPrivacy ? "Saving..." : "Save Privacy Settings"}
+                                            </button>
+                                        </div>
+                                    </Section>
                                 </div>
                             )}
 

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { Sparkles, Trophy, Target, Zap, Gem, CheckCircle, Github, Linkedin, Briefcase, FileText, Loader2, Link as LinkIcon } from "lucide-react";
+import { Sparkles, Trophy, Target, Zap, Gem, CheckCircle, Github, Linkedin, Briefcase, FileText, Loader2, Link as LinkIcon, Phone, Mail, MessageSquare, Heart, Eye, Share2 } from "lucide-react";
 
 const accent = "#3CF91A"; // Talent primary accent
 
@@ -12,7 +12,7 @@ export default function TalentProfileViewPage() {
     const [talentData, setTalentData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("Overview");
-    const tabs = ["Overview", "Projects", "Skills"];
+    const tabs = ["Overview", "Projects", "Skills", "Spills"];
 
     useEffect(() => {
         if (!id) return;
@@ -50,7 +50,8 @@ export default function TalentProfileViewPage() {
     }
 
     const { fullName, username, talentProfile } = talentData;
-    const { bio, experienceLevel, location, skills, projectLinks, githubUsername, githubConnected, githubRepos, linkedinUrl, portfolioUrl, resumeUrl, isAvailable } = talentProfile || {};
+    const { bio, experienceLevel, location, skills, projectLinks, githubUsername, githubConnected, githubRepos, linkedinUrl, portfolioUrl, resumeUrl, isAvailable, contactEmail, contactPhone, showEmail, showPhone, showSocials } = talentProfile || {};
+    const { spills } = talentData;
 
     const initials = fullName ? fullName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) : "??";
     const role = experienceLevel ? `${experienceLevel} Developer` : "Developer";
@@ -164,13 +165,31 @@ export default function TalentProfileViewPage() {
                                 </div>
                             </div>
 
-                            {/* Links & Socials */}
+                            {/* Links & Socials & Contact */}
                             <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
                                 <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-3 flex items-center gap-2">
-                                    <LinkIcon className="w-4 h-4" /> Links & Socials
+                                    <LinkIcon className="w-4 h-4" /> Contact & Socials
                                 </h2>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {githubUsername && (
+                                    {showEmail && contactEmail && (
+                                        <a href={`mailto:${contactEmail}`} className="flex items-center gap-3 p-3 rounded-xl bg-[var(--theme-bg-secondary)] hover:bg-[#3CF91A]/10 transition-colors border border-[var(--theme-border-light)] hover:border-[#3CF91A]/30 group">
+                                            <Mail className="w-5 h-5 text-[var(--theme-text-secondary)] group-hover:text-[#3CF91A]" />
+                                            <div>
+                                                <p className="text-[12px] font-bold text-[var(--theme-text-primary)]">Email</p>
+                                                <p className="text-[10px] text-[var(--theme-text-muted)]">{contactEmail}</p>
+                                            </div>
+                                        </a>
+                                    )}
+                                    {showPhone && contactPhone && (
+                                        <a href={`tel:${contactPhone}`} className="flex items-center gap-3 p-3 rounded-xl bg-[var(--theme-bg-secondary)] hover:bg-[#3CF91A]/10 transition-colors border border-[var(--theme-border-light)] hover:border-[#3CF91A]/30 group">
+                                            <Phone className="w-5 h-5 text-[var(--theme-text-secondary)] group-hover:text-[#3CF91A]" />
+                                            <div>
+                                                <p className="text-[12px] font-bold text-[var(--theme-text-primary)]">Phone</p>
+                                                <p className="text-[10px] text-[var(--theme-text-muted)]">{contactPhone}</p>
+                                            </div>
+                                        </a>
+                                    )}
+                                    {showSocials && githubUsername && (
                                         <a href={`https://github./${githubUsername}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-xl bg-[var(--theme-bg-secondary)] hover:bg-[#3CF91A]/10 transition-colors border border-[var(--theme-border-light)] hover:border-[#3CF91A]/30 group">
                                             <Github className="w-5 h-5 text-[var(--theme-text-secondary)] group-hover:text-[#3CF91A]" />
                                             <div>
@@ -197,7 +216,7 @@ export default function TalentProfileViewPage() {
                                             </div>
                                         </a>
                                     )}
-                                    {resumeUrl && (
+                                    {showSocials && resumeUrl && (
                                         <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-xl bg-[var(--theme-bg-secondary)] hover:bg-[#3CF91A]/10 transition-colors border border-[var(--theme-border-light)] hover:border-[#3CF91A]/30 group">
                                             <FileText className="w-5 h-5 text-[var(--theme-text-secondary)] group-hover:text-[#3CF91A]" />
                                             <div>
@@ -206,8 +225,11 @@ export default function TalentProfileViewPage() {
                                             </div>
                                         </a>
                                     )}
-                                    {!githubUsername && !linkedinUrl && !portfolioUrl && !resumeUrl && (
-                                        <p className="text-[12px] text-[var(--theme-text-muted)] col-span-2">This talent hasn't added any public links yet.</p>
+                                    {(!showSocials && !showEmail && !showPhone) && (
+                                        <p className="text-[12px] text-[var(--theme-text-muted)] col-span-2">This talent has chosen to keep their contact info private.</p>
+                                    )}
+                                    {(showSocials && !githubUsername && !linkedinUrl && !portfolioUrl && !resumeUrl) && (!showEmail && !showPhone) && (
+                                        <p className="text-[12px] text-[var(--theme-text-muted)] col-span-2">This talent hasn't added any public links or contact info yet.</p>
                                     )}
                                 </div>
                             </div>
@@ -255,6 +277,60 @@ export default function TalentProfileViewPage() {
                                     </div>
                                     <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-1">No Projects Found</h3>
                                     <p className="text-[12px] text-[var(--theme-text-muted)]">This talent hasn't added any spotlight projects.</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {activeTab === "Spills" && (
+                        <div className="space-y-4">
+                            {spills && spills.length > 0 ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {spills.map((spill: any) => (
+                                        <div key={spill.id} className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden hover:border-[#3CF91A]/30 transition-all flex flex-col h-full">
+                                            <div className="p-4 sm:p-5 flex-1">
+                                                <div className="flex items-center gap-3 mb-3">
+                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-[var(--theme-bg)] text-[9px] font-bold shrink-0">
+                                                        {initials}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[12px] font-bold text-[var(--theme-text-primary)]">@{username}</p>
+                                                        <p className="text-[9px] text-[var(--theme-text-muted)]">{new Date(spill.createdAt).toLocaleDateString()}</p>
+                                                    </div>
+                                                </div>
+                                                <p className="text-[12px] text-[var(--theme-text-secondary)] leading-relaxed mb-3 line-clamp-4">{spill.content}</p>
+                                                {spill.code && (
+                                                    <div className="rounded-xl bg-[#0D1117] border border-[var(--theme-code-border)] overflow-hidden mb-3">
+                                                        <pre className="px-3 py-3 text-[10px] text-green-400 font-mono overflow-hidden h-20 relative cursor-pointer" style={{ margin: 0 }}>
+                                                            <code>{spill.code}</code>
+                                                            <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-[#0D1117] to-transparent pointer-events-none"></div>
+                                                        </pre>
+                                                    </div>
+                                                )}
+                                                {spill.tags && (
+                                                    <div className="flex flex-wrap gap-1.5 mt-auto">
+                                                        {spill.tags.split(',').slice(0, 3).map((tag: string) => (
+                                                            <span key={tag} className="text-[9px] px-2 py-0.5 rounded-full bg-[#3CF91A]/10 text-[#3CF91A] font-medium">#{tag.trim()}</span>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="px-4 py-3 border-t border-[var(--theme-border-light)] bg-[var(--theme-bg-secondary)] flex flex-wrap items-center gap-4 text-[11px] text-[var(--theme-text-muted)]">
+                                                <span className="flex items-center gap-1"><Heart className="w-3.5 h-3.5" /> {spill.likes}</span>
+                                                <span className="flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5" /> {spill.comments}</span>
+                                                <span className="flex items-center gap-1"><Share2 className="w-3.5 h-3.5" /> {spill.shares}</span>
+                                                <span className="flex items-center gap-1 ml-auto"><Eye className="w-3.5 h-3.5" /> {spill.views}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-8 text-center flex flex-col items-center justify-center">
+                                    <div className="w-12 h-12 rounded-full bg-[var(--theme-bg-secondary)] flex items-center justify-center mb-3">
+                                        <MessageSquare className="w-5 h-5 text-[var(--theme-text-muted)]" />
+                                    </div>
+                                    <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-1">No Spills Yet</h3>
+                                    <p className="text-[12px] text-[var(--theme-text-muted)]">This talent hasn't posted any spills.</p>
                                 </div>
                             )}
                         </div>

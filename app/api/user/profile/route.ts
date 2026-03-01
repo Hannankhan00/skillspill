@@ -74,6 +74,11 @@ export async function POST(req: Request) {
                         portfolioUrl: data.talentProfile.portfolioUrl,
                         linkedinUrl: data.talentProfile.linkedinUrl,
                         githubUsername: data.talentProfile.githubUsername,
+                        contactEmail: data.talentProfile.contactEmail,
+                        contactPhone: data.talentProfile.contactPhone,
+                        showEmail: data.talentProfile.showEmail,
+                        showPhone: data.talentProfile.showPhone,
+                        showSocials: data.talentProfile.showSocials,
                     },
                     create: {
                         userId: session.userId,
@@ -81,6 +86,11 @@ export async function POST(req: Request) {
                         portfolioUrl: data.talentProfile.portfolioUrl,
                         linkedinUrl: data.talentProfile.linkedinUrl,
                         githubUsername: data.talentProfile.githubUsername,
+                        contactEmail: data.talentProfile.contactEmail,
+                        contactPhone: data.talentProfile.contactPhone,
+                        showEmail: data.talentProfile.showEmail ?? false,
+                        showPhone: data.talentProfile.showPhone ?? false,
+                        showSocials: data.talentProfile.showSocials ?? true,
                     }
                 });
             } else if (session.role === "RECRUITER" && data.recruiterProfile) {
