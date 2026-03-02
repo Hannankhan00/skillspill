@@ -76,34 +76,72 @@ export async function POST(req: Request) {
 
             // 2. Update Role-Specific Profiles
             if (session.role === "TALENT" && data.talentProfile) {
-                // If there is an existing profile update it, otherwise create one
-                await tx.talentProfile.upsert({
+                const tp = data.talentProfile;
+
+                const profile = await tx.talentProfile.upsert({
                     where: { userId: session.userId },
                     update: {
-                        bio: data.talentProfile.bio,
-                        // map other specific talent fields
-                        portfolioUrl: data.talentProfile.portfolioUrl,
-                        linkedinUrl: data.talentProfile.linkedinUrl,
-                        githubUsername: data.talentProfile.githubUsername,
-                        contactEmail: data.talentProfile.contactEmail,
-                        contactPhone: data.talentProfile.contactPhone,
-                        showEmail: data.talentProfile.showEmail,
-                        showPhone: data.talentProfile.showPhone,
-                        showSocials: data.talentProfile.showSocials,
+                        bio: tp.bio !== undefined ? tp.bio : undefined,
+                        experienceLevel: tp.experienceLevel !== undefined ? tp.experienceLevel : undefined,
+                        isAvailable: tp.isAvailable !== undefined ? tp.isAvailable : undefined,
+                        portfolioUrl: tp.portfolioUrl !== undefined ? tp.portfolioUrl : undefined,
+                        linkedinUrl: tp.linkedinUrl !== undefined ? tp.linkedinUrl : undefined,
+                        githubUsername: tp.githubUsername !== undefined ? tp.githubUsername : undefined,
+                        resumeUrl: tp.resumeUrl !== undefined ? tp.resumeUrl : undefined,
+                        contactEmail: tp.contactEmail !== undefined ? tp.contactEmail : undefined,
+                        contactPhone: tp.contactPhone !== undefined ? tp.contactPhone : undefined,
+                        showEmail: tp.showEmail !== undefined ? tp.showEmail : undefined,
+                        showPhone: tp.showPhone !== undefined ? tp.showPhone : undefined,
+                        showSocials: tp.showSocials !== undefined ? tp.showSocials : undefined,
                     },
                     create: {
                         userId: session.userId,
-                        bio: data.talentProfile.bio,
-                        portfolioUrl: data.talentProfile.portfolioUrl,
-                        linkedinUrl: data.talentProfile.linkedinUrl,
-                        githubUsername: data.talentProfile.githubUsername,
-                        contactEmail: data.talentProfile.contactEmail,
-                        contactPhone: data.talentProfile.contactPhone,
-                        showEmail: data.talentProfile.showEmail ?? false,
-                        showPhone: data.talentProfile.showPhone ?? false,
-                        showSocials: data.talentProfile.showSocials ?? true,
-                    }
+                        bio: tp.bio,
+                        experienceLevel: tp.experienceLevel,
+                        isAvailable: tp.isAvailable ?? true,
+                        portfolioUrl: tp.portfolioUrl,
+                        linkedinUrl: tp.linkedinUrl,
+                        githubUsername: tp.githubUsername,
+                        resumeUrl: tp.resumeUrl,
+                        contactEmail: tp.contactEmail,
+                        contactPhone: tp.contactPhone,
+                        showEmail: tp.showEmail ?? false,
+                        showPhone: tp.showPhone ?? false,
+                        showSocials: tp.showSocials ?? true,
+                    },
+                    select: { id: true },
                 });
+
+                // Replace skills if provided
+                if (Array.isArray(tp.skills)) {
+                    await tx.talentSkill.deleteMany({ where: { talentProfileId: profile.id } });
+                    if (tp.skills.length > 0) {
+                        await tx.talentSkill.createMany({
+                            data: tp.skills.map((s: string) => ({
+                                talentProfileId: profile.id,
+                                skillName: s.trim(),
+                            })),
+                            skipDuplicates: true,
+                        });
+                    }
+                }
+
+                // Replace projectLinks if provided
+                if (Array.isArray(tp.projectLinks)) {
+                    await tx.talentProject.deleteMany({ where: { talentProfileId: profile.id } });
+                    if (tp.projectLinks.length > 0) {
+                        await tx.talentProject.createMany({
+                            data: tp.projectLinks
+                                .filter((p: any) => p.url?.trim())
+                                .map((p: any) => ({
+                                    talentProfileId: profile.id,
+                                    url: p.url.trim(),
+                                    title: p.title?.trim() || null,
+                                    description: p.description?.trim() || null,
+                                })),
+                        });
+                    }
+                }
             } else if (session.role === "RECRUITER" && data.recruiterProfile) {
                 await tx.recruiterProfile.upsert({
                     where: { userId: session.userId },

@@ -24,7 +24,12 @@ function BriefcaseIconSm() {
     return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>;
 }
 
+function UserIcon() {
+    return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>;
+}
+
 const settingsTabs = [
+    { key: "profile", label: "Profile", icon: <UserIcon />, desc: "Edit your info" },
     { key: "security", label: "Security", icon: <ShieldIcon />, desc: "Account safety" },
     { key: "privacy", label: "Privacy", icon: <EyeIcon />, desc: "Profile visibility" },
     { key: "experience", label: "Experience", icon: <BriefcaseIconSm />, desc: "Work history" },
@@ -110,7 +115,86 @@ function ToggleRow({ label, desc, enabled, onToggle }: { label: string; desc: st
 }
 
 export default function SettingsPage() {
-    const [activeTab, setActiveTab] = useState("security");
+    const [activeTab, setActiveTab] = useState("profile");
+
+    /* ── Profile ── */
+    type Project = { url: string; title: string; description: string };
+    const [profileForm, setProfileForm] = useState({
+        fullName: "", bio: "", experienceLevel: "", isAvailable: true,
+        portfolioUrl: "", linkedinUrl: "", githubUsername: "", resumeUrl: "",
+    });
+    const [skillInput, setSkillInput] = useState("");
+    const [skills, setSkills] = useState<string[]>([]);
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [profileLoaded, setProfileLoaded] = useState(false);
+    const [savingProfile, setSavingProfile] = useState(false);
+    const [profileMsg, setProfileMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+
+    useEffect(() => {
+        fetch("/api/user/profile")
+            .then(r => r.json())
+            .then(d => {
+                if (!d.user) return;
+                const u = d.user;
+                const tp = u.talentProfile || {};
+                setProfileForm({
+                    fullName: u.fullName || "",
+                    bio: tp.bio || "",
+                    experienceLevel: tp.experienceLevel || "",
+                    isAvailable: tp.isAvailable ?? true,
+                    portfolioUrl: tp.portfolioUrl || "",
+                    linkedinUrl: tp.linkedinUrl || "",
+                    githubUsername: tp.githubUsername || "",
+                    resumeUrl: tp.resumeUrl || "",
+                });
+                setSkills(tp.skills?.map((s: any) => s.skillName) || []);
+                setProjects(tp.projectLinks?.map((p: any) => ({ url: p.url, title: p.title || "", description: p.description || "" })) || []);
+                setProfileLoaded(true);
+            })
+            .catch(() => { });
+    }, []);
+
+    const addSkill = () => {
+        const s = skillInput.trim();
+        if (s && !skills.includes(s)) setSkills(prev => [...prev, s]);
+        setSkillInput("");
+    };
+
+    const removeSkill = (s: string) => setSkills(prev => prev.filter(x => x !== s));
+
+    const addProject = () => setProjects(prev => [...prev, { url: "", title: "", description: "" }]);
+    const removeProject = (i: number) => setProjects(prev => prev.filter((_, idx) => idx !== i));
+    const updateProject = (i: number, field: keyof Project, val: string) =>
+        setProjects(prev => prev.map((p, idx) => idx === i ? { ...p, [field]: val } : p));
+
+    const saveProfile = async () => {
+        setSavingProfile(true);
+        setProfileMsg(null);
+        const res = await fetch("/api/user/profile", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                fullName: profileForm.fullName,
+                talentProfile: {
+                    bio: profileForm.bio,
+                    experienceLevel: profileForm.experienceLevel || null,
+                    isAvailable: profileForm.isAvailable,
+                    portfolioUrl: profileForm.portfolioUrl || null,
+                    linkedinUrl: profileForm.linkedinUrl || null,
+                    githubUsername: profileForm.githubUsername || null,
+                    resumeUrl: profileForm.resumeUrl || null,
+                    skills,
+                    projectLinks: projects.filter(p => p.url.trim()),
+                },
+            }),
+        });
+        const data = await res.json();
+        setSavingProfile(false);
+        setProfileMsg(res.ok && data.success
+            ? { type: "ok", text: "Profile saved successfully!" }
+            : { type: "err", text: data.error || "Failed to save. Try again." });
+        setTimeout(() => setProfileMsg(null), 4000);
+    };
 
     /* Security */
     const [twoFA, setTwoFA] = useState(false);
@@ -286,6 +370,179 @@ export default function SettingsPage() {
                     {/*  Content Area  */}
                     <div className="flex-1 min-w-0">
                         <div className="rounded-2xl border overflow-hidden" style={{ background: 'var(--theme-card)', borderColor: 'var(--theme-border)' }}>
+
+                            {/*  Profile  */}
+                            {activeTab === "profile" && (
+                                <div className="p-6 space-y-6">
+                                    <Section title="Public Profile" desc="This information appears on your profile and in search results">
+
+                                        {!profileLoaded ? (
+                                            <div className="text-center py-8 text-[12px]" style={{ color: 'var(--theme-text-muted)' }}>Loading your profile...</div>
+                                        ) : (
+                                            <div className="space-y-5">
+                                                {/* Success / Error banner */}
+                                                {profileMsg && (
+                                                    <div className="rounded-xl px-4 py-3 text-[12px] font-medium"
+                                                        style={{
+                                                            background: profileMsg.type === "ok" ? '#3CF91A10' : 'rgba(239,68,68,0.08)',
+                                                            border: `1px solid ${profileMsg.type === "ok" ? '#3CF91A30' : 'rgba(239,68,68,0.2)'}`,
+                                                            color: profileMsg.type === "ok" ? '#3CF91A' : '#EF4444',
+                                                        }}>
+                                                        {profileMsg.text}
+                                                    </div>
+                                                )}
+
+                                                {/* Basic info */}
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    <InputField label="Display Name" value={profileForm.fullName}
+                                                        onChange={v => setProfileForm(f => ({ ...f, fullName: v }))}
+                                                        placeholder="e.g. Alex Kim" />
+                                                    <div>
+                                                        <label className="text-[10px] uppercase tracking-widest font-semibold block mb-1.5" style={{ color: 'var(--theme-text-muted)' }}>
+                                                            Experience Level
+                                                        </label>
+                                                        <select value={profileForm.experienceLevel}
+                                                            onChange={e => setProfileForm(f => ({ ...f, experienceLevel: e.target.value }))}
+                                                            className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all focus:ring-2 focus:ring-[#3CF91A]/20"
+                                                            style={{ background: 'var(--theme-input-bg)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}>
+                                                            <option value="">Select level...</option>
+                                                            <option value="JUNIOR">Junior</option>
+                                                            <option value="MID">Mid</option>
+                                                            <option value="SENIOR">Senior</option>
+                                                            <option value="LEAD">Lead</option>
+                                                            <option value="PRINCIPAL">Principal</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+
+                                                {/* Bio */}
+                                                <div>
+                                                    <label className="text-[10px] uppercase tracking-widest font-semibold block mb-1.5" style={{ color: 'var(--theme-text-muted)' }}>Bio</label>
+                                                    <textarea value={profileForm.bio}
+                                                        onChange={e => setProfileForm(f => ({ ...f, bio: e.target.value }))}
+                                                        rows={4}
+                                                        placeholder="Tell recruiters about yourself, your passions, and what you build..."
+                                                        className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none resize-none focus:ring-2 focus:ring-[#3CF91A]/20"
+                                                        style={{ background: 'var(--theme-input-bg)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
+                                                    />
+                                                </div>
+
+                                                {/* Availability */}
+                                                <ToggleRow label="Open to Work" desc="Show the 'Open to Work' badge on your profile and in search results"
+                                                    enabled={profileForm.isAvailable}
+                                                    onToggle={() => setProfileForm(f => ({ ...f, isAvailable: !f.isAvailable }))} />
+
+                                                {/* Links */}
+                                                <div>
+                                                    <h3 className="text-[11px] uppercase tracking-widest font-semibold mb-3" style={{ color: 'var(--theme-text-muted)' }}>Links & Socials</h3>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                        <InputField label="Portfolio URL" value={profileForm.portfolioUrl}
+                                                            onChange={v => setProfileForm(f => ({ ...f, portfolioUrl: v }))}
+                                                            placeholder="https://yourportfolio.dev" />
+                                                        <InputField label="LinkedIn URL" value={profileForm.linkedinUrl}
+                                                            onChange={v => setProfileForm(f => ({ ...f, linkedinUrl: v }))}
+                                                            placeholder="https://linkedin.com/in/you" />
+                                                        <InputField label="GitHub Username" value={profileForm.githubUsername}
+                                                            onChange={v => setProfileForm(f => ({ ...f, githubUsername: v }))}
+                                                            placeholder="e.g. ghost-protocol" />
+                                                        <InputField label="Resume URL" value={profileForm.resumeUrl}
+                                                            onChange={v => setProfileForm(f => ({ ...f, resumeUrl: v }))}
+                                                            placeholder="Paste a link to your CV/resume" />
+                                                    </div>
+                                                </div>
+
+                                                {/* Skills */}
+                                                <div>
+                                                    <h3 className="text-[11px] uppercase tracking-widest font-semibold mb-3" style={{ color: 'var(--theme-text-muted)' }}>Skills</h3>
+                                                    {/* Tag input */}
+                                                    <div className="flex gap-2 mb-3">
+                                                        <input
+                                                            value={skillInput}
+                                                            onChange={e => setSkillInput(e.target.value)}
+                                                            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addSkill(); } }}
+                                                            placeholder="Type a skill and press Enter"
+                                                            className="flex-1 px-3.5 py-2.5 rounded-xl text-[13px] outline-none focus:ring-2 focus:ring-[#3CF91A]/20"
+                                                            style={{ background: 'var(--theme-input-bg)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
+                                                        />
+                                                        <button onClick={addSkill}
+                                                            className="px-4 py-2.5 rounded-xl text-[12px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105"
+                                                            style={{ background: '#3CF91A' }}>
+                                                            Add
+                                                        </button>
+                                                    </div>
+                                                    {skills.length > 0 ? (
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {skills.map(s => (
+                                                                <span key={s} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium"
+                                                                    style={{ background: '#3CF91A10', color: '#3CF91A', border: '1px solid #3CF91A25' }}>
+                                                                    {s}
+                                                                    <button onClick={() => removeSkill(s)} className="border-none bg-transparent cursor-pointer text-[10px] leading-none opacity-70 hover:opacity-100 p-0"
+                                                                        style={{ color: '#3CF91A' }}>✕</button>
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-[11px]" style={{ color: 'var(--theme-text-muted)' }}>No skills added yet. Type above and press Enter or Add.</p>
+                                                    )}
+                                                </div>
+
+                                                {/* Project Links */}
+                                                <div>
+                                                    <div className="flex items-center justify-between mb-3">
+                                                        <h3 className="text-[11px] uppercase tracking-widest font-semibold" style={{ color: 'var(--theme-text-muted)' }}>Project Links</h3>
+                                                        <button onClick={addProject}
+                                                            className="text-[11px] font-bold px-3 py-1.5 rounded-lg border-none cursor-pointer transition-all hover:scale-105"
+                                                            style={{ background: '#3CF91A15', color: '#3CF91A' }}>
+                                                            + Add Project
+                                                        </button>
+                                                    </div>
+                                                    {projects.length === 0 ? (
+                                                        <p className="text-[11px]" style={{ color: 'var(--theme-text-muted)' }}>No projects added. Click "Add Project" to showcase your work.</p>
+                                                    ) : (
+                                                        <div className="space-y-3">
+                                                            {projects.map((p, i) => (
+                                                                <div key={i} className="rounded-xl p-4 relative space-y-2"
+                                                                    style={{ background: 'var(--theme-bg)', border: '1px solid var(--theme-border)' }}>
+                                                                    <button onClick={() => removeProject(i)}
+                                                                        className="absolute top-3 right-3 p-1 rounded-lg border-none cursor-pointer"
+                                                                        style={{ background: 'rgba(239,68,68,0.08)', color: '#EF4444' }}>
+                                                                        <TrashIcon />
+                                                                    </button>
+                                                                    <InputField label="URL *" value={p.url}
+                                                                        onChange={v => updateProject(i, 'url', v)}
+                                                                        placeholder="https://github.com/you/project" />
+                                                                    <InputField label="Title" value={p.title}
+                                                                        onChange={v => updateProject(i, 'title', v)}
+                                                                        placeholder="e.g. My Awesome App" />
+                                                                    <div>
+                                                                        <label className="text-[10px] uppercase tracking-widest font-semibold block mb-1.5" style={{ color: 'var(--theme-text-muted)' }}>Description</label>
+                                                                        <textarea value={p.description}
+                                                                            onChange={e => updateProject(i, 'description', e.target.value)}
+                                                                            rows={2}
+                                                                            placeholder="Brief description of the project..."
+                                                                            className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none resize-none focus:ring-2 focus:ring-[#3CF91A]/20"
+                                                                            style={{ background: 'var(--theme-input-bg)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Save button */}
+                                                <div className="pt-4 border-t border-[var(--theme-border-light)] flex justify-end">
+                                                    <button onClick={saveProfile} disabled={savingProfile}
+                                                        className="px-6 py-2.5 rounded-xl text-[12px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105 disabled:opacity-60"
+                                                        style={{ background: '#3CF91A', boxShadow: savingProfile ? 'none' : '0 4px 15px rgba(60,249,26,0.3)' }}>
+                                                        {savingProfile ? "Saving..." : "Save Profile"}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </Section>
+                                </div>
+                            )}
 
                             {/*  Security  */}
                             {activeTab === "security" && (
