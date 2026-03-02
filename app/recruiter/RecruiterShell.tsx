@@ -84,7 +84,7 @@ function SpillsIcon() {
 const recruiterNavItems = [
     { label: "Feed", icon: <HomeIcon />, href: "/recruiter" },
     { label: "My Spills", icon: <SpillsIcon />, href: "/recruiter/spills" },
-    { label: "Search Talent", icon: <SearchIcon />, href: "/recruiter/search" },
+    { label: "Search", icon: <SearchIcon />, href: "/recruiter/search" },
     { label: "Jobs", icon: <BriefcaseIcon />, href: "/recruiter/jobs" },
     { label: "Applications", icon: <UsersIcon />, href: "/recruiter/applications" },
     { label: "Messages", icon: <MessageIcon />, href: "/recruiter/messages" },

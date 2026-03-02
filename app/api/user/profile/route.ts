@@ -21,8 +21,17 @@ export async function GET() {
                 recruiterProfile: {
                     include: {
                         industries: true,
+                        bounties: {
+                            orderBy: { createdAt: "desc" },
+                            include: { skills: true },
+                            take: 20,
+                        },
                     }
-                }
+                },
+                spills: {
+                    orderBy: { createdAt: "desc" },
+                    take: 20,
+                },
             }
         });
 
@@ -50,7 +59,7 @@ export async function POST(req: Request) {
         const { id, role, passwordHash, createdAt, updatedAt, talentProfile, recruiterProfile, ...updateData } = data;
 
         // Start a transaction for user updates + profile-specific updates
-        const result = await prisma.$transaction(async (tx) => {
+        const result = await prisma.$transaction(async (tx: typeof prisma) => {
 
             // 1. Update Core User Entity
             // Filter core user keys explicitly if needed, but for now we expect mapped inputs
