@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const accent = "#A855F7";
 
@@ -17,8 +17,12 @@ function LinkIcon() {
 function TrashIcon() {
     return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>;
 }
+function BuildingIcon() {
+    return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M9 3v18M15 3v18M3 9h18M3 15h18" /></svg>;
+}
 
 const settingsTabs = [
+    { key: "company", label: "Company", icon: <BuildingIcon />, desc: "Company profile" },
     { key: "security", label: "Security", icon: <ShieldIcon />, desc: "Account safety" },
     { key: "notifications", label: "Notifications", icon: <BellIcon />, desc: "Alert preferences" },
     { key: "connections", label: "Connections", icon: <LinkIcon />, desc: "Linked accounts" },
@@ -102,7 +106,65 @@ function ToggleRow({ label, desc, enabled, onToggle }: { label: string; desc: st
 }
 
 export default function RecruiterSettingsPage() {
-    const [activeTab, setActiveTab] = useState("security");
+    const [activeTab, setActiveTab] = useState("company");
+
+    /* ── Company Profile ── */
+    const [companyForm, setCompanyForm] = useState({
+        fullName: "", jobTitle: "", companyName: "", companyWebsite: "",
+        companySize: "", location: "", country: "", bio: "",
+    });
+    const [companyLoaded, setCompanyLoaded] = useState(false);
+    const [savingCompany, setSavingCompany] = useState(false);
+    const [companyMsg, setCompanyMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+
+    useEffect(() => {
+        fetch("/api/user/profile")
+            .then(r => r.json())
+            .then(d => {
+                if (!d.user) return;
+                const u = d.user;
+                const rp = u.recruiterProfile || {};
+                setCompanyForm({
+                    fullName: u.fullName || "",
+                    jobTitle: rp.jobTitle || "",
+                    companyName: rp.companyName || "",
+                    companyWebsite: rp.companyWebsite || "",
+                    companySize: rp.companySize || "",
+                    location: rp.location || "",
+                    country: rp.country || "",
+                    bio: rp.bio || "",
+                });
+                setCompanyLoaded(true);
+            })
+            .catch(() => { });
+    }, []);
+
+    const saveCompany = async () => {
+        setSavingCompany(true);
+        setCompanyMsg(null);
+        const res = await fetch("/api/user/profile", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                fullName: companyForm.fullName,
+                recruiterProfile: {
+                    jobTitle: companyForm.jobTitle || null,
+                    companyName: companyForm.companyName || "Unknown",
+                    companyWebsite: companyForm.companyWebsite || null,
+                    companySize: companyForm.companySize || null,
+                    location: companyForm.location || null,
+                    country: companyForm.country || null,
+                    bio: companyForm.bio || null,
+                },
+            }),
+        });
+        const data = await res.json();
+        setSavingCompany(false);
+        setCompanyMsg(res.ok && data.success
+            ? { type: "ok", text: "Profile saved successfully!" }
+            : { type: "err", text: data.error || "Failed to save. Try again." });
+        setTimeout(() => setCompanyMsg(null), 4000);
+    };
 
     /* Security */
     const [twoFA, setTwoFA] = useState(false);
@@ -171,6 +233,97 @@ export default function RecruiterSettingsPage() {
                     {/*  Content Area  */}
                     <div className="flex-1 min-w-0">
                         <div className="rounded-2xl border overflow-hidden" style={{ background: 'var(--theme-card)', borderColor: 'var(--theme-border)' }}>
+
+                            {/*  Company Profile  */}
+                            {activeTab === "company" && (
+                                <div className="p-6 space-y-6">
+                                    <Section title="Company Profile" desc="This information appears publicly on your recruiter profile and in search results">
+                                        {!companyLoaded ? (
+                                            <div className="text-center py-8 text-[12px]" style={{ color: 'var(--theme-text-muted)' }}>Loading your profile...</div>
+                                        ) : (
+                                            <div className="space-y-5">
+                                                {companyMsg && (
+                                                    <div className="rounded-xl px-4 py-3 text-[12px] font-medium"
+                                                        style={{
+                                                            background: companyMsg.type === "ok" ? `${accent}10` : 'rgba(239,68,68,0.08)',
+                                                            border: `1px solid ${companyMsg.type === "ok" ? `${accent}30` : 'rgba(239,68,68,0.2)'}`,
+                                                            color: companyMsg.type === "ok" ? accent : '#EF4444',
+                                                        }}>
+                                                        {companyMsg.text}
+                                                    </div>
+                                                )}
+
+                                                {/* Identity */}
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    <InputField label="Your Full Name" value={companyForm.fullName}
+                                                        onChange={v => setCompanyForm(f => ({ ...f, fullName: v }))}
+                                                        placeholder="e.g. Sarah Khan" />
+                                                    <InputField label="Your Job Title" value={companyForm.jobTitle}
+                                                        onChange={v => setCompanyForm(f => ({ ...f, jobTitle: v }))}
+                                                        placeholder="e.g. Head of Talent, CTO, HR Manager" />
+                                                </div>
+
+                                                {/* Company */}
+                                                <div>
+                                                    <h3 className="text-[11px] uppercase tracking-widest font-semibold mb-3" style={{ color: 'var(--theme-text-muted)' }}>Company Info</h3>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                        <InputField label="Company Name *" value={companyForm.companyName}
+                                                            onChange={v => setCompanyForm(f => ({ ...f, companyName: v }))}
+                                                            placeholder="e.g. NastecSol" />
+                                                        <InputField label="Company Website" value={companyForm.companyWebsite}
+                                                            onChange={v => setCompanyForm(f => ({ ...f, companyWebsite: v }))}
+                                                            placeholder="https://yourcompany.com" />
+                                                        <div>
+                                                            <label className="text-[10px] uppercase tracking-widest font-semibold block mb-1.5" style={{ color: 'var(--theme-text-muted)' }}>
+                                                                Company Size
+                                                            </label>
+                                                            <select value={companyForm.companySize}
+                                                                onChange={e => setCompanyForm(f => ({ ...f, companySize: e.target.value }))}
+                                                                className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none"
+                                                                style={{ background: 'var(--theme-input-bg)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}>
+                                                                <option value="">Select size...</option>
+                                                                <option value="1-10">1–10 employees</option>
+                                                                <option value="11-50">11–50 employees</option>
+                                                                <option value="51-200">51–200 employees</option>
+                                                                <option value="201-500">201–500 employees</option>
+                                                                <option value="501-1000">501–1000 employees</option>
+                                                                <option value="1001+">1001+ employees</option>
+                                                            </select>
+                                                        </div>
+                                                        <InputField label="Location / City" value={companyForm.location}
+                                                            onChange={v => setCompanyForm(f => ({ ...f, location: v }))}
+                                                            placeholder="e.g. Karachi, London" />
+                                                        <InputField label="Country" value={companyForm.country}
+                                                            onChange={v => setCompanyForm(f => ({ ...f, country: v }))}
+                                                            placeholder="e.g. Pakistan" />
+                                                    </div>
+                                                </div>
+
+                                                {/* Bio */}
+                                                <div>
+                                                    <label className="text-[10px] uppercase tracking-widest font-semibold block mb-1.5" style={{ color: 'var(--theme-text-muted)' }}>Company Bio</label>
+                                                    <textarea value={companyForm.bio}
+                                                        onChange={e => setCompanyForm(f => ({ ...f, bio: e.target.value }))}
+                                                        rows={4}
+                                                        placeholder="Describe your company, culture, and what makes it a great place to work..."
+                                                        className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none resize-none"
+                                                        style={{ background: 'var(--theme-input-bg)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
+                                                    />
+                                                </div>
+
+                                                {/* Save */}
+                                                <div className="pt-4 border-t border-[var(--theme-border-light)] flex justify-end">
+                                                    <button onClick={saveCompany} disabled={savingCompany}
+                                                        className="px-6 py-2.5 rounded-xl text-[12px] font-bold text-white border-none cursor-pointer transition-all hover:scale-105 disabled:opacity-60"
+                                                        style={{ background: accent, boxShadow: savingCompany ? 'none' : `0 4px 15px ${accent}50` }}>
+                                                        {savingCompany ? "Saving..." : "Save Profile"}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </Section>
+                                </div>
+                            )}
 
                             {/*  Security  */}
                             {activeTab === "security" && (

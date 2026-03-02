@@ -130,6 +130,14 @@ export default function SettingsPage() {
     const [savingProfile, setSavingProfile] = useState(false);
     const [profileMsg, setProfileMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
+    // Privacy state — populated from the same profile fetch
+    const [showEmail, setShowEmail] = useState(false);
+    const [showPhone, setShowPhone] = useState(false);
+    const [showSocials, setShowSocials] = useState(true);
+    const [contactEmail, setContactEmail] = useState("");
+    const [contactPhone, setContactPhone] = useState("");
+    const [isSavingPrivacy, setIsSavingPrivacy] = useState(false);
+
     useEffect(() => {
         fetch("/api/user/profile")
             .then(r => r.json())
@@ -149,6 +157,12 @@ export default function SettingsPage() {
                 });
                 setSkills(tp.skills?.map((s: any) => s.skillName) || []);
                 setProjects(tp.projectLinks?.map((p: any) => ({ url: p.url, title: p.title || "", description: p.description || "" })) || []);
+                // Also populate privacy fields from the same fetch
+                setShowEmail(tp.showEmail ?? false);
+                setShowPhone(tp.showPhone ?? false);
+                setShowSocials(tp.showSocials ?? true);
+                setContactEmail(tp.contactEmail || "");
+                setContactPhone(tp.contactPhone || "");
                 setProfileLoaded(true);
             })
             .catch(() => { });
@@ -210,13 +224,6 @@ export default function SettingsPage() {
     /* Connections */
     const [githubConnected, setGithubConnected] = useState(true);
     const [linkedinConnected, setLinkedinConnected] = useState(false);
-    /* Privacy Settings */
-    const [showEmail, setShowEmail] = useState(false);
-    const [showPhone, setShowPhone] = useState(false);
-    const [showSocials, setShowSocials] = useState(true);
-    const [contactEmail, setContactEmail] = useState("");
-    const [contactPhone, setContactPhone] = useState("");
-    const [isSavingPrivacy, setIsSavingPrivacy] = useState(false);
 
     /* ── Work Experience ── */
     type WorkExp = {
@@ -409,8 +416,7 @@ export default function SettingsPage() {
                                                             <option value="JUNIOR">Junior</option>
                                                             <option value="MID">Mid</option>
                                                             <option value="SENIOR">Senior</option>
-                                                            <option value="LEAD">Lead</option>
-                                                            <option value="PRINCIPAL">Principal</option>
+                                                            <option value="STAFF">Staff</option>
                                                         </select>
                                                     </div>
                                                 </div>
