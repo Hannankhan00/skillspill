@@ -35,6 +35,11 @@ export async function GET(req: Request) {
                         experienceLevel: true,
                         isAvailable: true,
                         skills: { select: { skillName: true } },
+                        workExperience: {
+                            where: { isCurrent: true },
+                            select: { companyName: true, role: true },
+                            take: 1,
+                        },
                     },
                 },
                 recruiterProfile: {
@@ -51,14 +56,14 @@ export async function GET(req: Request) {
         });
 
         // Filter by search query (name, username, skills, company, role)
-        const filtered = users.filter(u => {
+        const filtered = users.filter((u: typeof users[number]) => {
             if (!q) return true;
             const name = u.fullName?.toLowerCase() ?? "";
             const username = u.username?.toLowerCase() ?? "";
             const company = u.recruiterProfile?.companyName?.toLowerCase() ?? "";
             const jobTitle = u.recruiterProfile?.jobTitle?.toLowerCase() ?? "";
             const bio = (u.talentProfile?.bio ?? u.recruiterProfile?.bio ?? "").toLowerCase();
-            const skills = u.talentProfile?.skills?.map(s => s.skillName.toLowerCase()) ?? [];
+            const skills = u.talentProfile?.skills?.map((s: { skillName: string }) => s.skillName.toLowerCase()) ?? [];
             const expLevel = u.talentProfile?.experienceLevel?.toLowerCase() ?? "";
 
             return (
@@ -67,7 +72,7 @@ export async function GET(req: Request) {
                 company.includes(q) ||
                 jobTitle.includes(q) ||
                 bio.includes(q) ||
-                skills.some(s => s.includes(q)) ||
+                skills.some((s: string) => s.includes(q)) ||
                 expLevel.includes(q)
             );
         });

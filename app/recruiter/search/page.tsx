@@ -34,6 +34,7 @@ interface UserResult {
         experienceLevel?: string;
         isAvailable?: boolean;
         skills?: { skillName: string }[];
+        workExperience?: { companyName: string; role: string }[];
     };
     recruiterProfile?: {
         companyName?: string;
@@ -184,9 +185,12 @@ function TalentCard({ user, index, accent }: { user: UserResult; index: number; 
     const grad = gradients[index % gradients.length];
     const skills = user.talentProfile?.skills?.map(s => s.skillName) ?? [];
     const exp = user.talentProfile?.experienceLevel;
-    const role = exp ? `${exp.charAt(0) + exp.slice(1).toLowerCase()} Developer` : "Developer";
     const available = user.talentProfile?.isAvailable !== false;
     const bio = user.talentProfile?.bio;
+    const currentJob = user.talentProfile?.workExperience?.[0];
+    const role = currentJob
+        ? `${currentJob.role} at ${currentJob.companyName}`
+        : exp ? `${exp.charAt(0) + exp.slice(1).toLowerCase()} Developer` : "Developer";
 
     return (
         <div className="rounded-2xl border bg-[var(--theme-card)] p-4 sm:p-5 transition-all hover:border-[var(--theme-border)] group"
