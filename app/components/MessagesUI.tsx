@@ -173,7 +173,6 @@ export default function MessagesUI({ accent }: { accent: string }) {
                 const existingIds = new Set(prev.map(m => m.id));
                 // Only add messages from OTHER users — our own messages come via
                 // the optimistic path and POST confirmation, never via SSE.
-                // Also deduplicate by id to be safe.
                 const incoming = newMsgs.filter(m =>
                     m.senderId !== currentUserId && !existingIds.has(m.id)
                 );
@@ -188,13 +187,25 @@ export default function MessagesUI({ accent }: { accent: string }) {
             ));
         });
 
+        // Server sends this before closing after 55s — reconnect immediately with latest cursor
+        es.addEventListener("reconnect", (e: MessageEvent) => {
+            const { lastSeenId } = JSON.parse(e.data) as { lastSeenId: string | null };
+            es.close();
+            setSseConnected(false);
+            if (activeConvoIdRef.current === convoId) {
+                // Reconnect immediately — no delay needed, this is a clean planned close
+                const latestId = messagesRef.current[messagesRef.current.length - 1]?.id ?? lastSeenId;
+                openSSEFor(convoId, latestId);
+            }
+        });
+
         es.onerror = () => {
             es.close();
             setSseConnected(false);
-            // Reconnect after 3s if still on the same conversation
+            // Reconnect after 2s on unexpected error
             if (activeConvoIdRef.current === convoId) {
                 const lastId = messagesRef.current[messagesRef.current.length - 1]?.id ?? null;
-                setTimeout(() => openSSEFor(convoId, lastId), 3000);
+                setTimeout(() => openSSEFor(convoId, lastId), 2000);
             }
         };
     }

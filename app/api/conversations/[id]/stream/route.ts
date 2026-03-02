@@ -2,60 +2,58 @@ import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
+export const maxDuration = 60; // Vercel Pro: 60s, Hobby: 10s (configurable)
 
 // GET /api/conversations/[id]/stream
-// Server-Sent Events stream — pushes new messages to the client as they arrive
+// Server-Sent Events — long-poll with a hard timeout so Vercel serverless can handle it.
+// The client EventSource automatically reconnects when the timeout closes the connection.
 export async function GET(
     req: Request,
     context: { params: Promise<{ id: string }> }
 ) {
     const session = await getSession();
-    if (!session) {
-        return new Response("Unauthorized", { status: 401 });
-    }
+    if (!session) return new Response("Unauthorized", { status: 401 });
 
     const { id: conversationId } = await context.params;
 
-    // Verify the user belongs to this conversation
     const convo = await prisma.conversation.findUnique({ where: { id: conversationId } });
     if (!convo || (convo.userAId !== session.userId && convo.userBId !== session.userId)) {
         return new Response("Not found", { status: 404 });
     }
 
-    // Get the lastId cursor from query param (client sends the ID of the last message it has)
     const url = new URL(req.url);
-    const afterId = url.searchParams.get("afterId") ?? null;
+    const afterId = url.searchParams.get("afterId");
 
     const encoder = new TextEncoder();
 
     const stream = new ReadableStream({
         async start(controller) {
-
-            // Helper to send an SSE event
             const send = (event: string, data: unknown) => {
                 try {
-                    controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
-                } catch {
-                    // connection closed
-                }
+                    controller.enqueue(
+                        encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
+                    );
+                } catch { /* client disconnected */ }
             };
 
-            // Send a heartbeat to confirm connection
             send("connected", { conversationId });
 
-            let lastSeenId = afterId;
-            let active = true;
+            // Hard time limit: poll for up to 55 seconds then close.
+            // EventSource on the client auto-reconnects immediately.
+            // This makes it fully compatible with Vercel serverless (both Hobby and Pro).
+            const POLL_INTERVAL_MS = 1500;
+            const MAX_DURATION_MS = 55_000;
+            const started = Date.now();
 
-            // Cleanup on client disconnect
+            let lastSeenId = afterId ?? null;
+            let isAborted = false;
+
             req.signal.addEventListener("abort", () => {
-                active = false;
+                isAborted = true;
                 try { controller.close(); } catch { /* already closed */ }
             });
 
-            // Poll for new messages on the SERVER side — 1 DB query every 1.5s per open chat
-            // Far more efficient than the client making full HTTP round-trips every 3s
-            while (active) {
+            while (!isAborted && Date.now() - started < MAX_DURATION_MS) {
                 try {
                     const where = lastSeenId
                         ? { conversationId, id: { gt: lastSeenId } }
@@ -64,16 +62,17 @@ export async function GET(
                     const newMessages = await prisma.message.findMany({
                         where,
                         orderBy: { createdAt: "asc" },
-                        include: { sender: { select: { id: true, fullName: true, username: true } } },
+                        include: {
+                            sender: { select: { id: true, fullName: true, username: true } },
+                        },
                     });
 
                     if (newMessages.length > 0) {
-                        // Mark messages from the other person as read
+                        // Mark other person's messages as read
                         const unreadIds = newMessages
-                            .filter(m => m.senderId !== session.userId && !m.isRead)
-                            .map(m => m.id);
-
-                        if (unreadIds.length > 0) {
+                            .filter((m): m is typeof m & { isRead: false } => m.senderId !== session.userId && !m.isRead)
+                            .map((m: { id: string }) => m.id);
+                        if (unreadIds.length) {
                             await prisma.message.updateMany({
                                 where: { id: { in: unreadIds } },
                                 data: { isRead: true },
@@ -83,21 +82,36 @@ export async function GET(
                         send("messages", newMessages);
                         lastSeenId = newMessages[newMessages.length - 1].id;
                     }
-
-                    // Wait 1.5 seconds before next check
-                    await new Promise(r => setTimeout(r, 1500));
                 } catch {
-                    active = false;
-                    try { controller.close(); } catch { /* ignore */ }
+                    // DB error — close so client reconnects
+                    isAborted = true;
                     break;
                 }
+
+                if (!isAborted) {
+                    await new Promise<void>(resolve => {
+                        const t = setTimeout(resolve, POLL_INTERVAL_MS);
+                        // Cancel sleep early if request is aborted
+                        req.signal.addEventListener("abort", () => {
+                            clearTimeout(t);
+                            resolve();
+                        }, { once: true });
+                    });
+                }
             }
+
+            // Send reconnect hint before closing so client knows to reconnect with updated afterId
+            if (!isAborted) {
+                send("reconnect", { lastSeenId });
+            }
+
+            try { controller.close(); } catch { /* already closed */ }
         },
     });
 
     return new Response(stream, {
         headers: {
-            "Content-Type": "text/event-stream",
+            "Content-Type": "text/event-stream; charset=utf-8",
             "Cache-Control": "no-cache, no-transform",
             "Connection": "keep-alive",
             "X-Accel-Buffering": "no",
