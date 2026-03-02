@@ -34,7 +34,6 @@ export async function GET(req: Request) {
                         bio: true,
                         experienceLevel: true,
                         isAvailable: true,
-                        location: true,
                         skills: { select: { skillName: true } },
                     },
                 },

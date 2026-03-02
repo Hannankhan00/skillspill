@@ -33,7 +33,6 @@ interface UserResult {
         bio?: string;
         experienceLevel?: string;
         isAvailable?: boolean;
-        location?: string;
         skills?: { skillName: string }[];
     };
     recruiterProfile?: {
@@ -186,7 +185,6 @@ function TalentCard({ user, index, accent }: { user: UserResult; index: number; 
     const skills = user.talentProfile?.skills?.map(s => s.skillName) ?? [];
     const exp = user.talentProfile?.experienceLevel;
     const role = exp ? `${exp.charAt(0) + exp.slice(1).toLowerCase()} Developer` : "Developer";
-    const location = user.talentProfile?.location;
     const available = user.talentProfile?.isAvailable !== false;
     const bio = user.talentProfile?.bio;
 
@@ -217,11 +215,6 @@ function TalentCard({ user, index, accent }: { user: UserResult; index: number; 
                             </div>
                             <div className="flex items-center gap-3 mt-0.5 flex-wrap">
                                 <p className="text-[12px] font-medium text-[var(--theme-text-secondary)]">{role}</p>
-                                {location && (
-                                    <span className="flex items-center gap-1 text-[11px] text-[var(--theme-text-muted)]">
-                                        <MapPin className="w-3 h-3" />{location}
-                                    </span>
-                                )}
                                 {/* Role badge */}
                                 <span className="text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest"
                                     style={{ background: "#3CF91A15", color: "#3CF91A", border: "1px solid #3CF91A30" }}>
