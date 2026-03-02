@@ -1,56 +1,55 @@
-﻿"use client";
+"use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
-    Building2, MapPin, Globe, Phone, Mail, Linkedin,
-    Briefcase, Loader2, Link as LinkIcon, Heart, MessageSquare,
-    Share2, Eye, Sparkles, Users, CheckCircle,
+    Building2, MapPin, Globe, Briefcase, Loader2,
+    Link as LinkIcon, Heart, MessageSquare, Share2,
+    Eye, Sparkles, Users, CheckCircle,
 } from "lucide-react";
 
-const accent = "#A855F7"; // Recruiter purple
+const accent = "#A855F7";
 
-export default function RecruiterProfilePage() {
-    const [userData, setUserData] = useState<any>(null);
+export default function RecruiterProfileViewPage() {
+    const params = useParams();
+    const id = params?.id as string;
+    const [recruiterData, setRecruiterData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("Overview");
     const tabs = ["Overview", "Jobs", "Spills"];
 
     useEffect(() => {
-        fetch("/api/user/profile")
+        if (!id) return;
+        fetch(`/api/recruiters/${id}`)
             .then(r => r.json())
             .then(d => {
-                if (d.user) setUserData(d.user);
+                if (d.recruiter) setRecruiterData(d.recruiter);
                 setIsLoading(false);
             })
             .catch(() => setIsLoading(false));
-    }, []);
+    }, [id]);
 
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-full p-20">
                 <Loader2 className="w-10 h-10 animate-spin mb-4" style={{ color: accent }} />
-                <p className="text-[13px] text-[var(--theme-text-muted)] font-medium">Loading your profile...</p>
+                <p className="text-[13px] text-[var(--theme-text-muted)] font-medium">Loading recruiter profile...</p>
             </div>
         );
     }
 
-    if (!userData) {
+    if (!recruiterData) {
         return (
             <div className="flex flex-col items-center justify-center min-h-full p-20">
-                <h3 className="text-lg font-bold text-red-400 mb-2">Profile Not Found</h3>
-                <p className="text-[13px] text-[var(--theme-text-muted)]">We couldn't load your profile.</p>
+                <h3 className="text-lg font-bold text-red-400 mb-2">Recruiter Not Found</h3>
+                <p className="text-[13px] text-[var(--theme-text-muted)]">We couldn't locate this recruiter's profile.</p>
             </div>
         );
     }
 
-    const { fullName, username, email, recruiterProfile, spills } = userData;
-    const {
-        bio, companyName, companyWebsite, jobTitle,
-        location, country, phone, industries,
-    } = recruiterProfile || {};
-
-    const bounties = recruiterProfile?.bounties ?? [];
+    const { fullName, username, recruiterProfile, spills } = recruiterData;
+    const { bio, jobTitle, companyName, companyWebsite, location, country, industries, bounties } = recruiterProfile || {};
 
     const initials = fullName
         ? fullName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
@@ -66,7 +65,6 @@ export default function RecruiterProfilePage() {
             {/* ── COVER BANNER ── */}
             <div className="relative">
                 <div className="h-32 sm:h-44 lg:h-52 w-full bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 relative overflow-hidden">
-                    {/* Pattern overlay */}
                     <div className="absolute inset-0 opacity-10"
                         style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23fff' fill-opacity='0.3'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }}
                     />
@@ -87,6 +85,11 @@ export default function RecruiterProfilePage() {
                             <div className="flex items-center gap-2 flex-wrap">
                                 <h1 className="text-xl sm:text-2xl font-bold text-[var(--theme-text-primary)]">{fullName}</h1>
                                 <span className="text-[12px] font-medium text-[var(--theme-text-muted)]">@{username}</span>
+                                {/* Recruiter badge */}
+                                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest"
+                                    style={{ background: `${accent}15`, color: accent, border: `1px solid ${accent}30` }}>
+                                    Recruiter
+                                </span>
                             </div>
                             <p className="text-[13px] text-[var(--theme-text-muted)] mt-0.5">{displayTitle}</p>
                             <p className="text-[11px] font-medium flex items-center gap-1 mt-1" style={{ color: accent }}>
@@ -102,6 +105,10 @@ export default function RecruiterProfilePage() {
                 <div className="flex flex-wrap items-center gap-2 mb-1">
                     <h1 className="text-lg font-bold text-[var(--theme-text-primary)]">{fullName}</h1>
                     <span className="text-[11px] font-medium text-[var(--theme-text-muted)]">@{username}</span>
+                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest"
+                        style={{ background: `${accent}15`, color: accent, border: `1px solid ${accent}30` }}>
+                        Recruiter
+                    </span>
                 </div>
                 <p className="text-[12px] text-[var(--theme-text-muted)]">{displayTitle}</p>
             </div>
@@ -113,17 +120,17 @@ export default function RecruiterProfilePage() {
                 <div className="flex items-center gap-3 sm:gap-6 mt-4 sm:mt-5 pb-4 border-b border-[var(--theme-border)]">
                     <div className="text-center">
                         <p className="text-sm sm:text-lg font-bold text-[var(--theme-text-primary)]">{bounties?.length || 0}</p>
-                        <p className="text-[9px] sm:text-[10px] text-[var(--theme-text-muted)] uppercase tracking-wider">Bounties</p>
+                        <p className="text-[9px] sm:text-[10px] text-[var(--theme-text-muted)] uppercase tracking-wider">Open Jobs</p>
                     </div>
                     <div className="text-center">
                         <p className="text-sm sm:text-lg font-bold text-[var(--theme-text-primary)]">{spills?.length || 0}</p>
                         <p className="text-[9px] sm:text-[10px] text-[var(--theme-text-muted)] uppercase tracking-wider">Spills</p>
                     </div>
                     <div className="ml-auto flex gap-2">
-                        <Link href="/recruiter/settings"
+                        <Link href={`/recruiter/messages?with=${recruiterData.id}`}
                             className="px-4 sm:px-5 py-2 rounded-xl text-[11px] sm:text-[12px] font-bold text-white border-none cursor-pointer transition-all hover:scale-105 no-underline"
                             style={{ background: `linear-gradient(135deg, ${accent}, #7C3AED)`, boxShadow: `0 0 15px ${accent}40` }}>
-                            Edit Profile
+                            Message
                         </Link>
                     </div>
                 </div>
@@ -139,7 +146,6 @@ export default function RecruiterProfilePage() {
                     ))}
                 </div>
 
-                {/* Tab Content */}
                 <div className="mt-5 space-y-5">
 
                     {/* ── OVERVIEW TAB ── */}
@@ -149,7 +155,7 @@ export default function RecruiterProfilePage() {
                             <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
                                 <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-2">About</h2>
                                 <p className="text-[13px] text-[var(--theme-text-tertiary)] leading-relaxed whitespace-pre-wrap">
-                                    {bio || "No bio added yet. Go to Settings to add one."}
+                                    {bio || "This recruiter hasn't added a bio yet."}
                                 </p>
                                 <div className="flex flex-wrap gap-3 mt-4 text-[11px] text-[var(--theme-text-muted)] pt-3 border-t border-[var(--theme-border-light)]">
                                     {(location || country) && (
@@ -173,59 +179,26 @@ export default function RecruiterProfilePage() {
                                 </div>
                             </div>
 
-                            {/* Contact & Links */}
-                            <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
-                                <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-3 flex items-center gap-2">
-                                    <LinkIcon className="w-4 h-4" /> Contact & Links
-                                </h2>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {email && (
-                                        <a href={`mailto:${email}`}
-                                            className="flex items-center gap-3 p-3 rounded-xl hover:opacity-80 transition-colors border group no-underline"
-                                            style={{ background: "var(--theme-bg-secondary)", borderColor: "var(--theme-border-light)" }}
-                                            onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}
-                                            onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border-light)")}>
-                                            <Mail className="w-5 h-5 text-[var(--theme-text-secondary)]" />
-                                            <div>
-                                                <p className="text-[12px] font-bold text-[var(--theme-text-primary)]">Email</p>
-                                                <p className="text-[10px] text-[var(--theme-text-muted)]">{email}</p>
-                                            </div>
-                                        </a>
-                                    )}
-                                    {phone && (
-                                        <a href={`tel:${phone}`}
-                                            className="flex items-center gap-3 p-3 rounded-xl hover:opacity-80 transition-colors border group no-underline"
-                                            style={{ background: "var(--theme-bg-secondary)", borderColor: "var(--theme-border-light)" }}
-                                            onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}
-                                            onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border-light)")}>
-                                            <Phone className="w-5 h-5 text-[var(--theme-text-secondary)]" />
-                                            <div>
-                                                <p className="text-[12px] font-bold text-[var(--theme-text-primary)]">Phone</p>
-                                                <p className="text-[10px] text-[var(--theme-text-muted)]">{phone}</p>
-                                            </div>
-                                        </a>
-                                    )}
-                                    {companyWebsite && (
-                                        <a href={companyWebsite.startsWith("http") ? companyWebsite : `https://${companyWebsite}`}
-                                            target="_blank" rel="noopener noreferrer"
-                                            className="flex items-center gap-3 p-3 rounded-xl hover:opacity-80 transition-colors border group no-underline"
-                                            style={{ background: "var(--theme-bg-secondary)", borderColor: "var(--theme-border-light)" }}
-                                            onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}
-                                            onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border-light)")}>
-                                            <Globe className="w-5 h-5 text-[var(--theme-text-secondary)]" />
-                                            <div>
-                                                <p className="text-[12px] font-bold text-[var(--theme-text-primary)]">Website</p>
-                                                <p className="text-[10px] text-[var(--theme-text-muted)]">{companyWebsite.replace(/^https?:\/\//, "")}</p>
-                                            </div>
-                                        </a>
-                                    )}
-                                    {!email && !phone && !companyWebsite && (
-                                        <p className="text-[12px] text-[var(--theme-text-muted)] col-span-2">
-                                            No contact info added yet. Go to <Link href="/recruiter/settings" style={{ color: accent }}>Settings</Link> to add some.
-                                        </p>
-                                    )}
+                            {/* Links */}
+                            {companyWebsite && (
+                                <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
+                                    <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-3 flex items-center gap-2">
+                                        <LinkIcon className="w-4 h-4" /> Links
+                                    </h2>
+                                    <a href={companyWebsite.startsWith("http") ? companyWebsite : `https://${companyWebsite}`}
+                                        target="_blank" rel="noopener noreferrer"
+                                        className="flex items-center gap-3 p-3 rounded-xl hover:opacity-80 transition-colors border no-underline w-fit"
+                                        style={{ background: "var(--theme-bg-secondary)", borderColor: "var(--theme-border-light)" }}
+                                        onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}
+                                        onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border-light)")}>
+                                        <Globe className="w-5 h-5 text-[var(--theme-text-secondary)]" />
+                                        <div>
+                                            <p className="text-[12px] font-bold text-[var(--theme-text-primary)]">Company Website</p>
+                                            <p className="text-[10px] text-[var(--theme-text-muted)]">{companyWebsite.replace(/^https?:\/\//, "")}</p>
+                                        </div>
+                                    </a>
                                 </div>
-                            </div>
+                            )}
 
                             {/* Industries */}
                             {industries && industries.length > 0 && (
@@ -235,8 +208,8 @@ export default function RecruiterProfilePage() {
                                     </h2>
                                     <div className="flex flex-wrap gap-2">
                                         {industries.map((ind: any) => (
-                                            <span key={ind.id || ind.industryName}
-                                                className="px-3 py-1.5 rounded-lg text-[11px] sm:text-[12px] font-medium border flex items-center gap-1.5 hover:opacity-80 transition-colors"
+                                            <span key={ind.industryName}
+                                                className="px-3 py-1.5 rounded-lg text-[11px] sm:text-[12px] font-medium border flex items-center gap-1.5"
                                                 style={{ background: "var(--theme-input-bg)", borderColor: "var(--theme-border-light)", color: "var(--theme-text-secondary)" }}>
                                                 <CheckCircle className="w-3 h-3" style={{ color: accent }} />
                                                 {ind.industryName}
@@ -248,7 +221,7 @@ export default function RecruiterProfilePage() {
                         </>
                     )}
 
-                    {/* ── JOBS / BOUNTIES TAB ── */}
+                    {/* ── JOBS TAB ── */}
                     {activeTab === "Jobs" && (
                         <div className="space-y-4">
                             {bounties && bounties.length > 0 ? (
@@ -259,26 +232,27 @@ export default function RecruiterProfilePage() {
                                         onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}
                                         onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border)")}>
                                         <div className="flex items-start justify-between gap-3 flex-wrap">
-                                            <div>
+                                            <div className="flex-1 min-w-0">
                                                 <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-1">{bounty.title}</h3>
                                                 {bounty.description && (
                                                     <p className="text-[12px] text-[var(--theme-text-secondary)] leading-relaxed mb-2 line-clamp-2">{bounty.description}</p>
                                                 )}
-                                                <div className="flex flex-wrap gap-2 text-[10px] text-[var(--theme-text-muted)]">
+                                                <div className="flex flex-wrap items-center gap-2 mt-1">
                                                     {bounty.reward && (
-                                                        <span className="font-bold text-[11px]" style={{ color: accent }}>${bounty.reward?.toLocaleString()}</span>
+                                                        <span className="font-bold text-[12px]" style={{ color: accent }}>
+                                                            ${Number(bounty.reward).toLocaleString()}
+                                                        </span>
                                                     )}
                                                     {bounty.skills?.slice(0, 4).map((s: any) => (
                                                         <span key={s.skillName}
-                                                            className="px-2 py-0.5 rounded-md font-medium"
+                                                            className="px-2 py-0.5 rounded-md text-[10px] font-medium"
                                                             style={{ background: "var(--theme-input-bg)", border: "1px solid var(--theme-border-light)", color: "var(--theme-text-secondary)" }}>
                                                             {s.skillName}
                                                         </span>
                                                     ))}
                                                 </div>
                                             </div>
-                                            <span className={`text-[10px] font-bold px-2 py-1 rounded-full shrink-0 ${bounty.status === "OPEN" ? "bg-green-500/10 text-green-500 border border-green-500/20" : "text-[var(--theme-text-muted)]"}`}
-                                                style={bounty.status !== "OPEN" ? { background: "var(--theme-input-bg)", border: "1px solid var(--theme-border-light)" } : {}}>
+                                            <span className="text-[10px] font-bold px-2 py-1 rounded-full shrink-0 bg-green-500/10 text-green-500 border border-green-500/20">
                                                 {bounty.status}
                                             </span>
                                         </div>
@@ -289,13 +263,8 @@ export default function RecruiterProfilePage() {
                                     <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3" style={{ background: `${accent}15` }}>
                                         <Briefcase className="w-5 h-5" style={{ color: accent }} />
                                     </div>
-                                    <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-1">No Active Jobs</h3>
-                                    <p className="text-[12px] text-[var(--theme-text-muted)] mb-3">You haven't posted any bounties yet.</p>
-                                    <Link href="/recruiter/jobs"
-                                        className="px-4 py-2 rounded-xl text-[12px] font-bold text-white no-underline transition-all hover:scale-105"
-                                        style={{ background: `linear-gradient(135deg, ${accent}, #7C3AED)` }}>
-                                        Post a Bounty
-                                    </Link>
+                                    <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-1">No Open Jobs</h3>
+                                    <p className="text-[12px] text-[var(--theme-text-muted)]">This recruiter has no active bounties right now.</p>
                                 </div>
                             )}
                         </div>
@@ -308,7 +277,7 @@ export default function RecruiterProfilePage() {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {spills.map((spill: any) => (
                                         <div key={spill.id}
-                                            className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden hover:border-[var(--theme-border)] transition-all flex flex-col h-full"
+                                            className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden flex flex-col h-full transition-all"
                                             onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}
                                             onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border)")}>
                                             <div className="p-4 sm:p-5 flex-1">
@@ -357,12 +326,7 @@ export default function RecruiterProfilePage() {
                                         <MessageSquare className="w-5 h-5" style={{ color: accent }} />
                                     </div>
                                     <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-1">No Spills Yet</h3>
-                                    <p className="text-[12px] text-[var(--theme-text-muted)] mb-3">Share your hiring insights and company culture.</p>
-                                    <Link href="/recruiter/spills"
-                                        className="px-4 py-2 rounded-xl text-[12px] font-bold text-white no-underline transition-all hover:scale-105"
-                                        style={{ background: `linear-gradient(135deg, ${accent}, #7C3AED)` }}>
-                                        Create a Spill
-                                    </Link>
+                                    <p className="text-[12px] text-[var(--theme-text-muted)]">This recruiter hasn't posted any spills.</p>
                                 </div>
                             )}
                         </div>

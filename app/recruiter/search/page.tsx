@@ -313,9 +313,14 @@ function RecruiterCard({ user, index, accent }: { user: UserResult; index: numbe
 
                         {/* Actions */}
                         <div className="flex gap-2 shrink-0 ml-auto">
-                            <Link href={`/recruiter/messages?with=${user.id}`}
+                            <Link href={`/recruiter/recruiter/${user.id}`}
                                 className="px-3 py-1.5 rounded-xl text-[11px] font-bold text-white no-underline flex items-center gap-1 transition-all hover:scale-105"
                                 style={{ background: `linear-gradient(135deg, ${accent}, #7C3AED)` }}>
+                                Profile
+                            </Link>
+                            <Link href={`/recruiter/messages?with=${user.id}`}
+                                className="px-3 py-1.5 rounded-xl text-[11px] font-medium no-underline flex items-center gap-1 transition-all hover:opacity-80"
+                                style={{ background: "var(--theme-input-bg)", border: "1px solid var(--theme-border)", color: "var(--theme-text-secondary)" }}>
                                 Message
                             </Link>
                         </div>
