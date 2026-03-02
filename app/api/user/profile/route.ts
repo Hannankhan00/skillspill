@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 export async function GET() {
     try {
@@ -59,7 +60,7 @@ export async function POST(req: Request) {
         const { id, role, passwordHash, createdAt, updatedAt, talentProfile, recruiterProfile, ...updateData } = data;
 
         // Start a transaction for user updates + profile-specific updates
-        const result = await prisma.$transaction(async (tx: typeof prisma) => {
+        const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
 
             // 1. Update Core User Entity
             // Filter core user keys explicitly if needed, but for now we expect mapped inputs
