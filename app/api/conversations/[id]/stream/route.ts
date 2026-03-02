@@ -69,9 +69,10 @@ export async function GET(
 
                     if (newMessages.length > 0) {
                         // Mark other person's messages as read
-                        const unreadIds = newMessages
-                            .filter((m): m is typeof m & { isRead: false } => m.senderId !== session.userId && !m.isRead)
-                            .map((m: { id: string }) => m.id);
+                        type MsgRow = { id: string; senderId: string; isRead: boolean };
+                        const unreadIds: string[] = (newMessages as MsgRow[])
+                            .filter(msg => msg.senderId !== session.userId && !msg.isRead)
+                            .map(msg => msg.id);
                         if (unreadIds.length) {
                             await prisma.message.updateMany({
                                 where: { id: { in: unreadIds } },
