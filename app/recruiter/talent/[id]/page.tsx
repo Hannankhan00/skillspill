@@ -13,7 +13,7 @@ export default function TalentProfileViewPage() {
     const [talentData, setTalentData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("Overview");
-    const tabs = ["Overview", "Projects", "Skills", "Spills"];
+    const tabs = ["Overview", "Experience", "Projects", "Skills", "Spills"];
 
     useEffect(() => {
         if (!id) return;
@@ -51,8 +51,10 @@ export default function TalentProfileViewPage() {
     }
 
     const { fullName, username, talentProfile } = talentData;
-    const { bio, experienceLevel, location, skills, projectLinks, githubUsername, githubConnected, githubRepos, linkedinUrl, portfolioUrl, resumeUrl, isAvailable, contactEmail, contactPhone, showEmail, showPhone, showSocials } = talentProfile || {};
+    const { bio, experienceLevel, skills, projectLinks, githubUsername, githubConnected, githubRepos, linkedinUrl, portfolioUrl, resumeUrl, isAvailable, contactEmail, contactPhone, showEmail, showPhone, showSocials, workExperience } = talentProfile || {};
     const { spills } = talentData;
+
+    const fmtDate = (d: string) => new Date(d).toLocaleDateString("en-US", { month: "short", year: "numeric" });
 
     const initials = fullName ? fullName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) : "??";
     const role = experienceLevel ? `${experienceLevel} Developer` : "Developer";
@@ -149,6 +151,45 @@ export default function TalentProfileViewPage() {
 
                 {/* ── Tab Content ── */}
                 <div className="mt-5 space-y-5">
+                    {activeTab === "Experience" && (
+                        <div className="space-y-3">
+                            {workExperience && workExperience.length > 0 ? (
+                                workExperience.map((exp: any) => (
+                                    <div key={exp.id} className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] p-4 sm:p-5 flex gap-4 hover:border-[#3CF91A]/30 transition-all">
+                                        <div className="w-10 h-10 shrink-0 rounded-xl bg-gradient-to-br from-[#3CF91A] to-[#10B981] flex items-center justify-center text-[13px] font-bold" style={{ color: '#000' }}>
+                                            {exp.companyName[0].toUpperCase()}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-start gap-2 justify-between flex-wrap">
+                                                <div>
+                                                    <p className="text-[13px] font-bold text-[var(--theme-text-primary)]">{exp.role}</p>
+                                                    <p className="text-[12px] font-medium" style={{ color: '#3CF91A' }}>{exp.companyName}</p>
+                                                    <p className="text-[10px] mt-0.5 text-[var(--theme-text-muted)]">
+                                                        {fmtDate(exp.startDate)} – {exp.isCurrent ? "Present" : exp.endDate ? fmtDate(exp.endDate) : ""}
+                                                    </p>
+                                                </div>
+                                                {exp.isCurrent && (
+                                                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ background: '#3CF91A15', color: '#3CF91A', border: '1px solid #3CF91A30' }}>Current</span>
+                                                )}
+                                            </div>
+                                            {exp.description && (
+                                                <p className="text-[12px] text-[var(--theme-text-muted)] mt-2 leading-relaxed">{exp.description}</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-8 text-center flex flex-col items-center">
+                                    <div className="w-12 h-12 rounded-full bg-[var(--theme-bg-secondary)] flex items-center justify-center mb-3">
+                                        <Briefcase className="w-5 h-5 text-[var(--theme-text-muted)]" />
+                                    </div>
+                                    <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-1">No Work Experience</h3>
+                                    <p className="text-[12px] text-[var(--theme-text-muted)]">This talent hasn't added their work history yet.</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     {activeTab === "Overview" && (
                         <>
                             {/* About */}
@@ -156,10 +197,6 @@ export default function TalentProfileViewPage() {
                                 <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-2">About</h2>
                                 <p className="text-[13px] text-[var(--theme-text-tertiary)] leading-relaxed whitespace-pre-wrap">{bio || "This user hasn't added a bio yet."}</p>
                                 <div className="flex flex-wrap gap-3 mt-4 text-[11px] text-[var(--theme-text-muted)] pt-3 border-t border-[var(--theme-border-light)]">
-                                    <span className="flex items-center gap-1.5">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
-                                        {location || "Remote"}
-                                    </span>
                                     <span className="flex items-center gap-1.5 text-[#3CF91A] font-medium">
                                         <Briefcase className="w-3.5 h-3.5" />
                                         {role}

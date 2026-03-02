@@ -68,6 +68,18 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
                                 url: true,
                                 description: true,
                             }
+                        },
+                        workExperience: {
+                            orderBy: [{ isCurrent: "desc" }, { startDate: "desc" }],
+                            select: {
+                                id: true,
+                                companyName: true,
+                                role: true,
+                                startDate: true,
+                                endDate: true,
+                                isCurrent: true,
+                                description: true,
+                            }
                         }
                     }
                 }

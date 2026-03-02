@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 /*  Icons  */
 function ShieldIcon() {
@@ -20,9 +20,14 @@ function EyeIcon() {
     return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>;
 }
 
+function BriefcaseIconSm() {
+    return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>;
+}
+
 const settingsTabs = [
     { key: "security", label: "Security", icon: <ShieldIcon />, desc: "Account safety" },
     { key: "privacy", label: "Privacy", icon: <EyeIcon />, desc: "Profile visibility" },
+    { key: "experience", label: "Experience", icon: <BriefcaseIconSm />, desc: "Work history" },
     { key: "notifications", label: "Notifications", icon: <BellIcon />, desc: "Alert preferences" },
     { key: "connections", label: "Connections", icon: <LinkIcon />, desc: "Linked accounts" },
 ];
@@ -128,6 +133,78 @@ export default function SettingsPage() {
     const [contactEmail, setContactEmail] = useState("");
     const [contactPhone, setContactPhone] = useState("");
     const [isSavingPrivacy, setIsSavingPrivacy] = useState(false);
+
+    /* ── Work Experience ── */
+    type WorkExp = {
+        id: string; companyName: string; role: string;
+        startDate: string; endDate: string | null; isCurrent: boolean; description: string | null;
+    };
+    const [experiences, setExperiences] = useState<WorkExp[]>([]);
+    const [loadingExp, setLoadingExp] = useState(false);
+    const [showExpForm, setShowExpForm] = useState(false);
+    const [editingExp, setEditingExp] = useState<WorkExp | null>(null);
+    const [expForm, setExpForm] = useState({ companyName: "", role: "", startDate: "", endDate: "", isCurrent: false, description: "" });
+    const [savingExp, setSavingExp] = useState(false);
+
+    useEffect(() => {
+        if (activeTab !== "experience") return;
+        setLoadingExp(true);
+        fetch("/api/talent/work-experience")
+            .then(r => r.json())
+            .then(d => setExperiences(d.workExperience ?? []))
+            .finally(() => setLoadingExp(false));
+    }, [activeTab]);
+
+    const openAddForm = () => {
+        setEditingExp(null);
+        setExpForm({ companyName: "", role: "", startDate: "", endDate: "", isCurrent: false, description: "" });
+        setShowExpForm(true);
+    };
+
+    const openEditForm = (exp: WorkExp) => {
+        setEditingExp(exp);
+        setExpForm({
+            companyName: exp.companyName,
+            role: exp.role,
+            startDate: exp.startDate.slice(0, 10),
+            endDate: exp.endDate ? exp.endDate.slice(0, 10) : "",
+            isCurrent: exp.isCurrent,
+            description: exp.description ?? "",
+        });
+        setShowExpForm(true);
+    };
+
+    const saveExperience = async () => {
+        if (!expForm.companyName || !expForm.role || !expForm.startDate) return;
+        setSavingExp(true);
+        const url = editingExp ? `/api/talent/work-experience/${editingExp.id}` : "/api/talent/work-experience";
+        const method = editingExp ? "PATCH" : "POST";
+        const res = await fetch(url, {
+            method, headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...expForm, endDate: expForm.isCurrent ? null : (expForm.endDate || null) }),
+        });
+        const data = await res.json();
+        if (data.entry) {
+            if (editingExp) {
+                setExperiences(prev => prev.map(e => e.id === editingExp.id ? data.entry : e));
+            } else {
+                setExperiences(prev => [data.entry, ...prev]);
+            }
+            setShowExpForm(false);
+        }
+        setSavingExp(false);
+    };
+
+    const deleteExperience = async (id: string) => {
+        if (!confirm("Remove this work experience?")) return;
+        await fetch(`/api/talent/work-experience/${id}`, { method: "DELETE" });
+        setExperiences(prev => prev.filter(e => e.id !== id));
+    };
+
+    const formatDateRange = (exp: WorkExp) => {
+        const fmt = (d: string) => new Date(d).toLocaleDateString("en-US", { month: "short", year: "numeric" });
+        return `${fmt(exp.startDate)} – ${exp.isCurrent ? "Present" : exp.endDate ? fmt(exp.endDate) : ""}`;
+    };
 
     const savePrivacySettings = async () => {
         setIsSavingPrivacy(true);
@@ -277,7 +354,137 @@ export default function SettingsPage() {
                                 </div>
                             )}
 
-                            {/*  Notifications  */}
+                            {/*  Experience  */}
+                            {activeTab === "experience" && (
+                                <div className="p-6 space-y-6">
+                                    <Section title="Work Experience" desc="Your career history — shown on your profile just like LinkedIn">
+
+                                        {/* Add button */}
+                                        {!showExpForm && (
+                                            <button onClick={openAddForm}
+                                                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105"
+                                                style={{ background: '#3CF91A', boxShadow: '0 4px 15px rgba(60,249,26,0.3)' }}>
+                                                + Add Experience
+                                            </button>
+                                        )}
+
+                                        {/* Inline Add/Edit form */}
+                                        {showExpForm && (
+                                            <div className="rounded-2xl p-5 space-y-4 border" style={{ background: 'var(--theme-bg)', borderColor: 'var(--theme-border)' }}>
+                                                <h3 className="text-[13px] font-bold" style={{ color: 'var(--theme-text-primary)' }}>
+                                                    {editingExp ? "Edit Experience" : "Add Experience"}
+                                                </h3>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    <InputField label="Company Name" value={expForm.companyName}
+                                                        onChange={v => setExpForm(f => ({ ...f, companyName: v }))}
+                                                        placeholder="e.g. NastecSol" />
+                                                    <InputField label="Your Role / Title" value={expForm.role}
+                                                        onChange={v => setExpForm(f => ({ ...f, role: v }))}
+                                                        placeholder="e.g. CEO, HR Manager, SWE" />
+                                                </div>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    <InputField label="Start Date" value={expForm.startDate} type="date"
+                                                        onChange={v => setExpForm(f => ({ ...f, startDate: v }))} />
+                                                    {!expForm.isCurrent && (
+                                                        <InputField label="End Date" value={expForm.endDate} type="date"
+                                                            onChange={v => setExpForm(f => ({ ...f, endDate: v }))} />
+                                                    )}
+                                                </div>
+                                                {/* isCurrent toggle */}
+                                                <div className="flex items-center gap-3">
+                                                    <Toggle enabled={expForm.isCurrent}
+                                                        onToggle={() => setExpForm(f => ({ ...f, isCurrent: !f.isCurrent, endDate: "" }))} />
+                                                    <span className="text-[12px] font-medium" style={{ color: 'var(--theme-text-secondary)' }}>
+                                                        I currently work here
+                                                    </span>
+                                                </div>
+                                                {/* Description */}
+                                                <div>
+                                                    <label className="text-[10px] uppercase tracking-widest font-semibold block mb-1.5" style={{ color: 'var(--theme-text-muted)' }}>
+                                                        Description (optional)
+                                                    </label>
+                                                    <textarea
+                                                        value={expForm.description}
+                                                        onChange={e => setExpForm(f => ({ ...f, description: e.target.value }))}
+                                                        rows={3}
+                                                        placeholder="Briefly describe your role and key achievements..."
+                                                        className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none resize-none focus:ring-2 focus:ring-[#3CF91A]/20"
+                                                        style={{ background: 'var(--theme-input-bg)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
+                                                    />
+                                                </div>
+                                                <div className="flex gap-3 pt-1">
+                                                    <button onClick={saveExperience} disabled={savingExp || !expForm.companyName || !expForm.role || !expForm.startDate}
+                                                        className="px-5 py-2.5 rounded-xl text-[12px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105 disabled:opacity-50"
+                                                        style={{ background: '#3CF91A' }}>
+                                                        {savingExp ? "Saving..." : editingExp ? "Save Changes" : "Add"}
+                                                    </button>
+                                                    <button onClick={() => setShowExpForm(false)}
+                                                        className="px-5 py-2.5 rounded-xl text-[12px] font-medium border-none cursor-pointer transition-all hover:opacity-80"
+                                                        style={{ background: 'var(--theme-input-bg)', color: 'var(--theme-text-muted)', border: '1px solid var(--theme-border)' }}>
+                                                        Cancel
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Experience list */}
+                                        {loadingExp ? (
+                                            <div className="text-center py-8 text-[12px]" style={{ color: 'var(--theme-text-muted)' }}>Loading...</div>
+                                        ) : experiences.length === 0 ? (
+                                            <div className="rounded-2xl border border-dashed p-8 text-center" style={{ borderColor: 'var(--theme-border)' }}>
+                                                <p className="text-[13px] font-medium" style={{ color: 'var(--theme-text-muted)' }}>No work experience added yet.</p>
+                                                <p className="text-[11px] mt-1" style={{ color: 'var(--theme-text-muted)' }}>Add your current and past roles — they'll appear on your profile.</p>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                {experiences.map((exp) => (
+                                                    <div key={exp.id} className="rounded-2xl border p-4 flex gap-4 group transition-all"
+                                                        style={{ background: 'var(--theme-bg)', borderColor: 'var(--theme-border)' }}
+                                                        onMouseEnter={e => (e.currentTarget.style.borderColor = '#3CF91A33')}
+                                                        onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--theme-border)')}>
+                                                        {/* Company initial badge */}
+                                                        <div className="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center text-[13px] font-bold text-white bg-gradient-to-br from-[#3CF91A] to-[#00C853]" style={{ color: '#000' }}>
+                                                            {exp.companyName[0].toUpperCase()}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-start justify-between gap-2">
+                                                                <div>
+                                                                    <p className="text-[13px] font-bold" style={{ color: 'var(--theme-text-primary)' }}>{exp.role}</p>
+                                                                    <p className="text-[12px] font-medium" style={{ color: 'var(--theme-text-secondary)' }}>{exp.companyName}</p>
+                                                                    <p className="text-[10px] mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>{formatDateRange(exp)}</p>
+                                                                </div>
+                                                                <div className="flex gap-1.5 shrink-0">
+                                                                    {exp.isCurrent && (
+                                                                        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full"
+                                                                            style={{ background: '#3CF91A15', color: '#3CF91A', border: '1px solid #3CF91A30' }}>
+                                                                            Current
+                                                                        </span>
+                                                                    )}
+                                                                    <button onClick={() => openEditForm(exp)} title="Edit"
+                                                                        className="p-1.5 rounded-lg border-none cursor-pointer text-[10px] transition-all hover:opacity-80"
+                                                                        style={{ background: 'var(--theme-input-bg)', color: 'var(--theme-text-muted)' }}>
+                                                                        ✏️
+                                                                    </button>
+                                                                    <button onClick={() => deleteExperience(exp.id)} title="Remove"
+                                                                        className="p-1.5 rounded-lg border-none cursor-pointer transition-all hover:opacity-80"
+                                                                        style={{ background: 'rgba(239,68,68,0.08)', color: '#EF4444' }}>
+                                                                        <TrashIcon />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                            {exp.description && (
+                                                                <p className="text-[11px] mt-2 leading-relaxed" style={{ color: 'var(--theme-text-muted)' }}>{exp.description}</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </Section>
+                                </div>
+                            )}
+
+
                             {activeTab === "notifications" && (
                                 <div className="p-6 space-y-6">
                                     <Section title="Notifications" desc="Choose what alerts you want to receive">

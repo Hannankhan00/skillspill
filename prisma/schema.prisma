@@ -129,10 +129,11 @@ model TalentProfile {
   updatedAt       DateTime        @updatedAt
 
   // Relations
-  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  skills       TalentSkill[]
-  projectLinks TalentProject[]
-  applications BountyApplication[]
+  user           User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skills         TalentSkill[]
+  projectLinks   TalentProject[]
+  workExperience TalentWorkExperience[]
+  applications   BountyApplication[]
 
   @@map("talent_profiles")
 }
@@ -161,6 +162,22 @@ model TalentProject {
 
   @@index([talentProfileId])
   @@map("talent_projects")
+}
+
+model TalentWorkExperience {
+  id              String    @id @default(cuid())
+  talentProfileId String
+  companyName     String
+  role            String
+  startDate       DateTime
+  endDate         DateTime?
+  isCurrent       Boolean   @default(false)
+  description     String?   @db.Text
+
+  talentProfile TalentProfile @relation(fields: [talentProfileId], references: [id], onDelete: Cascade)
+
+  @@index([talentProfileId])
+  @@map("talent_work_experience")
 }
 
 // ─────────────────────────────────────────────

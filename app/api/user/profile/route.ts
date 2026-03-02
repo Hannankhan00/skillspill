@@ -17,6 +17,7 @@ export async function GET() {
                     include: {
                         skills: true,
                         projectLinks: true,
+                        workExperience: { orderBy: [{ isCurrent: "desc" }, { startDate: "desc" }] },
                     }
                 },
                 recruiterProfile: {
