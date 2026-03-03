@@ -9,13 +9,17 @@ export const dynamic = "force-dynamic";
 // ───────────── VALIDATION SCHEMA ─────────────
 const RecruiterSchema = z.object({
     companyName: z.string().min(2),
-    username: z.string().min(3),
     email: z.string().email(),
     password: z.string().min(8),
     companyWebsite: z.string().url().optional().or(z.literal("")),
     companyPhone: z.string().optional(),
     companySize: z.string().optional(),
-    location: z.string().optional(),
+    addressLine1: z.string().optional(),
+    addressLine2: z.string().optional(),
+    city: z.string().optional(),
+    state: z.string().optional(),
+    postalCode: z.string().optional(),
+    country: z.string().optional(),
     industry: z.array(z.string()).optional(),
 });
 
@@ -28,19 +32,23 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Invalid data", details: result.error.format() }, { status: 400 });
         }
 
-        const { companyName, username, email, password, companyWebsite, companyPhone, companySize, location, industry } = result.data;
+        const { companyName, email, password, companyWebsite, companyPhone, companySize,
+            addressLine1, addressLine2, city, state, postalCode, country, industry } = result.data;
 
-        // 1. Check if user exists
-        const existing = await prisma.user.findFirst({
-            where: {
-                OR: [{ email }, { username }],
-            },
-        });
-
-        if (existing) {
-            if (existing.email === email) return NextResponse.json({ error: "Email already taken" }, { status: 409 });
-            if (existing.username === username) return NextResponse.json({ error: "Username already taken" }, { status: 409 });
+        // Auto-generate unique username from company name
+        const baseUsername = companyName.toLowerCase().replace(/[^a-z0-9]/g, "_").replace(/_+/g, "_").slice(0, 20);
+        let username = baseUsername;
+        let suffix = 1;
+        while (await prisma.user.findUnique({ where: { username } })) {
+            username = `${baseUsername}_${suffix++}`;
         }
+
+        // 1. Check uniqueness
+        const existingEmail = await prisma.user.findUnique({ where: { email } });
+        if (existingEmail) return NextResponse.json({ error: "Email already taken" }, { status: 409 });
+
+        const existingCompany = await prisma.recruiterProfile.findUnique({ where: { companyName } });
+        if (existingCompany) return NextResponse.json({ error: "A company with this name already exists. If you work there, ask your company admin to add you." }, { status: 409 });
 
 
         // 2. Hash Password
@@ -66,7 +74,12 @@ export async function POST(req: NextRequest) {
                     companyName,
                     companyWebsite: companyWebsite || null,
                     companySize,
-                    location,
+                    addressLine1: addressLine1 || null,
+                    addressLine2: addressLine2 || null,
+                    city: city || null,
+                    state: state || null,
+                    postalCode: postalCode || null,
+                    country: country || null,
                     phone: companyPhone || null,
                 },
             });

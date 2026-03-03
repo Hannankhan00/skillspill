@@ -46,8 +46,9 @@ export default function RecruiterProfilePage() {
     /* ── Edit modal ── */
     const [showEdit, setShowEdit] = useState(false);
     const [form, setForm] = useState({
-        companyName: "", companyWebsite: "",
-        companySize: "", location: "", country: "", bio: "", phone: "",
+        companyName: "", companyWebsite: "", companySize: "",
+        addressLine1: "", addressLine2: "", city: "", state: "", postalCode: "", country: "",
+        bio: "", phone: "",
     });
     const [saving, setSaving] = useState(false);
     const [saveMsg, setSaveMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
@@ -65,7 +66,11 @@ export default function RecruiterProfilePage() {
                         companyName: rp.companyName || "",
                         companyWebsite: rp.companyWebsite || "",
                         companySize: rp.companySize || "",
-                        location: rp.location || "",
+                        addressLine1: rp.addressLine1 || "",
+                        addressLine2: rp.addressLine2 || "",
+                        city: rp.city || "",
+                        state: rp.state || "",
+                        postalCode: rp.postalCode || "",
                         country: rp.country || "",
                         bio: rp.bio || "",
                         phone: rp.phone || "",
@@ -96,11 +101,15 @@ export default function RecruiterProfilePage() {
                     companyName: form.companyName || "Unknown",
                     companyWebsite: form.companyWebsite || null,
                     companySize: form.companySize || null,
-                    location: form.location || null,
+                    addressLine1: form.addressLine1 || null,
+                    addressLine2: form.addressLine2 || null,
+                    city: form.city || null,
+                    state: form.state || null,
+                    postalCode: form.postalCode || null,
                     country: form.country || null,
                     bio: form.bio || null,
                     phone: form.phone || null,
-                },
+                }
             }),
         });
         const data = await res.json();
@@ -138,14 +147,13 @@ export default function RecruiterProfilePage() {
     }
 
     const { fullName, username, email, recruiterProfile, spills } = userData;
-    const { bio, companyName, companyWebsite, jobTitle, location, country, phone, industries } = recruiterProfile || {};
+    const { bio, companyName, companyWebsite, city, state, country, phone, industries } = recruiterProfile || {};
+    const displayLocation = [city, state, country].filter(Boolean).join(", ");
     const bounties = recruiterProfile?.bounties ?? [];
     const initials = fullName
         ? fullName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
         : "??";
-    const displayTitle = jobTitle
-        ? `${jobTitle}${companyName ? ` at ${companyName}` : ""}`
-        : companyName || "Recruiter";
+    const displayTitle = companyName || "Company Profile";
 
     return (
         <div style={{ background: "var(--theme-bg)" }} className="min-h-full">
@@ -215,38 +223,56 @@ export default function RecruiterProfilePage() {
                                         <option value="501-1000">501–1000</option>
                                         <option value="1001+">1001+</option>
                                     </select>
+                                    <div className="col-span-1 sm:col-span-2 mt-2">
+                                        <h4 className="text-[12px] font-bold text-[var(--theme-text-primary)] mb-2 flex items-center gap-2 border-b border-[var(--theme-border-light)] pb-2">
+                                            <MapPin className="w-4 h-4" style={{ color: accent }} />
+                                            Company Address
+                                        </h4>
+                                    </div>
+                                    <Field label="Address Line 1" value={form.addressLine1}
+                                        onChange={v => setForm(f => ({ ...f, addressLine1: v }))}
+                                        placeholder="Street address, P.O. box" />
+                                    <Field label="Address Line 2" value={form.addressLine2}
+                                        onChange={v => setForm(f => ({ ...f, addressLine2: v }))}
+                                        placeholder="Apartment, suite, unit (optional)" />
+                                    <Field label="City" value={form.city}
+                                        onChange={v => setForm(f => ({ ...f, city: v }))}
+                                        placeholder="e.g. Karachi" />
+                                    <Field label="State / Province" value={form.state}
+                                        onChange={v => setForm(f => ({ ...f, state: v }))}
+                                        placeholder="e.g. Sindh" />
+                                    <Field label="Postal Code" value={form.postalCode}
+                                        onChange={v => setForm(f => ({ ...f, postalCode: v }))}
+                                        placeholder="e.g. 75500" />
+                                    <Field label="Country" value={form.country}
+                                        onChange={v => setForm(f => ({ ...f, country: v }))}
+                                        placeholder="e.g. Pakistan" />
                                 </div>
-                                <Field label="City / Location" value={form.location}
-                                    onChange={v => setForm(f => ({ ...f, location: v }))}
-                                    placeholder="e.g. Karachi" />
-                                <Field label="Country" value={form.country}
-                                    onChange={v => setForm(f => ({ ...f, country: v }))}
-                                    placeholder="e.g. Pakistan" />
+
+                                <Field label="Company Phone" value={form.phone}
+                                    onChange={v => setForm(f => ({ ...f, phone: v }))}
+                                    placeholder="+92 300 1234567" />
+
+                                {/* Bio */}
+                                <Field label="Company Bio" value={form.bio}
+                                    onChange={v => setForm(f => ({ ...f, bio: v }))}
+                                    placeholder="Describe your company, culture, and what makes it great..."
+                                    textarea />
                             </div>
 
-                            <Field label="Company Phone" value={form.phone}
-                                onChange={v => setForm(f => ({ ...f, phone: v }))}
-                                placeholder="+92 300 1234567" />
-
-                            {/* Bio */}
-                            <Field label="Company Bio" value={form.bio}
-                                onChange={v => setForm(f => ({ ...f, bio: v }))}
-                                placeholder="Describe your company, culture, and what makes it great..."
-                                textarea />
-                        </div>
-
-                        {/* Footer */}
-                        <div className="px-5 py-4 border-t border-[var(--theme-border)] flex items-center justify-end gap-2">
-                            <button onClick={() => setShowEdit(false)}
-                                className="px-4 py-2 rounded-xl text-[12px] font-medium border-none cursor-pointer"
-                                style={{ background: "var(--theme-bg-secondary)", color: "var(--theme-text-muted)" }}>
-                                Cancel
-                            </button>
-                            <button onClick={handleSave} disabled={saving}
-                                className="px-5 py-2 rounded-xl text-[12px] font-bold text-white border-none cursor-pointer transition-all hover:scale-105 disabled:opacity-60"
-                                style={{ background: `linear-gradient(135deg, ${accent}, #7C3AED)`, boxShadow: saving ? "none" : `0 4px 15px ${accent}50` }}>
-                                {saving ? "Saving..." : "Save Changes"}
-                            </button>
+                            {/* Footer */}
+                            <div className="px-5 py-4 border-t border-[var(--theme-border)] flex items-center justify-end gap-2">
+                                <button onClick={() => setShowEdit(false)}
+                                    className="px-4 py-2 rounded-xl text-[12px] font-medium border-none cursor-pointer"
+                                    style={{ background: "var(--theme-bg-secondary)", color: "var(--theme-text-muted)" }}>
+                                    Cancel
+                                </button>
+                                <button onClick={handleSave} disabled={saving}
+                                    className="px-5 py-2 rounded-xl text-[12px] font-bold text-white border-none cursor-pointer transition-all hover:scale-105 disabled:opacity-60"
+                                    style={{ background: `linear-gradient(135deg, ${accent}, #7C3AED)`, boxShadow: saving ? "none" : `0 4px 15px ${accent}50` }}>
+                                    {saving ? "Saving..." : "Save Changes"}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -356,22 +382,16 @@ export default function RecruiterProfilePage() {
                                     )}
                                 </p>
                                 <div className="flex flex-wrap gap-3 mt-4 text-[11px] text-[var(--theme-text-muted)] pt-3 border-t border-[var(--theme-border-light)]">
-                                    {(location || country) && (
+                                    {displayLocation && (
                                         <span className="flex items-center gap-1.5">
                                             <MapPin className="w-3.5 h-3.5" />
-                                            {[location, country].filter(Boolean).join(", ")}
+                                            {displayLocation}
                                         </span>
                                     )}
                                     {companyName && (
                                         <span className="flex items-center gap-1.5 font-medium" style={{ color: accent }}>
                                             <Building2 className="w-3.5 h-3.5" />
                                             {companyName}
-                                        </span>
-                                    )}
-                                    {jobTitle && (
-                                        <span className="flex items-center gap-1.5">
-                                            <Briefcase className="w-3.5 h-3.5" />
-                                            {jobTitle}
                                         </span>
                                     )}
                                 </div>
@@ -496,7 +516,7 @@ export default function RecruiterProfilePage() {
                                         <Briefcase className="w-5 h-5" style={{ color: accent }} />
                                     </div>
                                     <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-1">No Active Jobs</h3>
-                                    <p className="text-[12px] text-[var(--theme-text-muted)] mb-3">You haven't posted any bounties yet.</p>
+                                    <p className="text-[12px] text-[var(--theme-text-muted)] mb-3">You haven&apos;t posted any bounties yet.</p>
                                     <Link href="/recruiter/jobs"
                                         className="px-4 py-2 rounded-xl text-[12px] font-bold text-white no-underline transition-all hover:scale-105"
                                         style={{ background: `linear-gradient(135deg, ${accent}, #7C3AED)` }}>
@@ -512,7 +532,7 @@ export default function RecruiterProfilePage() {
                         <div className="space-y-4">
                             {spills && spills.length > 0 ? (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {spills.map((spill: any) => (
+                                    {spills.map((spill: { id: string; content?: string; createdAt: string; code?: string; codeLang?: string; tags?: string; likes?: number; comments?: number; shares?: number; views?: number }) => (
                                         <div key={spill.id}
                                             className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden flex flex-col transition-all"
                                             onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}

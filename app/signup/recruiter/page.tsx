@@ -76,9 +76,11 @@ function ParticlesCanvas() {
 
 /* ───────────── Form Types ───────────── */
 interface RecruiterFormData {
-    companyName: string; email: string; username: string; password: string; confirmPassword: string;
+    companyName: string; email: string; password: string; confirmPassword: string;
     companyWebsite: string; companyPhone: string; companySize: string;
-    companyAddress: string; industry: string[];
+    addressLine1: string; addressLine2: string; city: string;
+    state: string; postalCode: string; country: string;
+    industry: string[];
     agreedToTerms: boolean;
 }
 
@@ -117,9 +119,11 @@ export default function RecruiterSignup() {
     const [submitError, setSubmitError] = useState("");
 
     const [formData, setFormData] = useState<RecruiterFormData>({
-        companyName: "", email: "", username: "", password: "", confirmPassword: "",
+        companyName: "", email: "", password: "", confirmPassword: "",
         companyWebsite: "", companyPhone: "", companySize: "",
-        companyAddress: "", industry: [],
+        addressLine1: "", addressLine2: "", city: "",
+        state: "", postalCode: "", country: "",
+        industry: [],
         agreedToTerms: false
     });
 
@@ -148,8 +152,11 @@ export default function RecruiterSignup() {
             if (!formData.companyName.trim()) e.companyName = "Required";
             if (!formData.email.trim()) e.email = "Required";
             else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) e.email = "Invalid email";
-            if (!formData.username.trim()) e.username = "Required";
-            else if (formData.username.length < 3) e.username = "Min 3 chars";
+            // Website: if provided, must be a valid URL
+            if (formData.companyWebsite.trim()) {
+                try { new URL(formData.companyWebsite.startsWith("http") ? formData.companyWebsite : `https://${formData.companyWebsite}`); }
+                catch { e.companyWebsite = "Please enter a valid website URL (e.g. https://company.com)"; }
+            }
             if (!formData.password) e.password = "Required";
             else if (formData.password.length < 8) e.password = "Min 8 chars";
             if (formData.password !== formData.confirmPassword) e.confirmPassword = "Mismatch";
@@ -177,9 +184,9 @@ export default function RecruiterSignup() {
                 <p className="text-xs text-[#666]" style={mono}>Phase 1: Register your company credentials.</p>
             </div>
 
-            <InputField label="Company Name" icon={IconBuilding} value={formData.companyName} onChange={(e: any) => updateForm("companyName", e.target.value)} placeholder="e.g. NastecSol" error={errors.companyName} />
+            <InputField label="Company Name" icon={IconBuilding} value={formData.companyName} onChange={(e: any) => updateForm("companyName", e.target.value)} placeholder="e.g. SkillSpill" error={errors.companyName} />
             <InputField label="Company Email" icon={IconMail} value={formData.email} onChange={(e: any) => updateForm("email", e.target.value)} placeholder="contact@company.com" error={errors.email} />
-            <InputField label="Username / Alias" icon={IconAtSign} value={formData.username} onChange={(e: any) => updateForm("username", e.target.value)} placeholder="nastec_sol" error={errors.username} />
+            <InputField label="Website" icon={IconGlobe} value={formData.companyWebsite} onChange={(e: any) => updateForm("companyWebsite", e.target.value)} placeholder="https://company.com" error={errors.companyWebsite} />
 
             <div className="grid grid-cols-2 gap-4">
                 <InputField
@@ -214,11 +221,37 @@ export default function RecruiterSignup() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-                <InputField label="Website" icon={IconGlobe} value={formData.companyWebsite} onChange={(e: any) => updateForm("companyWebsite", e.target.value)} placeholder="https://company.com" />
                 <InputField label="Phone" icon={IconPhone} value={formData.companyPhone} onChange={(e: any) => updateForm("companyPhone", e.target.value)} placeholder="+92 300 1234567" />
+                <div className="flex flex-col gap-2">
+                    <label className="text-[10px] font-bold text-[#A855F7] uppercase tracking-wider flex items-center gap-2" style={mono}><IconUsers /> Company Size</label>
+                    <select value={formData.companySize} onChange={(e) => updateForm("companySize", e.target.value)}
+                        className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#A855F7] font-mono appearance-none" style={mono}>
+                        <option value="" disabled>Select Size</option>
+                        <option value="1-10">1–10 Employees</option>
+                        <option value="11-50">11–50 Employees</option>
+                        <option value="51-200">51–200 Employees</option>
+                        <option value="201-1000">201–1000 Employees</option>
+                        <option value="1000+">1000+ Employees</option>
+                    </select>
+                </div>
             </div>
 
-            <InputField label="Address / Location" icon={IconMapPin} value={formData.companyAddress} onChange={(e: any) => updateForm("companyAddress", e.target.value)} placeholder="e.g. Karachi, Pakistan" />
+            {/* Structured Address */}
+            <div>
+                <label className="text-[10px] font-bold text-[#A855F7] uppercase tracking-wider flex items-center gap-2 mb-3" style={mono}><IconMapPin /> Company Address</label>
+                <div className="flex flex-col gap-3">
+                    <InputField label="Address Line 1" icon={IconMapPin} value={formData.addressLine1} onChange={(e: any) => updateForm("addressLine1", e.target.value)} placeholder="Street address, P.O. box" />
+                    <InputField label="Address Line 2" icon={IconMapPin} value={formData.addressLine2} onChange={(e: any) => updateForm("addressLine2", e.target.value)} placeholder="Apartment, suite, unit (optional)" />
+                    <div className="grid grid-cols-2 gap-3">
+                        <InputField label="City" icon={IconMapPin} value={formData.city} onChange={(e: any) => updateForm("city", e.target.value)} placeholder="e.g. Karachi" />
+                        <InputField label="State / Province" icon={IconMapPin} value={formData.state} onChange={(e: any) => updateForm("state", e.target.value)} placeholder="e.g. Sindh" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <InputField label="Postal Code" icon={IconMapPin} value={formData.postalCode} onChange={(e: any) => updateForm("postalCode", e.target.value)} placeholder="e.g. 75500" />
+                        <InputField label="Country" icon={IconMapPin} value={formData.country} onChange={(e: any) => updateForm("country", e.target.value)} placeholder="e.g. Pakistan" />
+                    </div>
+                </div>
+            </div>
 
             <div className="flex flex-col gap-3">
                 <label className="text-[10px] font-bold text-[#A855F7] uppercase tracking-wider flex items-center gap-2" style={mono}><IconGrid /> Industry Sectors</label>
@@ -231,23 +264,6 @@ export default function RecruiterSignup() {
                 </div>
                 {errors.industry && <span className="text-[10px] text-[#FF003C]" style={mono}>{errors.industry}</span>}
             </div>
-
-            <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-bold text-[#A855F7] uppercase tracking-wider flex items-center gap-2" style={mono}><IconUsers /> Company Size</label>
-                <select
-                    value={formData.companySize}
-                    onChange={(e) => updateForm("companySize", e.target.value)}
-                    className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#A855F7] font-mono appearance-none resize-none"
-                    style={mono}
-                >
-                    <option value="" disabled>Select Size</option>
-                    <option value="1-10">1–10 Employees</option>
-                    <option value="11-50">11–50 Employees</option>
-                    <option value="51-200">51–200 Employees</option>
-                    <option value="201-1000">201–1000 Employees</option>
-                    <option value="1000+">1000+ Employees</option>
-                </select>
-            </div>
         </div>
     );
 
@@ -259,36 +275,18 @@ export default function RecruiterSignup() {
             </div>
 
             <div className="p-4 bg-[#111] border border-white/10 rounded-xl space-y-3">
-                <div className="flex justify-between items-center pb-3 border-b border-white/5">
-                    <span className="text-xs text-[#666]">Company</span>
-                    <span className="text-sm font-bold text-white">{formData.companyName}</span>
-                </div>
-                <div className="flex justify-between items-center pb-3 border-b border-white/5">
-                    <span className="text-xs text-[#666]">Username</span>
-                    <span className="text-sm font-bold text-[#A855F7]">@{formData.username}</span>
-                </div>
-                <div className="flex justify-between items-center pb-3 border-b border-white/5">
-                    <span className="text-xs text-[#666]">Email</span>
-                    <span className="text-sm font-bold text-white">{formData.email}</span>
-                </div>
-                {formData.companyPhone && (
-                    <div className="flex justify-between items-center pb-3 border-b border-white/5">
-                        <span className="text-xs text-[#666]">Phone</span>
-                        <span className="text-sm font-bold text-white">{formData.companyPhone}</span>
+                {[{ label: "Company", value: formData.companyName },
+                { label: "Email", value: formData.email },
+                { label: "Website", value: formData.companyWebsite },
+                { label: "Phone", value: formData.companyPhone },
+                { label: "Address", value: [formData.addressLine1, formData.addressLine2, formData.city, formData.state, formData.postalCode, formData.country].filter(Boolean).join(", ") },
+                { label: "Industries", value: formData.industry.join(", ") },
+                ].filter(r => r.value).map((row, i, arr) => (
+                    <div key={row.label} className={`flex justify-between items-start gap-3 ${i < arr.length - 1 ? "pb-3 border-b border-white/5" : ""}`}>
+                        <span className="text-xs text-[#666] shrink-0">{row.label}</span>
+                        <span className="text-sm font-bold text-white text-right">{row.value}</span>
                     </div>
-                )}
-                {formData.companyAddress && (
-                    <div className="flex justify-between items-center pb-3 border-b border-white/5">
-                        <span className="text-xs text-[#666]">Address</span>
-                        <span className="text-sm font-bold text-white">{formData.companyAddress}</span>
-                    </div>
-                )}
-                {formData.industry.length > 0 && (
-                    <div className="flex justify-between items-start">
-                        <span className="text-xs text-[#666]">Industries</span>
-                        <span className="text-sm font-bold text-white text-right max-w-[200px]">{formData.industry.join(", ")}</span>
-                    </div>
-                )}
+                ))}
             </div>
 
             <div className="flex items-start gap-3 p-4 bg-[#111] border border-white/10 rounded-xl">
@@ -381,12 +379,16 @@ export default function RecruiterSignup() {
                                     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
                                         companyName: formData.companyName,
                                         email: formData.email,
-                                        username: formData.username,
                                         password: formData.password,
                                         companyWebsite: formData.companyWebsite,
                                         companyPhone: formData.companyPhone,
                                         companySize: formData.companySize,
-                                        location: formData.companyAddress,
+                                        addressLine1: formData.addressLine1,
+                                        addressLine2: formData.addressLine2,
+                                        city: formData.city,
+                                        state: formData.state,
+                                        postalCode: formData.postalCode,
+                                        country: formData.country,
                                         industry: formData.industry,
                                     })
                                 });

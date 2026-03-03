@@ -46,8 +46,9 @@ export async function GET(req: Request) {
                     select: {
                         companyName: true,
                         companyWebsite: true,
-                        jobTitle: true,
-                        location: true,
+                        city: true,
+                        state: true,
+                        country: true,
                         bio: true,
                     },
                 },
@@ -61,7 +62,7 @@ export async function GET(req: Request) {
             const name = u.fullName?.toLowerCase() ?? "";
             const username = u.username?.toLowerCase() ?? "";
             const company = u.recruiterProfile?.companyName?.toLowerCase() ?? "";
-            const jobTitle = u.recruiterProfile?.jobTitle?.toLowerCase() ?? "";
+            const location = [u.recruiterProfile?.city, u.recruiterProfile?.state, u.recruiterProfile?.country].filter(Boolean).join(" ").toLowerCase();
             const bio = (u.talentProfile?.bio ?? u.recruiterProfile?.bio ?? "").toLowerCase();
             const skills = u.talentProfile?.skills?.map((s: { skillName: string }) => s.skillName.toLowerCase()) ?? [];
             const expLevel = u.talentProfile?.experienceLevel?.toLowerCase() ?? "";
@@ -70,7 +71,7 @@ export async function GET(req: Request) {
                 name.includes(q) ||
                 username.includes(q) ||
                 company.includes(q) ||
-                jobTitle.includes(q) ||
+                location.includes(q) ||
                 bio.includes(q) ||
                 skills.some((s: string) => s.includes(q)) ||
                 expLevel.includes(q)

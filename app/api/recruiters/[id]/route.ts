@@ -37,11 +37,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
                 recruiterProfile: {
                     select: {
                         bio: true,
-                        jobTitle: true,
-                        companyName: true,
                         companyWebsite: true,
                         companySize: true,
-                        location: true,
+                        addressLine1: true,
+                        addressLine2: true,
+                        city: true,
+                        state: true,
+                        postalCode: true,
                         country: true,
                         industries: { select: { industryName: true } },
                         bounties: {
