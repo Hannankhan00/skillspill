@@ -1,14 +1,41 @@
 ﻿"use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
-    Building2, MapPin, Globe, Phone, Mail, Linkedin,
+    Building2, MapPin, Globe, Phone, Mail,
     Briefcase, Loader2, Link as LinkIcon, Heart, MessageSquare,
-    Share2, Eye, Sparkles, Users, CheckCircle,
+    Share2, Eye, Sparkles, Users, CheckCircle, Pencil, X,
 } from "lucide-react";
 
-const accent = "#A855F7"; // Recruiter purple
+const accent = "#A855F7";
+
+/* ─── Tiny reusable input for the modal ─── */
+function Field({
+    label, value, onChange, type = "text", placeholder, textarea = false,
+}: {
+    label: string; value: string; onChange: (v: string) => void;
+    type?: string; placeholder?: string; textarea?: boolean;
+}) {
+    const cls = "w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all focus:ring-2 focus:ring-[#A855F7]/20";
+    const style: React.CSSProperties = {
+        background: "var(--theme-input-bg)",
+        border: "1px solid var(--theme-border)",
+        color: "var(--theme-text-primary)",
+    };
+    return (
+        <div>
+            <label className="text-[10px] uppercase tracking-widest font-semibold block mb-1.5"
+                style={{ color: "var(--theme-text-muted)" }}>{label}</label>
+            {textarea
+                ? <textarea value={value} onChange={e => onChange(e.target.value)}
+                    placeholder={placeholder} rows={4}
+                    className={`${cls} resize-none`} style={style} />
+                : <input type={type} value={value} onChange={e => onChange(e.target.value)}
+                    placeholder={placeholder} className={cls} style={style} />}
+        </div>
+    );
+}
 
 export default function RecruiterProfilePage() {
     const [userData, setUserData] = useState<any>(null);
@@ -16,16 +43,84 @@ export default function RecruiterProfilePage() {
     const [activeTab, setActiveTab] = useState("Overview");
     const tabs = ["Overview", "Jobs", "Spills"];
 
-    useEffect(() => {
+    /* ── Edit modal ── */
+    const [showEdit, setShowEdit] = useState(false);
+    const [form, setForm] = useState({
+        fullName: "", jobTitle: "", companyName: "", companyWebsite: "",
+        companySize: "", location: "", country: "", bio: "",
+    });
+    const [saving, setSaving] = useState(false);
+    const [saveMsg, setSaveMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+    const overlayRef = useRef<HTMLDivElement>(null);
+
+    /* ── Fetch profile ── */
+    const loadProfile = () => {
         fetch("/api/user/profile")
             .then(r => r.json())
             .then(d => {
-                if (d.user) setUserData(d.user);
+                if (d.user) {
+                    setUserData(d.user);
+                    const rp = d.user.recruiterProfile || {};
+                    setForm({
+                        fullName: d.user.fullName || "",
+                        jobTitle: rp.jobTitle || "",
+                        companyName: rp.companyName || "",
+                        companyWebsite: rp.companyWebsite || "",
+                        companySize: rp.companySize || "",
+                        location: rp.location || "",
+                        country: rp.country || "",
+                        bio: rp.bio || "",
+                    });
+                }
                 setIsLoading(false);
             })
             .catch(() => setIsLoading(false));
-    }, []);
+    };
 
+    useEffect(() => { loadProfile(); }, []);
+
+    /* Close modal on backdrop click */
+    const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (e.target === overlayRef.current) setShowEdit(false);
+    };
+
+    /* Save */
+    const handleSave = async () => {
+        setSaving(true);
+        setSaveMsg(null);
+        const res = await fetch("/api/user/profile", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                fullName: form.fullName,
+                recruiterProfile: {
+                    jobTitle: form.jobTitle || null,
+                    companyName: form.companyName || "Unknown",
+                    companyWebsite: form.companyWebsite || null,
+                    companySize: form.companySize || null,
+                    location: form.location || null,
+                    country: form.country || null,
+                    bio: form.bio || null,
+                },
+            }),
+        });
+        const data = await res.json();
+        setSaving(false);
+        if (res.ok && data.success) {
+            setSaveMsg({ type: "ok", text: "Profile updated!" });
+            // Refresh displayed data
+            setUserData((prev: any) => ({
+                ...prev,
+                fullName: form.fullName,
+                recruiterProfile: { ...prev.recruiterProfile, ...form },
+            }));
+            setTimeout(() => { setSaveMsg(null); setShowEdit(false); }, 1200);
+        } else {
+            setSaveMsg({ type: "err", text: data.error || "Failed to save. Try again." });
+        }
+    };
+
+    /* ─── Loading / Error states ─── */
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-full p-20">
@@ -34,7 +129,6 @@ export default function RecruiterProfilePage() {
             </div>
         );
     }
-
     if (!userData) {
         return (
             <div className="flex flex-col items-center justify-center min-h-full p-20">
@@ -45,17 +139,11 @@ export default function RecruiterProfilePage() {
     }
 
     const { fullName, username, email, recruiterProfile, spills } = userData;
-    const {
-        bio, companyName, companyWebsite, jobTitle,
-        location, country, phone, industries,
-    } = recruiterProfile || {};
-
+    const { bio, companyName, companyWebsite, jobTitle, location, country, phone, industries } = recruiterProfile || {};
     const bounties = recruiterProfile?.bounties ?? [];
-
     const initials = fullName
         ? fullName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
         : "??";
-
     const displayTitle = jobTitle
         ? `${jobTitle}${companyName ? ` at ${companyName}` : ""}`
         : companyName || "Recruiter";
@@ -63,10 +151,117 @@ export default function RecruiterProfilePage() {
     return (
         <div style={{ background: "var(--theme-bg)" }} className="min-h-full">
 
+            {/* ══ EDIT PROFILE MODAL ══ */}
+            {showEdit && (
+                <div
+                    ref={overlayRef}
+                    onClick={handleOverlayClick}
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}>
+                    <div
+                        className="w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl"
+                        style={{ background: "var(--theme-card)", border: "1px solid var(--theme-border)" }}>
+
+                        {/* Modal header */}
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--theme-border)]">
+                            <div>
+                                <h2 className="text-[15px] font-bold text-[var(--theme-text-primary)]">Edit Profile</h2>
+                                <p className="text-[11px] text-[var(--theme-text-muted)]">Updates appear on your public profile instantly</p>
+                            </div>
+                            <button onClick={() => setShowEdit(false)}
+                                className="p-1.5 rounded-lg border-none cursor-pointer transition-colors"
+                                style={{ background: "var(--theme-bg-secondary)", color: "var(--theme-text-muted)" }}>
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        {/* Body — scrollable */}
+                        <div className="p-5 space-y-4 overflow-y-auto max-h-[70vh]">
+
+                            {/* Banner */}
+                            {saveMsg && (
+                                <div className="rounded-xl px-4 py-2.5 text-[12px] font-medium"
+                                    style={{
+                                        background: saveMsg.type === "ok" ? `${accent}10` : "rgba(239,68,68,0.08)",
+                                        border: `1px solid ${saveMsg.type === "ok" ? `${accent}30` : "rgba(239,68,68,0.2)"}`,
+                                        color: saveMsg.type === "ok" ? accent : "#EF4444",
+                                    }}>
+                                    {saveMsg.text}
+                                </div>
+                            )}
+
+                            {/* Identity */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <Field label="Your Full Name" value={form.fullName}
+                                    onChange={v => setForm(f => ({ ...f, fullName: v }))}
+                                    placeholder="e.g. Sarah Khan" />
+                                <Field label="Your Job Title" value={form.jobTitle}
+                                    onChange={v => setForm(f => ({ ...f, jobTitle: v }))}
+                                    placeholder="e.g. CTO, HR Manager" />
+                            </div>
+
+                            {/* Company */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <Field label="Company Name *" value={form.companyName}
+                                    onChange={v => setForm(f => ({ ...f, companyName: v }))}
+                                    placeholder="e.g. NastecSol" />
+                                <Field label="Company Website" value={form.companyWebsite}
+                                    onChange={v => setForm(f => ({ ...f, companyWebsite: v }))}
+                                    placeholder="https://yourcompany.com" />
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label className="text-[10px] uppercase tracking-widest font-semibold block mb-1.5"
+                                        style={{ color: "var(--theme-text-muted)" }}>Company Size</label>
+                                    <select value={form.companySize}
+                                        onChange={e => setForm(f => ({ ...f, companySize: e.target.value }))}
+                                        className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none"
+                                        style={{ background: "var(--theme-input-bg)", border: "1px solid var(--theme-border)", color: "var(--theme-text-primary)" }}>
+                                        <option value="">Size...</option>
+                                        <option value="1-10">1–10</option>
+                                        <option value="11-50">11–50</option>
+                                        <option value="51-200">51–200</option>
+                                        <option value="201-500">201–500</option>
+                                        <option value="501-1000">501–1000</option>
+                                        <option value="1001+">1001+</option>
+                                    </select>
+                                </div>
+                                <Field label="City / Location" value={form.location}
+                                    onChange={v => setForm(f => ({ ...f, location: v }))}
+                                    placeholder="e.g. Karachi" />
+                                <Field label="Country" value={form.country}
+                                    onChange={v => setForm(f => ({ ...f, country: v }))}
+                                    placeholder="e.g. Pakistan" />
+                            </div>
+
+                            {/* Bio */}
+                            <Field label="Company Bio" value={form.bio}
+                                onChange={v => setForm(f => ({ ...f, bio: v }))}
+                                placeholder="Describe your company, culture, and what makes it great..."
+                                textarea />
+                        </div>
+
+                        {/* Footer */}
+                        <div className="px-5 py-4 border-t border-[var(--theme-border)] flex items-center justify-end gap-2">
+                            <button onClick={() => setShowEdit(false)}
+                                className="px-4 py-2 rounded-xl text-[12px] font-medium border-none cursor-pointer"
+                                style={{ background: "var(--theme-bg-secondary)", color: "var(--theme-text-muted)" }}>
+                                Cancel
+                            </button>
+                            <button onClick={handleSave} disabled={saving}
+                                className="px-5 py-2 rounded-xl text-[12px] font-bold text-white border-none cursor-pointer transition-all hover:scale-105 disabled:opacity-60"
+                                style={{ background: `linear-gradient(135deg, ${accent}, #7C3AED)`, boxShadow: saving ? "none" : `0 4px 15px ${accent}50` }}>
+                                {saving ? "Saving..." : "Save Changes"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* ── COVER BANNER ── */}
             <div className="relative">
                 <div className="h-32 sm:h-44 lg:h-52 w-full bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 relative overflow-hidden">
-                    {/* Pattern overlay */}
                     <div className="absolute inset-0 opacity-10"
                         style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23fff' fill-opacity='0.3'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }}
                     />
@@ -120,11 +315,14 @@ export default function RecruiterProfilePage() {
                         <p className="text-[9px] sm:text-[10px] text-[var(--theme-text-muted)] uppercase tracking-wider">Spills</p>
                     </div>
                     <div className="ml-auto flex gap-2">
-                        <Link href="/recruiter/settings"
-                            className="px-4 sm:px-5 py-2 rounded-xl text-[11px] sm:text-[12px] font-bold text-white border-none cursor-pointer transition-all hover:scale-105 no-underline"
+                        {/* ✏️  Opens modal — no navigation */}
+                        <button
+                            onClick={() => setShowEdit(true)}
+                            className="flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-xl text-[11px] sm:text-[12px] font-bold text-white border-none cursor-pointer transition-all hover:scale-105"
                             style={{ background: `linear-gradient(135deg, ${accent}, #7C3AED)`, boxShadow: `0 0 15px ${accent}40` }}>
+                            <Pencil className="w-3.5 h-3.5" />
                             Edit Profile
-                        </Link>
+                        </button>
                     </div>
                 </div>
 
@@ -139,7 +337,6 @@ export default function RecruiterProfilePage() {
                     ))}
                 </div>
 
-                {/* Tab Content */}
                 <div className="mt-5 space-y-5">
 
                     {/* ── OVERVIEW TAB ── */}
@@ -147,9 +344,23 @@ export default function RecruiterProfilePage() {
                         <>
                             {/* About */}
                             <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
-                                <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-2">About</h2>
+                                <div className="flex items-start justify-between gap-2 mb-2">
+                                    <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)]">About</h2>
+                                    <button onClick={() => setShowEdit(true)}
+                                        className="flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-lg border-none cursor-pointer transition-colors"
+                                        style={{ background: `${accent}10`, color: accent }}>
+                                        <Pencil className="w-3 h-3" /> Edit
+                                    </button>
+                                </div>
                                 <p className="text-[13px] text-[var(--theme-text-tertiary)] leading-relaxed whitespace-pre-wrap">
-                                    {bio || "No bio added yet. Go to Settings to add one."}
+                                    {bio || (
+                                        <span className="italic text-[var(--theme-text-muted)]">
+                                            No bio yet.{" "}
+                                            <button onClick={() => setShowEdit(true)} className="border-none bg-transparent cursor-pointer font-medium underline" style={{ color: accent }}>
+                                                Add one
+                                            </button>
+                                        </span>
+                                    )}
                                 </p>
                                 <div className="flex flex-wrap gap-3 mt-4 text-[11px] text-[var(--theme-text-muted)] pt-3 border-t border-[var(--theme-border-light)]">
                                     {(location || country) && (
@@ -221,7 +432,10 @@ export default function RecruiterProfilePage() {
                                     )}
                                     {!email && !phone && !companyWebsite && (
                                         <p className="text-[12px] text-[var(--theme-text-muted)] col-span-2">
-                                            No contact info added yet. Go to <Link href="/recruiter/settings" style={{ color: accent }}>Settings</Link> to add some.
+                                            No contact info yet.{" "}
+                                            <button onClick={() => setShowEdit(true)} className="border-none bg-transparent cursor-pointer font-medium underline" style={{ color: accent }}>
+                                                Add some
+                                            </button>
                                         </p>
                                     )}
                                 </div>
@@ -236,7 +450,7 @@ export default function RecruiterProfilePage() {
                                     <div className="flex flex-wrap gap-2">
                                         {industries.map((ind: any) => (
                                             <span key={ind.id || ind.industryName}
-                                                className="px-3 py-1.5 rounded-lg text-[11px] sm:text-[12px] font-medium border flex items-center gap-1.5 hover:opacity-80 transition-colors"
+                                                className="px-3 py-1.5 rounded-lg text-[11px] sm:text-[12px] font-medium border flex items-center gap-1.5"
                                                 style={{ background: "var(--theme-input-bg)", borderColor: "var(--theme-border-light)", color: "var(--theme-text-secondary)" }}>
                                                 <CheckCircle className="w-3 h-3" style={{ color: accent }} />
                                                 {ind.industryName}
@@ -269,8 +483,7 @@ export default function RecruiterProfilePage() {
                                                         <span className="font-bold text-[11px]" style={{ color: accent }}>${bounty.reward?.toLocaleString()}</span>
                                                     )}
                                                     {bounty.skills?.slice(0, 4).map((s: any) => (
-                                                        <span key={s.skillName}
-                                                            className="px-2 py-0.5 rounded-md font-medium"
+                                                        <span key={s.skillName} className="px-2 py-0.5 rounded-md font-medium"
                                                             style={{ background: "var(--theme-input-bg)", border: "1px solid var(--theme-border-light)", color: "var(--theme-text-secondary)" }}>
                                                             {s.skillName}
                                                         </span>
@@ -308,7 +521,7 @@ export default function RecruiterProfilePage() {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {spills.map((spill: any) => (
                                         <div key={spill.id}
-                                            className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden hover:border-[var(--theme-border)] transition-all flex flex-col h-full"
+                                            className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden flex flex-col transition-all"
                                             onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}
                                             onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border)")}>
                                             <div className="p-4 sm:p-5 flex-1">
@@ -331,8 +544,8 @@ export default function RecruiterProfilePage() {
                                                     </div>
                                                 )}
                                                 {spill.tags && (
-                                                    <div className="flex flex-wrap gap-1.5 mt-auto">
-                                                        {spill.tags.split(',').slice(0, 3).map((tag: string) => (
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        {spill.tags.split(",").slice(0, 3).map((tag: string) => (
                                                             <span key={tag} className="text-[9px] px-2 py-0.5 rounded-full font-medium"
                                                                 style={{ background: `${accent}15`, color: accent }}>
                                                                 #{tag.trim()}
