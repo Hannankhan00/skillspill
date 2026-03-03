@@ -46,8 +46,8 @@ export default function RecruiterProfilePage() {
     /* ── Edit modal ── */
     const [showEdit, setShowEdit] = useState(false);
     const [form, setForm] = useState({
-        fullName: "", jobTitle: "", companyName: "", companyWebsite: "",
-        companySize: "", location: "", country: "", bio: "",
+        companyName: "", companyWebsite: "",
+        companySize: "", location: "", country: "", bio: "", phone: "",
     });
     const [saving, setSaving] = useState(false);
     const [saveMsg, setSaveMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
@@ -62,14 +62,13 @@ export default function RecruiterProfilePage() {
                     setUserData(d.user);
                     const rp = d.user.recruiterProfile || {};
                     setForm({
-                        fullName: d.user.fullName || "",
-                        jobTitle: rp.jobTitle || "",
                         companyName: rp.companyName || "",
                         companyWebsite: rp.companyWebsite || "",
                         companySize: rp.companySize || "",
                         location: rp.location || "",
                         country: rp.country || "",
                         bio: rp.bio || "",
+                        phone: rp.phone || "",
                     });
                 }
                 setIsLoading(false);
@@ -92,15 +91,15 @@ export default function RecruiterProfilePage() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                fullName: form.fullName,
+                fullName: form.companyName, // Company account — display name = company name
                 recruiterProfile: {
-                    jobTitle: form.jobTitle || null,
                     companyName: form.companyName || "Unknown",
                     companyWebsite: form.companyWebsite || null,
                     companySize: form.companySize || null,
                     location: form.location || null,
                     country: form.country || null,
                     bio: form.bio || null,
+                    phone: form.phone || null,
                 },
             }),
         });
@@ -111,7 +110,7 @@ export default function RecruiterProfilePage() {
             // Refresh displayed data
             setUserData((prev: any) => ({
                 ...prev,
-                fullName: form.fullName,
+                fullName: form.companyName,
                 recruiterProfile: { ...prev.recruiterProfile, ...form },
             }));
             setTimeout(() => { setSaveMsg(null); setShowEdit(false); }, 1200);
@@ -190,17 +189,7 @@ export default function RecruiterProfilePage() {
                                 </div>
                             )}
 
-                            {/* Identity */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <Field label="Your Full Name" value={form.fullName}
-                                    onChange={v => setForm(f => ({ ...f, fullName: v }))}
-                                    placeholder="e.g. Sarah Khan" />
-                                <Field label="Your Job Title" value={form.jobTitle}
-                                    onChange={v => setForm(f => ({ ...f, jobTitle: v }))}
-                                    placeholder="e.g. CTO, HR Manager" />
-                            </div>
-
-                            {/* Company */}
+                            {/* Company core */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <Field label="Company Name *" value={form.companyName}
                                     onChange={v => setForm(f => ({ ...f, companyName: v }))}
@@ -234,6 +223,10 @@ export default function RecruiterProfilePage() {
                                     onChange={v => setForm(f => ({ ...f, country: v }))}
                                     placeholder="e.g. Pakistan" />
                             </div>
+
+                            <Field label="Company Phone" value={form.phone}
+                                onChange={v => setForm(f => ({ ...f, phone: v }))}
+                                placeholder="+92 300 1234567" />
 
                             {/* Bio */}
                             <Field label="Company Bio" value={form.bio}

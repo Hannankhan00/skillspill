@@ -31,7 +31,8 @@ const IconBroadcast = (props: any) => (<svg {...props} width="16" height="16" vi
 const IconBuilding = (props: any) => (<svg {...props} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2" /><path d="M9 22v-4h6v4" /><path d="M8 6h.01" /><path d="M16 6h.01" /><path d="M8 10h.01" /><path d="M16 10h.01" /><path d="M8 14h.01" /><path d="M16 14h.01" /><path d="M8 18h.01" /><path d="M16 18h.01" /></svg>);
 const IconGlobe = (props: any) => (<svg {...props} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>);
 const IconUsers = (props: any) => (<svg {...props} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>);
-const IconCheck = (props: any) => (<svg {...props} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>);
+const IconPhone = (props: any) => (<svg {...props} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.59 12 19.79 19.79 0 0 1 1.08 3.05 2 2 0 0 1 3.05 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16z" /></svg>);
+const IconMapPin = (props: any) => (<svg {...props} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>);
 const IconArrowRight = (props: any) => (<svg {...props} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>);
 const IconArrowLeft = (props: any) => (<svg {...props} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>);
 const IconX = (props: any) => (<svg {...props} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>);
@@ -75,9 +76,9 @@ function ParticlesCanvas() {
 
 /* ───────────── Form Types ───────────── */
 interface RecruiterFormData {
-    fullName: string; email: string; username: string; password: string; confirmPassword: string;
-    companyName: string; jobTitle: string; companyWebsite: string;
-    industry: string[]; companySize: string; hiringGoals: string;
+    companyName: string; email: string; username: string; password: string; confirmPassword: string;
+    companyWebsite: string; companyPhone: string; companySize: string;
+    companyAddress: string; industry: string[];
     agreedToTerms: boolean;
 }
 
@@ -116,9 +117,9 @@ export default function RecruiterSignup() {
     const [submitError, setSubmitError] = useState("");
 
     const [formData, setFormData] = useState<RecruiterFormData>({
-        fullName: "", email: "", username: "", password: "", confirmPassword: "",
-        companyName: "", jobTitle: "", companyWebsite: "",
-        industry: [], companySize: "", hiringGoals: "",
+        companyName: "", email: "", username: "", password: "", confirmPassword: "",
+        companyWebsite: "", companyPhone: "", companySize: "",
+        companyAddress: "", industry: [],
         agreedToTerms: false
     });
 
@@ -144,9 +145,9 @@ export default function RecruiterSignup() {
     const validateCurrentStep = () => {
         const e: Record<string, string> = {};
         if (currentStep === 0) {
-            if (!formData.fullName.trim()) e.fullName = "Required";
+            if (!formData.companyName.trim()) e.companyName = "Required";
             if (!formData.email.trim()) e.email = "Required";
-            else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) e.email = "Invalid";
+            else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) e.email = "Invalid email";
             if (!formData.username.trim()) e.username = "Required";
             else if (formData.username.length < 3) e.username = "Min 3 chars";
             if (!formData.password) e.password = "Required";
@@ -154,8 +155,6 @@ export default function RecruiterSignup() {
             if (formData.password !== formData.confirmPassword) e.confirmPassword = "Mismatch";
         }
         if (currentStep === 1) {
-            if (!formData.companyName.trim()) e.companyName = "Required";
-            if (!formData.jobTitle.trim()) e.jobTitle = "Required";
             if (formData.industry.length === 0) e.industry = "Select at least one";
         }
         setErrors(e); return Object.keys(e).length === 0;
@@ -174,13 +173,13 @@ export default function RecruiterSignup() {
     const renderAccount = () => (
         <div className="flex flex-col gap-6 animate-in slide-in-from-right-4 fade-in duration-300">
             <div className="mb-2">
-                <h2 className="text-2xl font-bold text-white mb-1">Recruiter <span className="text-[#A855F7]">Access</span></h2>
-                <p className="text-xs text-[#666]" style={mono}>Phase 1: Create your hiring credentials.</p>
+                <h2 className="text-2xl font-bold text-white mb-1">Company <span className="text-[#A855F7]">Account</span></h2>
+                <p className="text-xs text-[#666]" style={mono}>Phase 1: Register your company credentials.</p>
             </div>
 
-            <InputField label="Full Name" icon={IconUser} value={formData.fullName} onChange={(e: any) => updateForm("fullName", e.target.value)} placeholder="Jane Doe" error={errors.fullName} />
-            <InputField label="Work Email" icon={IconMail} value={formData.email} onChange={(e: any) => updateForm("email", e.target.value)} placeholder="jane@company.com" error={errors.email} />
-            <InputField label="Hacker Alias" icon={IconAtSign} value={formData.username} onChange={(e: any) => updateForm("username", e.target.value)} placeholder="recruiter_42" error={errors.username} />
+            <InputField label="Company Name" icon={IconBuilding} value={formData.companyName} onChange={(e: any) => updateForm("companyName", e.target.value)} placeholder="e.g. NastecSol" error={errors.companyName} />
+            <InputField label="Company Email" icon={IconMail} value={formData.email} onChange={(e: any) => updateForm("email", e.target.value)} placeholder="contact@company.com" error={errors.email} />
+            <InputField label="Username / Alias" icon={IconAtSign} value={formData.username} onChange={(e: any) => updateForm("username", e.target.value)} placeholder="nastec_sol" error={errors.username} />
 
             <div className="grid grid-cols-2 gap-4">
                 <InputField
@@ -210,16 +209,16 @@ export default function RecruiterSignup() {
     const renderCompany = () => (
         <div className="flex flex-col gap-6 animate-in slide-in-from-right-4 fade-in duration-300">
             <div className="mb-2">
-                <h2 className="text-2xl font-bold text-white mb-1">Company <span className="text-[#A855F7]">Profile</span></h2>
-                <p className="text-xs text-[#666]" style={mono}>Phase 2: Define your organization.</p>
+                <h2 className="text-2xl font-bold text-white mb-1">Company <span className="text-[#A855F7]">Details</span></h2>
+                <p className="text-xs text-[#666]" style={mono}>Phase 2: Tell us about your organization.</p>
             </div>
-
-            <InputField label="Company Name" icon={IconBuilding} value={formData.companyName} onChange={(e: any) => updateForm("companyName", e.target.value)} placeholder="Acme Corp" error={errors.companyName} />
 
             <div className="grid grid-cols-2 gap-4">
-                <InputField label="Job Title" icon={IconBriefcase} value={formData.jobTitle} onChange={(e: any) => updateForm("jobTitle", e.target.value)} placeholder="Talent Lead" error={errors.jobTitle} />
-                <InputField label="Website" icon={IconGlobe} value={formData.companyWebsite} onChange={(e: any) => updateForm("companyWebsite", e.target.value)} placeholder="https://acme.com" />
+                <InputField label="Website" icon={IconGlobe} value={formData.companyWebsite} onChange={(e: any) => updateForm("companyWebsite", e.target.value)} placeholder="https://company.com" />
+                <InputField label="Phone" icon={IconPhone} value={formData.companyPhone} onChange={(e: any) => updateForm("companyPhone", e.target.value)} placeholder="+92 300 1234567" />
             </div>
+
+            <InputField label="Address / Location" icon={IconMapPin} value={formData.companyAddress} onChange={(e: any) => updateForm("companyAddress", e.target.value)} placeholder="e.g. Karachi, Pakistan" />
 
             <div className="flex flex-col gap-3">
                 <label className="text-[10px] font-bold text-[#A855F7] uppercase tracking-wider flex items-center gap-2" style={mono}><IconGrid /> Industry Sectors</label>
@@ -242,10 +241,10 @@ export default function RecruiterSignup() {
                     style={mono}
                 >
                     <option value="" disabled>Select Size</option>
-                    <option value="1-10">1-10 Employees</option>
-                    <option value="11-50">11-50 Employees</option>
-                    <option value="51-200">51-200 Employees</option>
-                    <option value="201-1000">201-1000 Employees</option>
+                    <option value="1-10">1–10 Employees</option>
+                    <option value="11-50">11–50 Employees</option>
+                    <option value="51-200">51–200 Employees</option>
+                    <option value="201-1000">201–1000 Employees</option>
                     <option value="1000+">1000+ Employees</option>
                 </select>
             </div>
@@ -261,21 +260,35 @@ export default function RecruiterSignup() {
 
             <div className="p-4 bg-[#111] border border-white/10 rounded-xl space-y-3">
                 <div className="flex justify-between items-center pb-3 border-b border-white/5">
-                    <span className="text-xs text-[#666]">Identity</span>
-                    <span className="text-sm font-bold text-white">{formData.fullName} ({formData.jobTitle})</span>
+                    <span className="text-xs text-[#666]">Company</span>
+                    <span className="text-sm font-bold text-white">{formData.companyName}</span>
                 </div>
                 <div className="flex justify-between items-center pb-3 border-b border-white/5">
-                    <span className="text-xs text-[#666]">Hacker Alias</span>
+                    <span className="text-xs text-[#666]">Username</span>
                     <span className="text-sm font-bold text-[#A855F7]">@{formData.username}</span>
                 </div>
                 <div className="flex justify-between items-center pb-3 border-b border-white/5">
-                    <span className="text-xs text-[#666]">Organization</span>
-                    <span className="text-sm font-bold text-white">{formData.companyName}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                    <span className="text-xs text-[#666]">Contact</span>
+                    <span className="text-xs text-[#666]">Email</span>
                     <span className="text-sm font-bold text-white">{formData.email}</span>
                 </div>
+                {formData.companyPhone && (
+                    <div className="flex justify-between items-center pb-3 border-b border-white/5">
+                        <span className="text-xs text-[#666]">Phone</span>
+                        <span className="text-sm font-bold text-white">{formData.companyPhone}</span>
+                    </div>
+                )}
+                {formData.companyAddress && (
+                    <div className="flex justify-between items-center pb-3 border-b border-white/5">
+                        <span className="text-xs text-[#666]">Address</span>
+                        <span className="text-sm font-bold text-white">{formData.companyAddress}</span>
+                    </div>
+                )}
+                {formData.industry.length > 0 && (
+                    <div className="flex justify-between items-start">
+                        <span className="text-xs text-[#666]">Industries</span>
+                        <span className="text-sm font-bold text-white text-right max-w-[200px]">{formData.industry.join(", ")}</span>
+                    </div>
+                )}
             </div>
 
             <div className="flex items-start gap-3 p-4 bg-[#111] border border-white/10 rounded-xl">
@@ -364,7 +377,19 @@ export default function RecruiterSignup() {
                         onClick={currentStep === STEPS.length - 1 ? async () => {
                             setSubmitLoading(true); setSubmitError("");
                             try {
-                                const res = await fetch("/api/auth/signup/recruiter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData) });
+                                const res = await fetch("/api/auth/signup/recruiter", {
+                                    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+                                        companyName: formData.companyName,
+                                        email: formData.email,
+                                        username: formData.username,
+                                        password: formData.password,
+                                        companyWebsite: formData.companyWebsite,
+                                        companyPhone: formData.companyPhone,
+                                        companySize: formData.companySize,
+                                        location: formData.companyAddress,
+                                        industry: formData.industry,
+                                    })
+                                });
                                 const data = await res.json();
                                 if (!res.ok) { setSubmitError(data.errors ? Object.values(data.errors).join(", ") : (data.error || "Signup failed")); return; }
                                 router.push(data.redirectTo || "/recruiter");

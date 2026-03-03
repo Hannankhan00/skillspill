@@ -2,18 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, createSession } from "@/lib/auth";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
 // ───────────── VALIDATION SCHEMA ─────────────
 const RecruiterSchema = z.object({
-    fullName: z.string().min(2),
+    companyName: z.string().min(2),
     username: z.string().min(3),
     email: z.string().email(),
     password: z.string().min(8),
-    jobTitle: z.string().optional(),
-    companyName: z.string().min(2),
     companyWebsite: z.string().url().optional().or(z.literal("")),
+    companyPhone: z.string().optional(),
     companySize: z.string().optional(),
     location: z.string().optional(),
     industry: z.array(z.string()).optional(),
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Invalid data", details: result.error.format() }, { status: 400 });
         }
 
-        const { fullName, username, email, password, jobTitle, companyName, companyWebsite, companySize, location, industry } = result.data;
+        const { companyName, username, email, password, companyWebsite, companyPhone, companySize, location, industry } = result.data;
 
         // 1. Check if user exists
         const existing = await prisma.user.findFirst({
@@ -47,13 +47,13 @@ export async function POST(req: NextRequest) {
         const passwordHash = await hashPassword(password);
 
         // 3. Transaction: Create User -> Profile -> Industries
-        const user = await prisma.$transaction(async (tx) => {
+        const user = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             // Create User
             const newUser = await tx.user.create({
                 data: {
                     email,
                     username,
-                    fullName,
+                    fullName: companyName, // Company account: use company name as display name
                     passwordHash,
                     role: "RECRUITER",
                 },
@@ -63,11 +63,11 @@ export async function POST(req: NextRequest) {
             const profile = await tx.recruiterProfile.create({
                 data: {
                     userId: newUser.id,
-                    jobTitle,
                     companyName,
                     companyWebsite: companyWebsite || null,
                     companySize,
                     location,
+                    phone: companyPhone || null,
                 },
             });
 
