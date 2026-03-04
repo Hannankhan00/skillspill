@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 
 /* ═══════════════════════════════════════════════
@@ -118,10 +118,37 @@ export default function TalentFeed() {
     const [likedPosts, setLikedPosts] = useState<Record<number, boolean>>({ 2: true });
     const [savedPosts, setSavedPosts] = useState<Record<number, boolean>>({ 2: true });
 
+    // Fetch live user data for the mini profile card
+    const [userData, setUserData] = useState<any>(null);
+    useEffect(() => {
+        fetch("/api/user/profile")
+            .then(res => res.json())
+            .then(data => {
+                if (data.user) {
+                    setUserData(data.user);
+                }
+            })
+            .catch(console.error);
+    }, []);
+
     const toggleLike = (id: number) => setLikedPosts(p => ({ ...p, [id]: !p[id] }));
     const toggleSave = (id: number) => setSavedPosts(p => ({ ...p, [id]: !p[id] }));
 
     const tabs = ["For You", "Following", "Trending", "Code", "Jobs"];
+
+    // Compute user data or fallbacks
+    const username = userData?.username || "Guest";
+    const fullName = userData?.fullName || "Hacker";
+    const initials = fullName
+        ? fullName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
+        : "??";
+    const spillsCount = userData?.spills?.length || 0;
+    const currentJob = userData?.talentProfile?.workExperience?.find((w: any) => w.isCurrent);
+    const roleLine = currentJob
+        ? `${currentJob.role}`
+        : userData?.talentProfile?.experienceLevel
+            ? `${userData.talentProfile.experienceLevel.charAt(0) + userData.talentProfile.experienceLevel.slice(1).toLowerCase()} Developer`
+            : "Developer";
 
     return (
         <div style={{ background: "var(--theme-bg)" }} className="min-h-full">
@@ -134,8 +161,8 @@ export default function TalentFeed() {
                         {/* —— Composer —— */}
                         <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4">
                             <div className="flex items-start gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-[#2edb13] flex items-center justify-center text-white text-[11px] font-bold shadow-md shrink-0">
-                                    GP
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-[#2edb13] flex items-center justify-center text-white text-[11px] font-bold shadow-md shrink-0 border border-[var(--theme-card)]">
+                                    {initials}
                                 </div>
                                 <div className="flex-1">
                                     <textarea
@@ -280,14 +307,16 @@ export default function TalentFeed() {
                         <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
                             <div className="h-16 bg-gradient-to-r from-[#3CF91A] to-cyan-500" />
                             <div className="px-4 pb-4 -mt-6">
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-[#2edb13] flex items-center justify-center text-white text-[13px] font-bold shadow-lg border-2 border-[var(--theme-card)]">
-                                    GP
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-[#2edb13] flex items-center justify-center text-white text-[14px] font-bold shadow-lg border-2 border-[var(--theme-card)] relative z-10">
+                                    {initials}
                                 </div>
-                                <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mt-2">Ghost_Protocol</h3>
-                                <p className="text-[11px] text-[var(--theme-text-muted)] mb-3">Full-Stack Developer &bull; Lv.42</p>
+                                <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mt-2">
+                                    <Link href="/talent/profile" className="text-[var(--theme-text-primary)] hover:text-[#3CF91A] no-underline transition-colors">{username}</Link>
+                                </h3>
+                                <p className="text-[11px] text-[var(--theme-text-muted)] mb-3">{roleLine} &bull; Lv.1</p>
                                 <div className="flex items-center gap-4 text-center">
                                     <div>
-                                        <p className="text-[14px] font-bold text-[var(--theme-text-secondary)]">23</p>
+                                        <p className="text-[14px] font-bold text-[var(--theme-text-secondary)]">{spillsCount}</p>
                                         <p className="text-[9px] text-[var(--theme-text-muted)] uppercase tracking-wider">Spills</p>
                                     </div>
                                     <div className="w-px h-6" style={{ background: "var(--theme-border)" }} />

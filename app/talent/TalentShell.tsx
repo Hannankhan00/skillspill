@@ -128,7 +128,33 @@ export default function TalentShell({
     const dropdownRef = useRef<HTMLDivElement>(null);
     const accent = "#3CF91A";
 
+    const [userData, setUserData] = useState<any>(null);
+
+    useEffect(() => {
+        fetch("/api/user/profile")
+            .then(res => res.json())
+            .then(data => {
+                if (data.user) {
+                    setUserData(data.user);
+                }
+            })
+            .catch(console.error);
+    }, []);
+
     const navItems = talentNavItems;
+
+    // Compute user data or fallbacks
+    const username = userData?.username || "Guest";
+    const fullName = userData?.fullName || "User";
+    const initials = fullName
+        ? fullName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
+        : "??";
+    const currentJob = userData?.talentProfile?.workExperience?.find((w: any) => w.isCurrent);
+    const roleLine = currentJob
+        ? `${currentJob.role}`
+        : userData?.talentProfile?.experienceLevel
+            ? `${userData.talentProfile.experienceLevel.charAt(0) + userData.talentProfile.experienceLevel.slice(1).toLowerCase()} Developer`
+            : "Developer";
 
     const handleLogout = async () => {
         try {
@@ -224,11 +250,11 @@ export default function TalentShell({
                                 color: accent,
                             }}
                         >
-                            {userId.slice(-2).toUpperCase()}
+                            {initials}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold truncate" style={{ color: 'var(--theme-text-secondary)' }}>Ghost_Protocol</p>
-                            <p className="text-[10px] font-mono text-[#2edb13]">Lv.42 Shadow</p>
+                            <p className="text-xs font-semibold truncate" style={{ color: 'var(--theme-text-secondary)' }}>{username}</p>
+                            <p className="text-[10px] font-mono text-[#2edb13]">Lv.1 {roleLine}</p>
                         </div>
                     </div>
 
@@ -272,7 +298,7 @@ export default function TalentShell({
                                 borderColor: `${accent}40`,
                             }}
                         >
-                            {userId.slice(-2).toUpperCase()}
+                            {initials}
                         </div>
                     </Link>
 
@@ -340,11 +366,11 @@ export default function TalentShell({
                             >
                                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm"
                                     style={{ background: `linear-gradient(135deg, #22C55E, #16A34A)`, color: "#fff" }}>
-                                    {userId.slice(-2).toUpperCase()}
+                                    {initials}
                                 </div>
                                 <div className="text-left">
-                                    <p className="text-[11px] font-semibold leading-tight" style={{ color: 'var(--theme-text-secondary)' }}>Ghost_Protocol</p>
-                                    <p className="text-[9px] leading-tight" style={{ color: 'var(--theme-text-muted)' }}>Lv.42 Shadow</p>
+                                    <p className="text-[11px] font-semibold leading-tight" style={{ color: 'var(--theme-text-secondary)' }}>{username}</p>
+                                    <p className="text-[9px] leading-tight" style={{ color: 'var(--theme-text-muted)' }}>Lv.1 {roleLine}</p>
                                 </div>
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2">
                                     <polyline points="6 9 12 15 18 9" />
@@ -357,11 +383,11 @@ export default function TalentShell({
                                         <div className="flex items-center gap-3">
                                             <div className="w-9 h-9 rounded-full flex items-center justify-center text-[10px] font-bold"
                                                 style={{ background: `linear-gradient(135deg, #22C55E, #16A34A)`, color: "#fff" }}>
-                                                {userId.slice(-2).toUpperCase()}
+                                                {initials}
                                             </div>
                                             <div>
-                                                <p className="text-[12px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Ghost_Protocol</p>
-                                                <p className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>Lv.42 Shadow</p>
+                                                <p className="text-[12px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>{username}</p>
+                                                <p className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>Lv.1 {roleLine}</p>
                                             </div>
                                         </div>
                                     </div>

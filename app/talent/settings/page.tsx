@@ -137,6 +137,10 @@ export default function SettingsPage() {
     const [contactEmail, setContactEmail] = useState("");
     const [contactPhone, setContactPhone] = useState("");
     const [isSavingPrivacy, setIsSavingPrivacy] = useState(false);
+    const [sharePrivateRepos, setSharePrivateRepos] = useState(false);
+    const [githubConnecting, setGithubConnecting] = useState(false);
+    const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     useEffect(() => {
         fetch("/api/user/profile")
@@ -163,6 +167,8 @@ export default function SettingsPage() {
                 setShowSocials(tp.showSocials ?? true);
                 setContactEmail(tp.contactEmail || "");
                 setContactPhone(tp.contactPhone || "");
+                setGithubConnected(tp.githubConnected ?? false);
+                setSharePrivateRepos(tp.sharePrivateRepos ?? false);
                 setProfileLoaded(true);
             })
             .catch(() => { });
@@ -222,8 +228,72 @@ export default function SettingsPage() {
     const [notifPush, setNotifPush] = useState(false);
 
     /* Connections */
-    const [githubConnected, setGithubConnected] = useState(true);
+    const [githubConnected, setGithubConnected] = useState(false);
     const [linkedinConnected, setLinkedinConnected] = useState(false);
+
+    const connectGithub = () => {
+        const width = 600;
+        const height = 700;
+        const left = window.screenX + (window.outerWidth - width) / 2;
+        const top = window.screenY + (window.outerHeight - height) / 2;
+        const features = `width=${width},height=${height},left=${left},top=${top},status=no,menubar=no,toolbar=no,scrollbars=yes`;
+
+        const popup = window.open(`/api/auth/github?action=connect&sharePrivate=${sharePrivateRepos}`, "github_oauth", features);
+
+        const messageListener = async (event: MessageEvent) => {
+            if (event.origin !== window.location.origin) return;
+            if (event.data.type === "GITHUB_CONNECTED") {
+                window.removeEventListener("message", messageListener);
+                setGithubConnecting(true);
+                const { username, githubId, accessToken } = event.data.payload;
+
+                const res = await fetch("/api/user/profile", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        githubId,
+                        talentProfile: {
+                            githubConnected: true,
+                            githubUsername: username,
+                            githubAccessToken: accessToken,
+                            sharePrivateRepos
+                        }
+                    })
+                });
+
+                setGithubConnecting(false);
+                if (res.ok) {
+                    setGithubConnected(true);
+                    setProfileForm(f => ({ ...f, githubUsername: username }));
+                }
+            }
+        };
+        window.addEventListener("message", messageListener);
+    };
+
+    const disconnectGithub = async () => {
+        if (!confirm("Are you sure you want to disconnect your GitHub account?")) return;
+        setGithubConnecting(true);
+        const res = await fetch("/api/user/profile", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                githubId: null,
+                talentProfile: {
+                    githubConnected: false,
+                    githubUsername: null,
+                    githubAccessToken: null,
+                    sharePrivateRepos: false
+                }
+            })
+        });
+        setGithubConnecting(false);
+        if (res.ok) {
+            setGithubConnected(false);
+            setSharePrivateRepos(false);
+            setProfileForm(f => ({ ...f, githubUsername: "" }));
+        }
+    };
 
     /* ── Work Experience ── */
     type WorkExp = {
@@ -325,6 +395,31 @@ export default function SettingsPage() {
             setIsSavingPrivacy(false);
         }
     };
+
+    const confirmDeleteAccount = async () => {
+        try {
+            setIsDeletingAccount(true);
+            const res = await fetch("/api/user/profile", {
+                method: "DELETE"
+            });
+
+            if (res.ok) {
+                // Also call logout to clear any frontend cookies just in case
+                await fetch("/api/auth/logout", { method: "POST" });
+                window.location.href = "/signup/talent";
+            } else {
+                const data = await res.json();
+                alert(`Error deleting account: ${data.error || 'Unknown error'}`);
+                setIsDeletingAccount(false);
+                setShowDeleteModal(false);
+            }
+        } catch (err: any) {
+            alert(`Network error deleting account: ${err.message}`);
+            setIsDeletingAccount(false);
+            setShowDeleteModal(false);
+        }
+    };
+
     return (
         <div className="min-h-full" style={{ background: 'var(--theme-bg)' }}>
             <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-5">
@@ -576,9 +671,14 @@ export default function SettingsPage() {
                                     <div className="rounded-xl p-4" style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.15)' }}>
                                         <h3 className="text-[13px] font-semibold text-red-500 mb-1"> Danger Zone</h3>
                                         <p className="text-[11px] mb-3" style={{ color: 'var(--theme-text-muted)' }}>Once deleted, your account cannot be recovered.</p>
-                                        <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-bold text-red-500 cursor-pointer transition-all hover:shadow-md border-none" style={{ background: 'rgba(239, 68, 68, 0.1)' }}>
+                                        <button
+                                            onClick={() => setShowDeleteModal(true)}
+                                            disabled={isDeletingAccount}
+                                            className="flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-bold text-red-500 cursor-pointer transition-all hover:shadow-md border-none disabled:opacity-50"
+                                            style={{ background: 'rgba(239, 68, 68, 0.1)' }}
+                                        >
                                             <TrashIcon />
-                                            Delete Account
+                                            {isDeletingAccount ? "Deleting..." : "Delete Account"}
                                         </button>
                                     </div>
                                 </div>
@@ -781,21 +881,41 @@ export default function SettingsPage() {
                                                     <div>
                                                         <p className="text-[13px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>GitHub</p>
                                                         <p className="text-[11px]" style={{ color: githubConnected ? '#3CF91A' : 'var(--theme-text-muted)' }}>
-                                                            {githubConnected ? " Connected as ghost-protocol" : "Not connected"}
+                                                            {githubConnected ? `Connected as ${profileForm.githubUsername}` : "Not connected"}
                                                         </p>
                                                     </div>
                                                 </div>
                                                 <button
-                                                    onClick={() => setGithubConnected(!githubConnected)}
-                                                    className="px-4 py-2 rounded-xl text-[11px] font-bold cursor-pointer transition-all border-none"
+                                                    onClick={githubConnected ? disconnectGithub : connectGithub}
+                                                    disabled={githubConnecting}
+                                                    className="px-4 py-2 rounded-xl text-[11px] font-bold cursor-pointer transition-all border-none disabled:opacity-50"
                                                     style={githubConnected
                                                         ? { background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444' }
                                                         : { background: '#3CF91A', color: '#000', boxShadow: '0 4px 15px rgba(60, 249, 26, 0.3)' }
                                                     }
                                                 >
-                                                    {githubConnected ? "Disconnect" : "Connect"}
+                                                    {githubConnecting ? "Wait..." : githubConnected ? "Disconnect" : "Connect"}
                                                 </button>
                                             </div>
+                                            {!githubConnected && (
+                                                <div className="flex items-center gap-2 mt-2 ml-1">
+                                                    <input
+                                                        type="checkbox"
+                                                        id="sharePrivate"
+                                                        checked={sharePrivateRepos}
+                                                        onChange={(e) => setSharePrivateRepos(e.target.checked)}
+                                                        className="w-4 h-4 rounded border-[var(--theme-border)] bg-[var(--theme-input-bg)] text-[#3CF91A] focus:ring-[#3CF91A]/20 cursor-pointer"
+                                                    />
+                                                    <label htmlFor="sharePrivate" className="text-[12px] text-[var(--theme-text-secondary)] cursor-pointer select-none">
+                                                        Share private repositories for evaluation
+                                                    </label>
+                                                </div>
+                                            )}
+                                            {githubConnected && (
+                                                <p className="text-[11px] ml-2 mt-1" style={{ color: 'var(--theme-text-muted)' }}>
+                                                    Private repos are currently {sharePrivateRepos ? "shared" : "hidden"}. To change this, disconnect and reconnect.
+                                                </p>
+                                            )}
 
                                             {/* LinkedIn */}
                                             <div className="flex items-center justify-between p-4 rounded-xl" style={{ background: 'var(--theme-bg)', border: '1px solid var(--theme-border)' }}>
@@ -848,6 +968,40 @@ export default function SettingsPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Delete Account Modal */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !isDeletingAccount && setShowDeleteModal(false)}></div>
+                    <div className="relative bg-[var(--theme-card)] border border-[var(--theme-border)] rounded-2xl p-6 max-w-sm w-full shadow-2xl min-h-[50px] animate-in fade-in zoom-in-95 duration-200">
+                        <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 mx-auto" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444' }}>
+                            <TrashIcon />
+                        </div>
+                        <h3 className="text-lg font-bold text-center mb-2" style={{ color: 'var(--theme-text-primary)' }}>Delete Account?</h3>
+                        <p className="text-sm text-center mb-6 leading-relaxed" style={{ color: 'var(--theme-text-muted)' }}>
+                            Are you absolutely sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowDeleteModal(false)}
+                                disabled={isDeletingAccount}
+                                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold border cursor-pointer hover:opacity-80 transition-all disabled:opacity-50"
+                                style={{ borderColor: 'var(--theme-border)', background: 'var(--theme-bg)', color: 'var(--theme-text-secondary)' }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDeleteAccount}
+                                disabled={isDeletingAccount}
+                                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-white border-none cursor-pointer hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center"
+                                style={{ background: '#EF4444' }}
+                            >
+                                {isDeletingAccount ? "Deleting..." : "Delete"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

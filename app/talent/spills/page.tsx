@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 
 /* ===== SKILLSPILL - MY SPILLS ===== */
@@ -103,6 +103,25 @@ export default function TalentSpillsPage() {
     const [composerText, setComposerText] = useState("");
     const [composerCode, setComposerCode] = useState("");
     const [showCode, setShowCode] = useState(false);
+    const [userData, setUserData] = useState<any>(null);
+
+    useEffect(() => {
+        fetch("/api/user/profile")
+            .then(res => res.json())
+            .then(data => {
+                if (data.user) {
+                    setUserData(data.user);
+                }
+            })
+            .catch(console.error);
+    }, []);
+
+    const username = userData?.username || "Guest";
+    const fullName = userData?.fullName || "User";
+    const initials = fullName
+        ? fullName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
+        : "??";
+
     const filters = ["All", "Published", "Drafts"];
 
     const filteredSpills = activeFilter === "All"
@@ -135,9 +154,9 @@ export default function TalentSpillsPage() {
                 {composerOpen && (
                     <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5 mb-5 animate-in">
                         <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-[#2edb13] flex items-center justify-center text-white text-[11px] font-bold shrink-0">GP</div>
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-[#2edb13] flex items-center justify-center text-white text-[11px] font-bold shrink-0">{initials}</div>
                             <div>
-                                <p className="text-[13px] font-bold text-[var(--theme-text-primary)]">Ghost_Protocol</p>
+                                <p className="text-[13px] font-bold text-[var(--theme-text-primary)]">{username}</p>
                                 <p className="text-[10px] text-[var(--theme-text-muted)]">Public spill to your followers</p>
                             </div>
                         </div>
@@ -245,9 +264,9 @@ export default function TalentSpillsPage() {
                                 {/* Header */}
                                 <div className="flex items-center justify-between mb-3">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-green-400 to-[#2edb13] flex items-center justify-center text-white text-[10px] font-bold">GP</div>
+                                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-green-400 to-[#2edb13] flex items-center justify-center text-white text-[10px] font-bold">{initials}</div>
                                         <div>
-                                            <p className="text-[13px] font-bold text-[var(--theme-text-primary)]">Ghost_Protocol</p>
+                                            <p className="text-[13px] font-bold text-[var(--theme-text-primary)]">{username}</p>
                                             <p className="text-[10px] text-[var(--theme-text-muted)]">{spill.time}</p>
                                         </div>
                                     </div>

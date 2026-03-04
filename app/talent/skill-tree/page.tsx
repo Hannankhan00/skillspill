@@ -30,7 +30,7 @@ const skillCategories = [
     { key: "ai", label: "AI / ML", color: "#EF4444", icon: "🧠" },
 ];
 
-const skillNodes: SkillNode[] = [
+const DEFAULT_SKILL_NODES: SkillNode[] = [
     // Frontend
     { id: "html", name: "HTML5", category: "frontend", level: 5, maxLevel: 5, xp: 500, xpRequired: 500, unlocked: true, children: ["css", "js"], description: "Semantic markup & accessibility" },
     { id: "css", name: "CSS3", category: "frontend", level: 4, maxLevel: 5, xp: 380, xpRequired: 500, unlocked: true, children: ["tailwind", "animations"], description: "Layouts, Flexbox, Grid, responsive design" },
@@ -140,8 +140,8 @@ interface LayoutSizing {
     rowH: number;
 }
 
-function buildTreeLayout(categoryKey: string, sizing: LayoutSizing): { nodes: Map<string, LayoutNode>; edges: TreeEdge[]; rows: string[][] } {
-    const catSkills = skillNodes.filter(s => s.category === categoryKey);
+function buildTreeLayout(categoryKey: string, sizing: LayoutSizing, nodesData: SkillNode[]): { nodes: Map<string, LayoutNode>; edges: TreeEdge[]; rows: string[][] } {
+    const catSkills = nodesData.filter(s => s.category === categoryKey);
     const childIds = new Set(catSkills.flatMap(s => s.children.filter(cid => catSkills.find(cs => cs.id === cid))));
     const roots = catSkills.filter(s => !childIds.has(s.id));
 
@@ -365,10 +365,12 @@ function CategoryTree({
     categoryKey,
     selectedSkill,
     onSelectSkill,
+    nodesData,
 }: {
     categoryKey: string;
     selectedSkill: SkillNode | null;
     onSelectSkill: (skill: SkillNode) => void;
+    nodesData: SkillNode[];
 }) {
     const cat = skillCategories.find(c => c.key === categoryKey)!;
     const containerRef = useRef<HTMLDivElement>(null);
@@ -387,7 +389,7 @@ function CategoryTree({
 
     // Compute responsive sizing based on container width
     // Find the widest row for this category to determine the best scale
-    const catSkills = skillNodes.filter(s => s.category === categoryKey);
+    const catSkills = nodesData.filter(s => s.category === categoryKey);
     const widestRowCount = useMemo(() => {
         // Quick BFS just to find the widest row count
         const childIds = new Set(catSkills.flatMap(s => s.children.filter(cid => catSkills.find(cs => cs.id === cid))));
@@ -431,7 +433,7 @@ function CategoryTree({
     const rowH = Math.round(desktopRowH * clampedScale);
 
     const sizing: LayoutSizing = { nodeW, gapX, rowH };
-    const { nodes: layoutNodes, edges } = useMemo(() => buildTreeLayout(categoryKey, sizing), [categoryKey, nodeW, gapX, rowH]);
+    const { nodes: layoutNodes, edges } = useMemo(() => buildTreeLayout(categoryKey, sizing, nodesData), [categoryKey, nodeW, gapX, rowH, nodesData]);
 
     // Compute bounding box
     const allLayoutNodes = Array.from(layoutNodes.values());
@@ -464,8 +466,8 @@ function CategoryTree({
                     {cat.label}
                 </h2>
                 <span className="text-[9px] sm:text-[10px] ml-auto" style={{ color: "var(--theme-text-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>
-                    {skillNodes.filter(s => s.category === categoryKey && s.unlocked).length}/
-                    {skillNodes.filter(s => s.category === categoryKey).length} UNLOCKED
+                    {nodesData.filter(s => s.category === categoryKey && s.unlocked).length}/
+                    {nodesData.filter(s => s.category === categoryKey).length} UNLOCKED
                 </span>
             </div>
 
@@ -492,8 +494,8 @@ function CategoryTree({
                         const toNode = layoutNodes.get(edge.to);
                         if (!fromNode || !toNode) return null;
 
-                        const fromSkill = skillNodes.find(s => s.id === edge.from);
-                        const toSkill = skillNodes.find(s => s.id === edge.to);
+                        const fromSkill = nodesData.find(s => s.id === edge.from);
+                        const toSkill = nodesData.find(s => s.id === edge.to);
                         const isActive = fromSkill?.unlocked && toSkill?.unlocked;
 
                         const topPad = Math.round(20 * clampedScale);
@@ -521,7 +523,7 @@ function CategoryTree({
 
                 {/* Nodes */}
                 {allLayoutNodes.map(layoutNode => {
-                    const skill = skillNodes.find(s => s.id === layoutNode.id);
+                    const skill = nodesData.find(s => s.id === layoutNode.id);
                     if (!skill) return null;
                     const x = layoutNode.x - minX + (centerOffsetX - treeWidth / 2) - halfNodeW;
                     const y = layoutNode.y + Math.round(20 * clampedScale);
@@ -551,7 +553,7 @@ function CategoryTree({
    SKILL DETAIL PANEL (sidebar)
    ═══════════════════════════════════════════════ */
 
-function SkillDetailPanel({ skill, onClose }: { skill: SkillNode | null; onClose: () => void }) {
+function SkillDetailPanel({ skill, onClose, nodesData }: { skill: SkillNode | null; onClose: () => void; nodesData: SkillNode[] }) {
     if (!skill) {
         return (
             <div className="rounded-2xl border overflow-hidden sticky top-6" style={{ background: "var(--theme-card)", borderColor: "var(--theme-border)" }}>
@@ -638,7 +640,7 @@ function SkillDetailPanel({ skill, onClose }: { skill: SkillNode | null; onClose
                         <span className="text-[10px] uppercase tracking-widest font-semibold block mb-2" style={{ color: "var(--theme-text-muted)" }}>Unlocks</span>
                         <div className="flex flex-wrap gap-1.5">
                             {skill.children.map(childId => {
-                                const child = skillNodes.find(s => s.id === childId);
+                                const child = nodesData.find(s => s.id === childId);
                                 const childCat = child ? skillCategories.find(c => c.key === child.category) : null;
                                 const childColor = childCat?.color || "#3CF91A";
                                 return child ? (
@@ -675,12 +677,34 @@ function SkillDetailPanel({ skill, onClose }: { skill: SkillNode | null; onClose
 export default function SkillTreePage() {
     const [activeCategory, setActiveCategory] = useState<string>("all");
     const [selectedSkill, setSelectedSkill] = useState<SkillNode | null>(null);
+    const [activeNodes, setActiveNodes] = useState<SkillNode[]>(DEFAULT_SKILL_NODES);
 
-    const totalXP = skillNodes.reduce((acc, s) => acc + s.xp, 0);
-    const totalMaxXP = skillNodes.reduce((acc, s) => acc + s.xpRequired, 0);
-    const unlockedCount = skillNodes.filter(s => s.unlocked).length;
-    const maxedCount = skillNodes.filter(s => s.level === s.maxLevel).length;
-    const overallPct = Math.round((totalXP / totalMaxXP) * 100);
+    useEffect(() => {
+        fetch("/api/user/github")
+            .then(r => r.json())
+            .then(data => {
+                if (data.languageStats) {
+                    const map: Record<string, string> = { "HTML": "html", "CSS": "css", "JavaScript": "js", "TypeScript": "ts", "Python": "python", "Rust": "rust", "Solidity": "solidity" };
+                    setActiveNodes(prev => prev.map(node => {
+                        const ghName = Object.keys(map).find(k => map[k] === node.id);
+                        if (ghName && data.languageStats[ghName]) {
+                            const bonusXp = data.languageStats[ghName] * 100;
+                            const newXp = Math.min(node.xpRequired, node.xp + bonusXp);
+                            const newLevel = Math.min(node.maxLevel, Math.max(1, Math.floor((newXp / node.xpRequired) * node.maxLevel)));
+                            return { ...node, unlocked: true, xp: newXp, level: newLevel };
+                        }
+                        return node;
+                    }));
+                }
+            })
+            .catch(console.error);
+    }, []);
+
+    const totalXP = activeNodes.reduce((acc, s) => acc + s.xp, 0);
+    const totalMaxXP = activeNodes.reduce((acc, s) => acc + s.xpRequired, 0);
+    const unlockedCount = activeNodes.filter(s => s.unlocked).length;
+    const maxedCount = activeNodes.filter(s => s.level === s.maxLevel).length;
+    const overallPct = totalMaxXP > 0 ? Math.round((totalXP / totalMaxXP) * 100) : 0;
 
     const categoriesToShow = activeCategory === "all"
         ? skillCategories.map(c => c.key)
@@ -704,7 +728,7 @@ export default function SkillTreePage() {
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
                     {[
                         { icon: <ZapIcon />, label: "Total XP", value: totalXP.toLocaleString(), sub: `/ ${totalMaxXP.toLocaleString()}`, color: "#3CF91A" },
-                        { icon: <TargetIcon />, label: "Unlocked", value: `${unlockedCount}`, sub: `/ ${skillNodes.length}`, color: "#3B82F6" },
+                        { icon: <TargetIcon />, label: "Unlocked", value: `${unlockedCount}`, sub: `/ ${activeNodes.length}`, color: "#3B82F6" },
                         { icon: <StarIcon />, label: "Mastered", value: `${maxedCount}`, sub: "skills", color: "#F59E0B" },
                         { icon: <TrophyIcon />, label: "Overall", value: `${overallPct}%`, sub: "complete", color: "#8B5CF6" },
                     ].map((stat, i) => (
@@ -771,6 +795,7 @@ export default function SkillTreePage() {
                                 categoryKey={catKey}
                                 selectedSkill={selectedSkill}
                                 onSelectSkill={setSelectedSkill}
+                                nodesData={activeNodes}
                             />
                         ))}
                     </div>
@@ -780,6 +805,7 @@ export default function SkillTreePage() {
                         <SkillDetailPanel
                             skill={selectedSkill}
                             onClose={() => setSelectedSkill(null)}
+                            nodesData={activeNodes}
                         />
                     </div>
                 </div>

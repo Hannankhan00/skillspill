@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
     Sparkles, CheckCircle, Github, Linkedin, Briefcase, FileText,
     Loader2, Link as LinkIcon, Phone, Mail, Heart, MessageSquare,
-    Eye, Share2, Zap, ExternalLink,
+    Eye, Share2, Zap, ExternalLink, Star,
 } from "lucide-react";
 
 const accent = "#3CF91A";
@@ -13,8 +13,10 @@ const accent = "#3CF91A";
 export default function TalentProfilePage() {
     const [userData, setUserData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [githubData, setGithubData] = useState<any>(null);
+    const [isLoadingGithub, setIsLoadingGithub] = useState(false);
     const [activeTab, setActiveTab] = useState("Overview");
-    const tabs = ["Overview", "Experience", "Projects", "Skills", "Spills"];
+    const tabs = ["Overview", "Experience", "Projects", "GitHub", "Skills", "Spills"];
 
     useEffect(() => {
         fetch("/api/user/profile")
@@ -25,6 +27,16 @@ export default function TalentProfilePage() {
             })
             .catch(() => setIsLoading(false));
     }, []);
+
+    useEffect(() => {
+        if (userData?.talentProfile?.githubConnected) {
+            setIsLoadingGithub(true);
+            fetch("/api/user/github").then(r => r.json()).then(d => {
+                if (!d.error) setGithubData(d);
+                setIsLoadingGithub(false);
+            }).catch(() => setIsLoadingGithub(false));
+        }
+    }, [userData]);
 
     if (isLoading) {
         return (
@@ -400,6 +412,189 @@ export default function TalentProfilePage() {
                                     </div>
                                     <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-1">No Projects Yet</h3>
                                     <p className="text-[12px] text-[var(--theme-text-muted)]">Add spotlight projects from your profile settings.</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* ── GITHUB TAB ── */}
+                    {activeTab === "GitHub" && (
+                        <div className="space-y-4">
+                            {isLoadingGithub ? (
+                                <div className="flex justify-center p-8"><Loader2 className="w-6 h-6 animate-spin text-[#3CF91A]" /></div>
+                            ) : githubData ? (
+                                <>
+                                    {/* ── GitHub Profile Card ── */}
+                                    {githubData.githubProfile && (
+                                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
+                                            <div className="flex items-start gap-4">
+                                                <img
+                                                    src={githubData.githubProfile.avatarUrl}
+                                                    alt="GitHub Avatar"
+                                                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl border-2 shrink-0"
+                                                    style={{ borderColor: `${accent}40` }}
+                                                />
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                                                        <h2 className="text-[15px] font-bold text-[var(--theme-text-primary)]">@{githubData.githubUsername}</h2>
+                                                        <a href={githubData.githubProfile.htmlUrl} target="_blank" rel="noopener noreferrer"
+                                                            className="flex items-center gap-1 text-[10px] font-medium no-underline px-2 py-0.5 rounded-full transition-all hover:opacity-80"
+                                                            style={{ background: `${accent}15`, color: accent }}>
+                                                            <ExternalLink className="w-3 h-3" /> View on GitHub
+                                                        </a>
+                                                    </div>
+                                                    {githubData.githubProfile.bio && (
+                                                        <p className="text-[12px] text-[var(--theme-text-muted)] mb-2 line-clamp-2">{githubData.githubProfile.bio}</p>
+                                                    )}
+                                                    <div className="flex items-center gap-4 text-[11px] text-[var(--theme-text-secondary)]">
+                                                        <span><strong style={{ color: 'var(--theme-text-primary)' }}>{githubData.githubProfile.followers}</strong> followers</span>
+                                                        <span><strong style={{ color: 'var(--theme-text-primary)' }}>{githubData.githubProfile.following}</strong> following</span>
+                                                        <span><strong style={{ color: 'var(--theme-text-primary)' }}>{githubData.totalRepos}</strong> repos</span>
+                                                        <span><strong style={{ color: accent }}>{githubData.totalStars}</strong> <Star className="w-3 h-3 inline" /></span>
+                                                    </div>
+                                                    <p className="text-[10px] text-[var(--theme-text-muted)] mt-1.5">
+                                                        Member since {new Date(githubData.githubProfile.createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* ── Top Languages ── */}
+                                    <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
+                                        <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-4 flex items-center gap-2">
+                                            <Github className="w-4 h-4 text-[#3CF91A]" /> Top Languages
+                                        </h2>
+                                        {Object.keys(githubData.languageStats).length > 0 ? (
+                                            <div className="flex flex-wrap gap-2">
+                                                {Object.entries(githubData.languageStats)
+                                                    .sort(([, a], [, b]) => (b as number) - (a as number))
+                                                    .map(([lang, count]) => (
+                                                        <span key={lang} className="px-3 py-1.5 rounded-lg text-[11px] sm:text-[12px] font-medium bg-[var(--theme-input-bg)] text-[var(--theme-text-secondary)] border border-[var(--theme-border-light)] flex items-center gap-1.5">
+                                                            <span className="w-2 h-2 rounded-full bg-[#3CF91A]"></span>
+                                                            {lang} <span className="text-[#3CF91A] font-bold">{count as number}</span>
+                                                        </span>
+                                                    ))}
+                                            </div>
+                                        ) : (
+                                            <p className="text-[12px] text-[var(--theme-text-muted)]">No language data available.</p>
+                                        )}
+                                    </div>
+
+                                    {/* ── Repositories ── */}
+                                    <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
+                                        <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-4 flex items-center gap-2">
+                                            <Github className="w-4 h-4 text-[#3CF91A]" /> Repositories {githubData.sharePrivateRepos && <span className="text-[10px] bg-[#3CF91A]/10 text-[#3CF91A] px-2 py-0.5 rounded-full ml-2">Includes Private</span>}
+                                        </h2>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            {githubData.repos.map((repo: any) => (
+                                                <a key={repo.id} href={repo.html_url} target="_blank" rel="noopener noreferrer" className="p-4 rounded-xl border border-[var(--theme-border-light)] bg-[var(--theme-bg-secondary)] hover:border-[#3CF91A]/40 transition-all no-underline block flex flex-col break-inside-avoid">
+                                                    <h3 className="text-[13px] font-bold text-[var(--theme-text-primary)] mb-1 flex items-center justify-between">
+                                                        <span className="truncate pr-2">{repo.name}</span>
+                                                        {repo.private && <span className="text-[9px] bg-red-500/10 text-red-500 px-2 py-0.5 rounded-full border border-red-500/20 shrink-0">Private</span>}
+                                                    </h3>
+                                                    <p className="text-[11px] text-[var(--theme-text-muted)] mb-3 line-clamp-2 flex-grow">{repo.description || "No description"}</p>
+                                                    <div className="flex items-center gap-3 text-[10px] text-[var(--theme-text-secondary)] mt-auto pt-2 border-t border-[var(--theme-border-light)]">
+                                                        {repo.language && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#3CF91A]"></span>{repo.language}</span>}
+                                                        <span className="flex items-center gap-1"><Star className="w-3 h-3 text-[var(--theme-text-muted)]" /> {repo.stargazers_count}</span>
+                                                        {repo.forks_count > 0 && <span className="flex items-center gap-1">🔱 {repo.forks_count}</span>}
+                                                        <span className="flex items-center gap-1 ml-auto text-[var(--theme-text-muted)]">{new Date(repo.updated_at).toLocaleDateString()}</span>
+                                                    </div>
+                                                </a>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* ── Recent Activity ── */}
+                                    {githubData.recentActivity && githubData.recentActivity.length > 0 && (
+                                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
+                                            <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-4 flex items-center gap-2">
+                                                <Zap className="w-4 h-4 text-[#3CF91A]" /> Recent Activity
+                                            </h2>
+                                            <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                                                {githubData.recentActivity.slice(0, 15).map((event: any, i: number) => {
+                                                    const typeMap: Record<string, string> = {
+                                                        PushEvent: "Pushed to",
+                                                        CreateEvent: "Created",
+                                                        PullRequestEvent: "PR on",
+                                                        IssuesEvent: "Issue on",
+                                                        WatchEvent: "Starred",
+                                                        ForkEvent: "Forked",
+                                                        DeleteEvent: "Deleted in",
+                                                        IssueCommentEvent: "Commented on",
+                                                        PullRequestReviewEvent: "Reviewed PR on",
+                                                    };
+                                                    const label = typeMap[event.type] || event.type.replace("Event", "");
+                                                    return (
+                                                        <div key={i} className="flex items-center gap-3 py-2 border-b border-[var(--theme-border-light)] last:border-b-0">
+                                                            <div className="w-2 h-2 rounded-full shrink-0" style={{ background: accent }}></div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-[12px] text-[var(--theme-text-secondary)] truncate">
+                                                                    <span className="font-semibold text-[var(--theme-text-primary)]">{label}</span>{" "}
+                                                                    <span className="font-mono text-[11px]" style={{ color: accent }}>{event.repo}</span>
+                                                                </p>
+                                                            </div>
+                                                            <span className="text-[10px] text-[var(--theme-text-muted)] shrink-0">
+                                                                {new Date(event.createdAt).toLocaleDateString()}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* ── ACHIEVEMENTS (Gamification) ── */}
+                                    <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
+                                        <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-4 flex items-center gap-2">
+                                            <Sparkles className="w-4 h-4 text-[#3CF91A]" /> GitHub Achievements
+                                        </h2>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                            {/* Badge 1: Connected */}
+                                            <div className="flex flex-col items-center justify-center p-3 rounded-xl border border-[#3CF91A]/30 bg-[#3CF91A]/5 text-center">
+                                                <div className="w-10 h-10 rounded-full bg-[#3CF91A]/20 text-[#3CF91A] flex items-center justify-center mb-2 shadow-[0_0_15px_rgba(60,249,26,0.3)]">
+                                                    <Github className="w-5 h-5" />
+                                                </div>
+                                                <span className="text-[11px] font-bold text-[var(--theme-text-primary)]">Verified Hacker</span>
+                                                <span className="text-[9px] text-[var(--theme-text-muted)] mt-0.5">Linked GitHub</span>
+                                            </div>
+
+                                            {/* Badge 2: Polyglot */}
+                                            <div className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all ${Object.keys(githubData.languageStats).length >= 3 ? 'border-purple-500/30 bg-purple-500/5' : 'border-[var(--theme-border)] bg-[var(--theme-bg-secondary)] opacity-50 grayscale'}`}>
+                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${Object.keys(githubData.languageStats).length >= 3 ? 'bg-purple-500/20 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'bg-[var(--theme-input-bg)] text-[var(--theme-text-muted)]'}`}>
+                                                    <FileText className="w-5 h-5" />
+                                                </div>
+                                                <span className="text-[11px] font-bold text-[var(--theme-text-primary)]">Polyglot</span>
+                                                <span className="text-[9px] text-[var(--theme-text-muted)] mt-0.5">3+ Languages</span>
+                                            </div>
+
+                                            {/* Badge 3: Stargazer */}
+                                            <div className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all ${(githubData.totalStars || 0) >= 10 ? 'border-yellow-500/30 bg-yellow-500/5' : 'border-[var(--theme-border)] bg-[var(--theme-bg-secondary)] opacity-50 grayscale'}`}>
+                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${(githubData.totalStars || 0) >= 10 ? 'bg-yellow-500/20 text-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.3)]' : 'bg-[var(--theme-input-bg)] text-[var(--theme-text-muted)]'}`}>
+                                                    <Star className="w-5 h-5" />
+                                                </div>
+                                                <span className="text-[11px] font-bold text-[var(--theme-text-primary)]">Stargazer</span>
+                                                <span className="text-[9px] text-[var(--theme-text-muted)] mt-0.5">10+ Total Stars</span>
+                                            </div>
+
+                                            {/* Badge 4: Deep Contributor */}
+                                            <div className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all ${(githubData.totalRepos || 0) >= 10 ? 'border-blue-500/30 bg-blue-500/5' : 'border-[var(--theme-border)] bg-[var(--theme-bg-secondary)] opacity-50 grayscale'}`}>
+                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${(githubData.totalRepos || 0) >= 10 ? 'bg-blue-500/20 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.3)]' : 'bg-[var(--theme-input-bg)] text-[var(--theme-text-muted)]'}`}>
+                                                    <Briefcase className="w-5 h-5" />
+                                                </div>
+                                                <span className="text-[11px] font-bold text-[var(--theme-text-primary)]">Archivist</span>
+                                                <span className="text-[9px] text-[var(--theme-text-muted)] mt-0.5">10+ Repositories</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="rounded-2xl border border-dashed border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-8 text-center flex flex-col items-center">
+                                    <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3" style={{ background: `${accent}10` }}>
+                                        <Github className="w-5 h-5" style={{ color: accent }} />
+                                    </div>
+                                    <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-1">No GitHub Data</h3>
+                                    <p className="text-[12px] text-[var(--theme-text-muted)] mb-3">Connect your account in settings to display your source code activities.</p>
                                 </div>
                             )}
                         </div>

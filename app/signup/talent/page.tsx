@@ -87,6 +87,7 @@ interface FormData {
     githubConnected: boolean; githubUsername: string; githubRepos: number; githubStars: number;
     portfolioUrl: string; linkedinUrl: string; resumeFile: File | null; projectLinks: string[];
     agreedToTerms: boolean; emailVerified: boolean;
+    githubAccessToken?: string; githubId?: string; sharePrivateRepos?: boolean;
 }
 
 const mono = { fontFamily: "var(--font-jetbrains-mono), monospace" };
@@ -130,6 +131,7 @@ export default function TalentSignup() {
         githubConnected: false, githubUsername: "", githubRepos: 0, githubStars: 0,
         portfolioUrl: "", linkedinUrl: "", resumeFile: null, projectLinks: [""],
         agreedToTerms: false, emailVerified: false,
+        githubAccessToken: "", githubId: "", sharePrivateRepos: false,
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -178,7 +180,29 @@ export default function TalentSignup() {
     };
 
     const addCustomSkill = () => { const s = formData.customSkill.trim(); if (s && !formData.selectedSkills.includes(s)) setFormData((prev) => ({ ...prev, selectedSkills: [...prev.selectedSkills, s], customSkill: "" })); };
-    const simulateGithubConnect = () => { updateForm("githubConnected", true); updateForm("githubUsername", formData.username || "dev_user"); updateForm("githubRepos", 47); updateForm("githubStars", 234); };
+    const connectGithub = () => {
+        const sharePrivate = formData.sharePrivateRepos || false;
+        const url = `/api/auth/github?action=connect&private=${sharePrivate}`;
+        const popup = window.open(url, "github-oauth", `width=600,height=700`);
+        const handleMessage = (event: MessageEvent) => {
+            if (event.data?.type === 'github_callback') {
+                window.removeEventListener('message', handleMessage);
+                if (event.data.error) {
+                    alert("GitHub connection failed: " + event.data.error);
+                } else {
+                    const d = event.data.data;
+                    updateForm("githubConnected", true);
+                    updateForm("githubUsername", d.githubUsername);
+                    updateForm("githubRepos", d.githubRepos);
+                    updateForm("githubStars", 0);
+                    updateForm("githubAccessToken", d.githubAccessToken);
+                    updateForm("githubId", d.githubId);
+                    updateForm("sharePrivateRepos", d.sharePrivateRepos);
+                }
+            }
+        };
+        window.addEventListener('message', handleMessage);
+    };
     const addProjectLink = () => setFormData((prev) => ({ ...prev, projectLinks: [...prev.projectLinks, ""] }));
     const updateProjectLink = (i: number, v: string) => setFormData((prev) => { const l = [...prev.projectLinks]; l[i] = v; return { ...prev, projectLinks: l }; });
     const removeProjectLink = (i: number) => setFormData((prev) => ({ ...prev, projectLinks: prev.projectLinks.filter((_, idx) => idx !== i) }));
@@ -289,7 +313,11 @@ export default function TalentSignup() {
                         <h3 className="text-white font-bold mb-1">Connect Repository</h3>
                         <p className="text-xs text-[#666] max-w-[250px] mx-auto">We analyze your commits to generate your skill verification badge.</p>
                     </div>
-                    <button onClick={simulateGithubConnect} className="px-6 py-2 bg-white text-black font-bold text-xs uppercase tracking-wider roundedHover hover:bg-[#3CF91A] transition-colors rounded">
+                    <div className="flex items-center justify-center gap-2 mb-2 text-xs text-[#888]">
+                        <input type="checkbox" id="sharePrivate" checked={formData.sharePrivateRepos} onChange={e => updateForm("sharePrivateRepos", e.target.checked)} className="accent-[#3CF91A] w-4 h-4" />
+                        <label htmlFor="sharePrivate" className="cursor-pointer">Share private repositories for evaluation</label>
+                    </div>
+                    <button onClick={connectGithub} className="px-6 py-2 bg-white text-black font-bold text-xs uppercase tracking-wider roundedHover hover:bg-[#3CF91A] transition-colors rounded cursor-pointer">
                         Connect GitHub Account
                     </button>
                 </div>

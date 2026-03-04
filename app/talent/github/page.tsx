@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 
 /* ═══════════════════════════════════════════════
    S K I L L S P I L L  —  G I T H U B  S Y N C
@@ -9,44 +9,14 @@ import React, { useState, useCallback } from "react";
 
 const accent = "#3CF91A";
 
-/* -- Mock Data -- */
-const mockRepos = [
-    { id: 1, name: "CRDTSync-Engine", description: "Real-time collaborative editing engine with conflict resolution", language: "TypeScript", langColor: "#3178C6", stars: 342, forks: 67, updated: "2 hours ago", synced: true, isPrivate: false },
-    { id: 2, name: "RustSearch", description: "High-performance search library with zero-cost abstractions", language: "Rust", langColor: "#DEA584", stars: 189, forks: 28, updated: "1 day ago", synced: true, isPrivate: false },
-    { id: 3, name: "ReactFlow-Pro", description: "Advanced node-based editor for visual programming", language: "TypeScript", langColor: "#3178C6", stars: 256, forks: 45, updated: "3 days ago", synced: true, isPrivate: false },
-    { id: 4, name: "neural-net-playground", description: "Interactive neural network visualization and experimentation", language: "Python", langColor: "#3572A5", stars: 128, forks: 22, updated: "5 days ago", synced: false, isPrivate: false },
-    { id: 5, name: "cloud-infra-templates", description: "Terraform modules for production-grade cloud infrastructure", language: "HCL", langColor: "#844FBA", stars: 94, forks: 31, updated: "1 week ago", synced: false, isPrivate: true },
-    { id: 6, name: "go-microservice-kit", description: "Production-ready microservice boilerplate with observability", language: "Go", langColor: "#00ADD8", stars: 176, forks: 38, updated: "2 weeks ago", synced: true, isPrivate: false },
-    { id: 7, name: "dotfiles", description: "My personal development environment configuration", language: "Shell", langColor: "#89e051", stars: 12, forks: 3, updated: "3 weeks ago", synced: false, isPrivate: false },
-    { id: 8, name: "leetcode-solutions", description: "Solutions to 400+ LeetCode problems with explanations", language: "Python", langColor: "#3572A5", stars: 67, forks: 14, updated: "1 month ago", synced: false, isPrivate: false },
-];
-
-const mockActivity = [
-    { id: 1, type: "push", repo: "CRDTSync-Engine", branch: "main", message: "fix: resolve merge conflict in vector clock sync", time: "2h ago", commits: 3 },
-    { id: 2, type: "pr_merged", repo: "RustSearch", branch: "feat/parallel-indexing", message: "feat: add parallel indexing support", time: "5h ago", commits: 8 },
-    { id: 3, type: "pr_opened", repo: "ReactFlow-Pro", branch: "fix/edge-rendering", message: "fix: correct edge path calculation for curved edges", time: "1d ago", commits: 2 },
-    { id: 4, type: "push", repo: "go-microservice-kit", branch: "main", message: "chore: upgrade dependencies to latest", time: "2d ago", commits: 1 },
-    { id: 5, type: "issue_closed", repo: "CRDTSync-Engine", branch: "", message: "Memory leak in long-running sessions #142", time: "3d ago", commits: 0 },
-    { id: 6, type: "release", repo: "RustSearch", branch: "v2.1.0", message: "Release v2.1.0 — parallel indexing & bug fixes", time: "4d ago", commits: 0 },
-];
-
-const mockLanguageStats = [
-    { name: "TypeScript", pct: 38, color: "#3178C6" },
-    { name: "Rust", pct: 22, color: "#DEA584" },
-    { name: "Python", pct: 18, color: "#3572A5" },
-    { name: "Go", pct: 12, color: "#00ADD8" },
-    { name: "Other", pct: 10, color: "#737373" },
-];
-
-const mockContributions = {
-    totalThisYear: 2847,
-    currentStreak: 34,
-    longestStreak: 72,
-    thisWeek: 47,
-    lastWeek: 39,
+/* Language color map */
+const langColors: Record<string, string> = {
+    TypeScript: "#3178C6", JavaScript: "#F1E05A", Python: "#3572A5", Rust: "#DEA584",
+    Go: "#00ADD8", Java: "#B07219", "C++": "#f34b7d", C: "#555555", "C#": "#178600",
+    Ruby: "#701516", PHP: "#4F5D95", Shell: "#89e051", HTML: "#e34c26", CSS: "#563d7c",
+    Swift: "#F05138", Kotlin: "#A97BFF", Dart: "#00B4AB", HCL: "#844FBA", Lua: "#000080",
+    Scala: "#c22d40", Elixir: "#6e4a7e", Vue: "#41b883", SCSS: "#c6538c",
 };
-
-/* ═══════════════════════════════════════════════ */
 
 function GitHubSVG() {
     return (
@@ -68,25 +38,30 @@ function SyncIcon({ spinning }: { spinning?: boolean }) {
 
 function ActivityIcon({ type }: { type: string }) {
     switch (type) {
-        case "push":
+        case "PushEvent":
             return <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${accent}15`, color: accent }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="16 3 21 3 21 8" /><line x1="4" y1="20" x2="21" y2="3" /></svg>
             </div>;
-        case "pr_merged":
+        case "PullRequestEvent":
             return <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "rgba(168,85,247,0.12)", color: "#A855F7" }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="18" r="3" /><circle cx="6" cy="6" r="3" /><path d="M6 21V9a9 9 0 0 0 9 9" /></svg>
             </div>;
-        case "pr_opened":
-            return <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "rgba(34,197,94,0.12)", color: "#22C55E" }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="18" r="3" /><circle cx="6" cy="6" r="3" /><path d="M13 6h3a2 2 0 0 1 2 2v7" /><line x1="6" y1="9" x2="6" y2="21" /></svg>
-            </div>;
-        case "issue_closed":
+        case "IssuesEvent":
+        case "IssueCommentEvent":
             return <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "rgba(239,68,68,0.12)", color: "#EF4444" }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
             </div>;
-        case "release":
+        case "CreateEvent":
+            return <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "rgba(34,197,94,0.12)", color: "#22C55E" }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+            </div>;
+        case "ForkEvent":
             return <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "rgba(59,130,246,0.12)", color: "#3B82F6" }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="6" y1="3" x2="6" y2="15" /><circle cx="18" cy="6" r="3" /><circle cx="6" cy="18" r="3" /><path d="M18 9a9 9 0 0 1-9 9" /></svg>
+            </div>;
+        case "WatchEvent":
+            return <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "rgba(234,179,8,0.12)", color: "#EAB308" }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
             </div>;
         default:
             return <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "var(--theme-input-bg)", color: "var(--theme-text-muted)" }}>
@@ -96,50 +71,141 @@ function ActivityIcon({ type }: { type: string }) {
 }
 
 function activityLabel(type: string) {
-    switch (type) {
-        case "push": return "Pushed to";
-        case "pr_merged": return "PR Merged in";
-        case "pr_opened": return "PR Opened in";
-        case "issue_closed": return "Issue Closed in";
-        case "release": return "Released in";
-        default: return "Activity in";
-    }
+    const map: Record<string, string> = {
+        PushEvent: "Pushed to",
+        PullRequestEvent: "PR on",
+        CreateEvent: "Created",
+        IssuesEvent: "Issue on",
+        IssueCommentEvent: "Commented on",
+        ForkEvent: "Forked",
+        WatchEvent: "Starred",
+        DeleteEvent: "Deleted in",
+        PullRequestReviewEvent: "Reviewed PR on",
+        ReleaseEvent: "Released in",
+    };
+    return map[type] || type.replace("Event", "");
+}
+
+function timeAgo(dateStr: string) {
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    if (days < 7) return `${days}d ago`;
+    const weeks = Math.floor(days / 7);
+    return `${weeks}w ago`;
 }
 
 export default function GitHubSyncPage() {
     const [isSyncing, setIsSyncing] = useState(false);
-    const [lastSynced, setLastSynced] = useState("2 minutes ago");
-    const [repos, setRepos] = useState(mockRepos);
+    const [lastSynced, setLastSynced] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [search, setSearch] = useState("");
-    const [filter, setFilter] = useState<"all" | "synced" | "unsynced">("all");
+    const [filter, setFilter] = useState<"all" | "public" | "private">("all");
     const [showContribMap, setShowContribMap] = useState(true);
-    const [syncSettings, setSyncSettings] = useState({ autoSync: true, privateRepos: false, showContribs: true });
 
-    // Generate stable contribution data once
-    const [contribData] = useState(() =>
-        Array.from({ length: 52 * 7 }).map(() => Math.random())
-    );
+    // Real data from API
+    const [githubData, setGithubData] = useState<any>(null);
+
+    const fetchGithubData = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+            const res = await fetch("/api/user/github");
+            if (!res.ok) {
+                const d = await res.json();
+                setError(d.error || "Failed to load GitHub data");
+                setIsLoading(false);
+                return;
+            }
+            const data = await res.json();
+            setGithubData(data);
+            setLastSynced("just now");
+        } catch {
+            setError("Network error loading GitHub data");
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchGithubData();
+    }, [fetchGithubData]);
 
     const handleSync = useCallback(() => {
         setIsSyncing(true);
-        setTimeout(() => {
+        fetchGithubData().finally(() => {
             setIsSyncing(false);
-            setLastSynced("just now");
-        }, 2500);
-    }, []);
+        });
+    }, [fetchGithubData]);
 
-    const toggleRepoSync = (repoId: number) => {
-        setRepos(prev => prev.map(r => r.id === repoId ? { ...r, synced: !r.synced } : r));
-    };
+    // Derived data
+    const repos = githubData?.repos || [];
+    const languageStats = githubData?.languageStats || {};
+    const profile = githubData?.githubProfile || null;
+    const activity = githubData?.recentActivity || [];
+    const totalStars = githubData?.totalStars || 0;
+    const totalRepos = githubData?.totalRepos || repos.length;
+    const ghUsername = githubData?.githubUsername || "";
+    const contribs = githubData?.contributionData || null;
 
-    const filteredRepos = repos.filter(r => {
-        const matchSearch = r.name.toLowerCase().includes(search.toLowerCase()) || r.description.toLowerCase().includes(search.toLowerCase());
-        if (filter === "synced") return matchSearch && r.synced;
-        if (filter === "unsynced") return matchSearch && !r.synced;
+    // Language data for the bar chart
+    const totalLangRepos = Object.values(languageStats).reduce((s: number, c) => s + (c as number), 0) as number;
+    const langChartData = Object.entries(languageStats)
+        .sort(([, a], [, b]) => (b as number) - (a as number))
+        .map(([name, count]) => ({
+            name,
+            count: count as number,
+            pct: totalLangRepos > 0 ? Math.round(((count as number) / totalLangRepos) * 100) : 0,
+            color: langColors[name] || "#737373",
+        }));
+
+    // Filtered repos
+    const filteredRepos = repos.filter((r: any) => {
+        const matchSearch = r.name.toLowerCase().includes(search.toLowerCase()) || (r.description || "").toLowerCase().includes(search.toLowerCase());
+        if (filter === "public") return matchSearch && !r.private;
+        if (filter === "private") return matchSearch && r.private;
         return matchSearch;
     });
 
-    const syncedCount = repos.filter(r => r.synced).length;
+    // Loading state
+    if (isLoading) {
+        return (
+            <div className="min-h-full flex items-center justify-center" style={{ background: "var(--theme-bg)" }}>
+                <div className="text-center">
+                    <div className="w-12 h-12 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: `${accent}15`, color: accent }}>
+                        <SyncIcon spinning />
+                    </div>
+                    <p className="text-[13px] font-medium" style={{ color: "var(--theme-text-muted)" }}>Loading GitHub data...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Not connected state
+    if (error) {
+        return (
+            <div className="min-h-full flex items-center justify-center" style={{ background: "var(--theme-bg)" }}>
+                <div className="text-center max-w-sm">
+                    <div className="w-16 h-16 rounded-xl mx-auto mb-4 flex items-center justify-center" style={{ background: "var(--theme-input-bg)", color: "var(--theme-text-primary)" }}>
+                        <GitHubSVG />
+                    </div>
+                    <h2 className="text-lg font-bold mb-2" style={{ color: "var(--theme-text-primary)" }}>GitHub Not Connected</h2>
+                    <p className="text-[12px] mb-4" style={{ color: "var(--theme-text-muted)" }}>{error}</p>
+                    <a href="/talent/settings"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-[12px] font-bold border-none no-underline transition-all hover:scale-105"
+                        style={{ background: accent, color: "#000", boxShadow: `0 4px 20px ${accent}40` }}>
+                        Connect GitHub in Settings
+                    </a>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-full" style={{ background: "var(--theme-bg)" }}>
@@ -157,15 +223,17 @@ export default function GitHubSyncPage() {
                                     GitHub Sync
                                 </h1>
                                 <p className="text-[12px]" style={{ color: "var(--theme-text-muted)" }}>
-                                    Connected as <span className="font-semibold" style={{ color: accent }}>ghost-protocol</span>
+                                    Connected as <span className="font-semibold" style={{ color: accent }}>{ghUsername}</span>
                                 </p>
                             </div>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        <span className="text-[11px]" style={{ color: "var(--theme-text-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>
-                            Last synced: {lastSynced}
-                        </span>
+                        {lastSynced && (
+                            <span className="text-[11px]" style={{ color: "var(--theme-text-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>
+                                Last synced: {lastSynced}
+                            </span>
+                        )}
                         <button
                             onClick={handleSync}
                             disabled={isSyncing}
@@ -186,10 +254,10 @@ export default function GitHubSyncPage() {
                 {/* ═══ Stats Cards ═══ */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
                     {[
-                        { label: "Contributions", value: mockContributions.totalThisYear.toLocaleString(), icon: "🔥", sub: "this year" },
-                        { label: "Current Streak", value: `${mockContributions.currentStreak}d`, icon: "⚡", sub: "days active" },
-                        { label: "Longest Streak", value: `${mockContributions.longestStreak}d`, icon: "🏆", sub: "personal best" },
-                        { label: "This Week", value: mockContributions.thisWeek.toString(), icon: "📊", sub: `+${Math.round(((mockContributions.thisWeek - mockContributions.lastWeek) / mockContributions.lastWeek) * 100)}% vs last week` },
+                        { label: "Contributions", value: contribs?.totalContributions?.toLocaleString() || "0", icon: "🔥", sub: "this year" },
+                        { label: "Commits", value: contribs?.totalCommits?.toLocaleString() || "0", icon: "⚡", sub: `${contribs?.totalPRs || 0} PRs · ${contribs?.totalIssues || 0} issues` },
+                        { label: "Total Stars", value: totalStars.toLocaleString(), icon: "⭐", sub: `${totalRepos} repos` },
+                        { label: "Followers", value: profile?.followers?.toLocaleString() || "0", icon: "👥", sub: `following ${profile?.following || 0}` },
                     ].map(stat => (
                         <div key={stat.label} className="rounded-2xl border p-4" style={{ background: "var(--theme-card)", borderColor: "var(--theme-border)" }}>
                             <div className="flex items-center justify-between mb-2">
@@ -211,33 +279,45 @@ export default function GitHubSyncPage() {
                             <div className="flex items-center justify-between mb-3">
                                 <h2 className="text-[13px] font-bold" style={{ color: "var(--theme-text-primary)" }}>
                                     Contribution Activity
+                                    {contribs && (
+                                        <span className="font-normal ml-2 text-[11px]" style={{ color: "var(--theme-text-muted)" }}>
+                                            {contribs.totalContributions.toLocaleString()} contributions in the last year
+                                        </span>
+                                    )}
                                 </h2>
                                 <button onClick={() => setShowContribMap(!showContribMap)} className="text-[10px] font-medium bg-transparent border-none cursor-pointer" style={{ color: "var(--theme-text-muted)" }}>
                                     {showContribMap ? "Hide" : "Show"}
                                 </button>
                             </div>
-                            {showContribMap && (
-                                <div className="overflow-x-auto">
-                                    <div className="flex gap-[3px] flex-wrap min-w-[600px]">
-                                        {contribData.map((intensity, i) => {
-                                            let bg = "var(--theme-input-bg)";
-                                            if (intensity > 0.8) bg = "#16A34A";
-                                            else if (intensity > 0.6) bg = "#22C55E";
-                                            else if (intensity > 0.4) bg = "#2D9B4E";
-                                            else if (intensity > 0.2) bg = "#1A6B35";
-                                            return <div key={i} className="w-[10px] h-[10px] rounded-[2px]" style={{ backgroundColor: bg }} />;
-                                        })}
+                            {showContribMap && contribs?.weeks && (
+                                <div>
+                                    <div className="flex gap-[2px]">
+                                        {contribs.weeks.map((week: any, wi: number) => (
+                                            <div key={wi} className="flex flex-col gap-[2px] flex-1">
+                                                {week.days.map((day: any, di: number) => (
+                                                    <div
+                                                        key={di}
+                                                        className="w-full rounded-[2px] transition-colors"
+                                                        style={{ backgroundColor: day.count === 0 ? 'var(--theme-input-bg)' : day.color, aspectRatio: '1/1' }}
+                                                        title={`${day.date}: ${day.count} contribution${day.count !== 1 ? 's' : ''}`}
+                                                    />
+                                                ))}
+                                            </div>
+                                        ))}
                                     </div>
                                     <div className="flex items-center justify-between mt-2">
                                         <span className="text-[9px]" style={{ color: "var(--theme-text-muted)" }}>Less</span>
                                         <div className="flex gap-[3px] items-center">
-                                            {["var(--theme-input-bg)", "#1A6B35", "#2D9B4E", "#22C55E", "#16A34A"].map((c, i) => (
-                                                <div key={i} className="w-[10px] h-[10px] rounded-[2px]" style={{ backgroundColor: c }} />
+                                            {["var(--theme-input-bg)", "#0e4429", "#006d32", "#26a641", "#39d353"].map((c, i) => (
+                                                <div key={i} className="w-[11px] h-[11px] rounded-[2px]" style={{ backgroundColor: c }} />
                                             ))}
                                         </div>
                                         <span className="text-[9px]" style={{ color: "var(--theme-text-muted)" }}>More</span>
                                     </div>
                                 </div>
+                            )}
+                            {showContribMap && !contribs?.weeks && (
+                                <p className="text-[11px]" style={{ color: "var(--theme-text-muted)" }}>Contribution data not available.</p>
                             )}
                         </div>
 
@@ -246,7 +326,7 @@ export default function GitHubSyncPage() {
                             <div className="p-4 sm:p-5 space-y-3" style={{ borderBottom: "1px solid var(--theme-border)" }}>
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-[13px] font-bold" style={{ color: "var(--theme-text-primary)" }}>
-                                        Repositories <span className="font-normal" style={{ color: "var(--theme-text-muted)" }}>({syncedCount}/{repos.length} synced)</span>
+                                        Repositories <span className="font-normal" style={{ color: "var(--theme-text-muted)" }}>({repos.length} total)</span>
                                     </h2>
                                 </div>
                                 <div className="flex flex-col sm:flex-row gap-2">
@@ -262,7 +342,7 @@ export default function GitHubSyncPage() {
                                         />
                                     </div>
                                     <div className="flex gap-1">
-                                        {(["all", "synced", "unsynced"] as const).map(f => (
+                                        {(["all", "public", "private"] as const).map(f => (
                                             <button
                                                 key={f}
                                                 onClick={() => setFilter(f)}
@@ -280,46 +360,39 @@ export default function GitHubSyncPage() {
                             </div>
 
                             <div className="divide-y" style={{ borderColor: "var(--theme-border-light)" }}>
-                                {filteredRepos.map(repo => (
+                                {filteredRepos.map((repo: any) => (
                                     <div key={repo.id} className="flex items-start gap-3 p-4 sm:px-5 transition-colors" style={{ borderBottom: "1px solid var(--theme-border-light)" }}>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1">
-                                                <h3 className="text-[13px] font-bold truncate" style={{ color: accent }}>
+                                                <a href={repo.html_url} target="_blank" rel="noopener noreferrer"
+                                                    className="text-[13px] font-bold truncate no-underline hover:underline" style={{ color: accent }}>
                                                     {repo.name}
-                                                </h3>
-                                                {repo.isPrivate && (
+                                                </a>
+                                                {repo.private && (
                                                     <span className="text-[9px] px-1.5 py-0.5 rounded-full font-medium" style={{ background: "var(--theme-input-bg)", color: "var(--theme-text-muted)", border: "1px solid var(--theme-border)" }}>
                                                         Private
                                                     </span>
                                                 )}
                                             </div>
-                                            <p className="text-[11px] mb-2 leading-relaxed" style={{ color: "var(--theme-text-muted)" }}>{repo.description}</p>
+                                            <p className="text-[11px] mb-2 leading-relaxed" style={{ color: "var(--theme-text-muted)" }}>{repo.description || "No description"}</p>
                                             <div className="flex items-center gap-4 text-[10px]" style={{ color: "var(--theme-text-muted)" }}>
-                                                <span className="flex items-center gap-1.5">
-                                                    <span className="w-2.5 h-2.5 rounded-full" style={{ background: repo.langColor }} />
-                                                    {repo.language}
-                                                </span>
+                                                {repo.language && (
+                                                    <span className="flex items-center gap-1.5">
+                                                        <span className="w-2.5 h-2.5 rounded-full" style={{ background: langColors[repo.language] || "#737373" }} />
+                                                        {repo.language}
+                                                    </span>
+                                                )}
                                                 <span className="flex items-center gap-1">
                                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
-                                                    {repo.stars}
+                                                    {repo.stargazers_count}
                                                 </span>
                                                 <span className="flex items-center gap-1">
                                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="6" y1="3" x2="6" y2="15" /><circle cx="18" cy="6" r="3" /><circle cx="6" cy="18" r="3" /><path d="M18 9a9 9 0 0 1-9 9" /></svg>
-                                                    {repo.forks}
+                                                    {repo.forks_count}
                                                 </span>
-                                                <span>Updated {repo.updated}</span>
+                                                <span>Updated {new Date(repo.updated_at).toLocaleDateString()}</span>
                                             </div>
                                         </div>
-                                        <button
-                                            onClick={() => toggleRepoSync(repo.id)}
-                                            className="shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-bold border-none cursor-pointer transition-all"
-                                            style={repo.synced
-                                                ? { background: `${accent}15`, color: accent, border: `1px solid ${accent}30` }
-                                                : { background: "var(--theme-input-bg)", color: "var(--theme-text-muted)", border: "1px solid var(--theme-border)" }
-                                            }
-                                        >
-                                            {repo.synced ? "✓ Synced" : "Sync"}
-                                        </button>
                                     </div>
                                 ))}
                                 {filteredRepos.length === 0 && (
@@ -337,22 +410,29 @@ export default function GitHubSyncPage() {
                         {/* Connection Status */}
                         <div className="rounded-2xl border p-4 sm:p-5" style={{ background: "var(--theme-card)", borderColor: "var(--theme-border)" }}>
                             <div className="flex items-center gap-3 mb-4">
-                                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "var(--theme-input-bg)", color: "var(--theme-text-primary)" }}>
-                                    <GitHubSVG />
-                                </div>
+                                {profile?.avatarUrl ? (
+                                    <img src={profile.avatarUrl} alt="GitHub" className="w-12 h-12 rounded-xl border" style={{ borderColor: `${accent}30` }} />
+                                ) : (
+                                    <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "var(--theme-input-bg)", color: "var(--theme-text-primary)" }}>
+                                        <GitHubSVG />
+                                    </div>
+                                )}
                                 <div>
-                                    <p className="text-[13px] font-bold" style={{ color: "var(--theme-text-primary)" }}>ghost-protocol</p>
+                                    <p className="text-[13px] font-bold" style={{ color: "var(--theme-text-primary)" }}>{ghUsername}</p>
                                     <div className="flex items-center gap-1.5">
                                         <span className="w-2 h-2 rounded-full bg-[#22C55E]" />
                                         <span className="text-[10px] font-medium" style={{ color: "#22C55E" }}>Connected</span>
                                     </div>
                                 </div>
                             </div>
+                            {profile?.bio && (
+                                <p className="text-[11px] mb-3 leading-relaxed" style={{ color: "var(--theme-text-muted)" }}>{profile.bio}</p>
+                            )}
                             <div className="grid grid-cols-3 gap-2">
                                 {[
-                                    { label: "Repos", value: "47" },
-                                    { label: "Stars", value: "1.3k" },
-                                    { label: "Followers", value: "284" },
+                                    { label: "Repos", value: totalRepos },
+                                    { label: "Stars", value: totalStars },
+                                    { label: "Followers", value: profile?.followers || 0 },
                                 ].map(stat => (
                                     <div key={stat.label} className="text-center rounded-xl p-2" style={{ background: "var(--theme-bg-secondary)" }}>
                                         <p className="text-[14px] font-bold" style={{ color: "var(--theme-text-primary)", fontFamily: "var(--font-jetbrains-mono)" }}>{stat.value}</p>
@@ -360,6 +440,11 @@ export default function GitHubSyncPage() {
                                     </div>
                                 ))}
                             </div>
+                            {profile?.createdAt && (
+                                <p className="text-[10px] mt-3" style={{ color: "var(--theme-text-muted)" }}>
+                                    Member since {new Date(profile.createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                                </p>
+                            )}
                             <div className="mt-3 p-3 rounded-xl" style={{ background: `${accent}08`, border: `1px solid ${accent}20` }}>
                                 <p className="text-[10px] font-medium" style={{ color: accent, fontFamily: "var(--font-jetbrains-mono)" }}>
                                     ⚡ Sync imports your repos, contributions, and coding stats to power your SkillSpill profile and skill tree progression.
@@ -370,91 +455,53 @@ export default function GitHubSyncPage() {
                         {/* Language Breakdown */}
                         <div className="rounded-2xl border p-4 sm:p-5" style={{ background: "var(--theme-card)", borderColor: "var(--theme-border)" }}>
                             <h2 className="text-[13px] font-bold mb-3" style={{ color: "var(--theme-text-primary)" }}>Language Breakdown</h2>
-                            {/* Bar chart */}
-                            <div className="h-3 rounded-full overflow-hidden flex mb-3" style={{ background: "var(--theme-input-bg)" }}>
-                                {mockLanguageStats.map(lang => (
-                                    <div key={lang.name} className="h-full transition-all duration-700" style={{ width: `${lang.pct}%`, background: lang.color }} />
-                                ))}
-                            </div>
-                            <div className="space-y-2">
-                                {mockLanguageStats.map(lang => (
-                                    <div key={lang.name} className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <span className="w-2.5 h-2.5 rounded-full" style={{ background: lang.color }} />
-                                            <span className="text-[11px] font-medium" style={{ color: "var(--theme-text-secondary)" }}>{lang.name}</span>
-                                        </div>
-                                        <span className="text-[11px] font-bold" style={{ color: "var(--theme-text-primary)", fontFamily: "var(--font-jetbrains-mono)" }}>{lang.pct}%</span>
+                            {langChartData.length > 0 ? (
+                                <>
+                                    <div className="h-3 rounded-full overflow-hidden flex mb-3" style={{ background: "var(--theme-input-bg)" }}>
+                                        {langChartData.map(lang => (
+                                            <div key={lang.name} className="h-full transition-all duration-700" style={{ width: `${lang.pct}%`, background: lang.color }} />
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
+                                    <div className="space-y-2">
+                                        {langChartData.map(lang => (
+                                            <div key={lang.name} className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="w-2.5 h-2.5 rounded-full" style={{ background: lang.color }} />
+                                                    <span className="text-[11px] font-medium" style={{ color: "var(--theme-text-secondary)" }}>{lang.name}</span>
+                                                </div>
+                                                <span className="text-[11px] font-bold" style={{ color: "var(--theme-text-primary)", fontFamily: "var(--font-jetbrains-mono)" }}>{lang.pct}%</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            ) : (
+                                <p className="text-[11px]" style={{ color: "var(--theme-text-muted)" }}>No language data available.</p>
+                            )}
                         </div>
 
                         {/* Recent Activity */}
                         <div className="rounded-2xl border p-4 sm:p-5" style={{ background: "var(--theme-card)", borderColor: "var(--theme-border)" }}>
                             <h2 className="text-[13px] font-bold mb-3" style={{ color: "var(--theme-text-primary)" }}>Recent Activity</h2>
-                            <div className="space-y-3">
-                                {mockActivity.map(activity => (
-                                    <div key={activity.id} className="flex items-start gap-2.5">
-                                        <ActivityIcon type={activity.type} />
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-[11px] leading-snug" style={{ color: "var(--theme-text-secondary)" }}>
-                                                <span className="font-medium" style={{ color: "var(--theme-text-muted)" }}>{activityLabel(activity.type)}</span>{" "}
-                                                <span className="font-bold" style={{ color: accent }}>{activity.repo}</span>
-                                            </p>
-                                            <p className="text-[11px] truncate mt-0.5" style={{ color: "var(--theme-text-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>
-                                                {activity.message}
-                                            </p>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <span className="text-[9px]" style={{ color: "var(--theme-text-muted)" }}>{activity.time}</span>
-                                                {activity.commits > 0 && (
-                                                    <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: "var(--theme-input-bg)", color: "var(--theme-text-muted)" }}>
-                                                        {activity.commits} commit{activity.commits > 1 ? "s" : ""}
-                                                    </span>
-                                                )}
+                            {activity.length > 0 ? (
+                                <div className="space-y-3">
+                                    {activity.slice(0, 10).map((event: any, i: number) => (
+                                        <div key={i} className="flex items-start gap-2.5">
+                                            <ActivityIcon type={event.type} />
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-[11px] leading-snug" style={{ color: "var(--theme-text-secondary)" }}>
+                                                    <span className="font-medium" style={{ color: "var(--theme-text-muted)" }}>{activityLabel(event.type)}</span>{" "}
+                                                    <span className="font-bold" style={{ color: accent }}>{event.repo?.split("/").pop() || event.repo}</span>
+                                                </p>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className="text-[9px]" style={{ color: "var(--theme-text-muted)" }}>{timeAgo(event.createdAt)}</span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Sync Settings */}
-                        <div className="rounded-2xl border p-4 sm:p-5" style={{ background: "var(--theme-card)", borderColor: "var(--theme-border)" }}>
-                            <h2 className="text-[13px] font-bold mb-3" style={{ color: "var(--theme-text-primary)" }}>Sync Settings</h2>
-                            <div className="space-y-3">
-                                {[
-                                    { key: "autoSync" as const, label: "Auto-sync", desc: "Sync every 6 hours automatically" },
-                                    { key: "privateRepos" as const, label: "Include private repos", desc: "Sync private repo stats (names hidden)" },
-                                    { key: "showContribs" as const, label: "Show contributions", desc: "Display contribution graph on profile" },
-                                ].map(setting => {
-                                    const enabled = syncSettings[setting.key];
-                                    return (
-                                        <div key={setting.key} className="flex items-center justify-between py-2" style={{ borderBottom: "1px solid var(--theme-border-light)" }}>
-                                            <div>
-                                                <p className="text-[12px] font-semibold" style={{ color: "var(--theme-text-primary)" }}>{setting.label}</p>
-                                                <p className="text-[10px]" style={{ color: "var(--theme-text-muted)" }}>{setting.desc}</p>
-                                            </div>
-                                            <button
-                                                onClick={() => setSyncSettings(prev => ({ ...prev, [setting.key]: !prev[setting.key] }))}
-                                                className="relative w-10 h-5 rounded-full transition-all duration-300 cursor-pointer border-none shrink-0"
-                                                style={{
-                                                    background: enabled ? accent : "var(--theme-input-bg)",
-                                                    boxShadow: enabled ? `0 0 8px ${accent}40` : "none",
-                                                    border: enabled ? "none" : "1px solid var(--theme-border)",
-                                                }}
-                                            >
-                                                <span
-                                                    className="absolute top-[2px] w-[16px] h-[16px] rounded-full bg-white transition-all duration-300"
-                                                    style={{
-                                                        left: enabled ? "22px" : "2px",
-                                                        boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
-                                                    }}
-                                                />
-                                            </button>
-                                        </div>
-                                    );
-                                })}
-                            </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-[11px]" style={{ color: "var(--theme-text-muted)" }}>No recent activity found.</p>
+                            )}
                         </div>
                     </div>
                 </div>
