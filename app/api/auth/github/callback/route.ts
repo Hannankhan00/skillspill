@@ -103,19 +103,21 @@ export async function GET(req: NextRequest) {
                 if (email) {
                     user = await prisma.user.findUnique({ where: { email } });
                     if (user) {
+                        // Reject non-talent users
+                        if (user.role !== 'TALENT') {
+                            return NextResponse.redirect(new URL("/login?error=GitHub sign-in is only available for Talent accounts", req.url));
+                        }
                         // Link github
                         await prisma.user.update({
                             where: { id: user.id },
                             data: { githubId: githubUser.id.toString() }
                         });
 
-                        // Also update talent profile access token if it's a talent
-                        if (user.role === 'TALENT') {
-                            await prisma.talentProfile.updateMany({
-                                where: { userId: user.id },
-                                data: { githubAccessToken: accessToken, sharePrivateRepos: sharePrivate, githubUsername: githubUser.login, githubConnected: true }
-                            });
-                        }
+                        // Update talent profile access token
+                        await prisma.talentProfile.updateMany({
+                            where: { userId: user.id },
+                            data: { githubAccessToken: accessToken, sharePrivateRepos: sharePrivate, githubUsername: githubUser.login, githubConnected: true }
+                        });
                     }
                 }
 
@@ -153,13 +155,15 @@ export async function GET(req: NextRequest) {
                     });
                 }
             } else {
-                // Update their access token and login details just in case
-                if (user.role === 'TALENT') {
-                    await prisma.talentProfile.updateMany({
-                        where: { userId: user.id },
-                        data: { githubAccessToken: accessToken, sharePrivateRepos: sharePrivate, githubUsername: githubUser.login, githubConnected: true }
-                    });
+                // Reject non-talent users
+                if (user.role !== 'TALENT') {
+                    return NextResponse.redirect(new URL("/login?error=GitHub sign-in is only available for Talent accounts", req.url));
                 }
+                // Update their access token and login details
+                await prisma.talentProfile.updateMany({
+                    where: { userId: user.id },
+                    data: { githubAccessToken: accessToken, sharePrivateRepos: sharePrivate, githubUsername: githubUser.login, githubConnected: true }
+                });
             }
 
             // Create session and login

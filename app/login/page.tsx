@@ -196,17 +196,21 @@ export default function LoginPage() {
                                     {/* Divider */}
                                     <div className="flex items-center gap-3 mt-6 mb-5">
                                         <div className="flex-1 h-px bg-white/[0.05]" />
-                                        <span className="text-[0.55rem] text-[#444] uppercase tracking-[0.2em] font-semibold" style={mono}>Neural Link Sync</span>
+                                        <span className="text-[0.55rem] text-[#444] uppercase tracking-[0.2em] font-semibold" style={mono}>Talent Quick Access</span>
                                         <div className="flex-1 h-px bg-white/[0.05]" />
                                     </div>
 
                                     {/* Social */}
                                     <div className="flex justify-center" id="login-social">
                                         <button onClick={(e) => { ripple(e); window.location.href = "/api/auth/github?action=login"; }}
-                                            className="w-full py-3.5 rounded-full font-bold text-[0.8rem] uppercase tracking-[0.18em] cursor-pointer transition-all duration-300 border-2 border-white/[0.08] bg-[#111118] text-[#ccc] flex items-center justify-center gap-3 hover:border-white/[0.18] hover:bg-[#161620] hover:text-white hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(255,255,255,0.06)]"
-                                            style={mono} id="login-social-github">
-                                            <IconGithub />
-                                            SIGN IN WITH GITHUB
+                                            className="w-full py-3.5 rounded-full font-bold text-[0.8rem] uppercase tracking-[0.18em] cursor-pointer transition-all duration-300 bg-white/[0.04] text-white flex items-center justify-center gap-3 hover:-translate-y-0.5 border-none relative overflow-hidden group"
+                                            style={{ ...mono, boxShadow: "inset 0 0 0 1.5px rgba(255,255,255,0.1), 0 2px 12px rgba(0,0,0,0.3)" }}
+                                            id="login-social-github">
+                                            <span className="absolute inset-0 bg-gradient-to-r from-white/[0.06] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                            <span className="relative flex items-center justify-center w-7 h-7 rounded-full bg-white/[0.08]">
+                                                <IconGithub />
+                                            </span>
+                                            <span className="relative">Sign in as Talent with <span className="font-extrabold">GitHub</span></span>
                                         </button>
                                     </div>
 
