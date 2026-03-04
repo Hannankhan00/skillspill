@@ -201,11 +201,12 @@ export default function LoginPage() {
                                     </div>
 
                                     {/* Social */}
-                                    <div className="flex justify-center gap-3" id="login-social">
-                                        <button onClick={(e) => { ripple(e); window.location.href = "/api/auth/github?action=login"; }} aria-label={`Sign in with GitHub`}
-                                            className="w-12 h-12 rounded-lg bg-[#111118] border border-white/[0.06] flex items-center justify-center text-[#666] cursor-pointer transition-all duration-200 hover:border-[#A855F7]/30 hover:text-white hover:bg-[#A855F7]/[0.05]"
-                                            id={`login-social-github`}>
+                                    <div className="flex justify-center" id="login-social">
+                                        <button onClick={(e) => { ripple(e); window.location.href = "/api/auth/github?action=login"; }}
+                                            className="w-full py-3.5 rounded-full font-bold text-[0.8rem] uppercase tracking-[0.18em] cursor-pointer transition-all duration-300 border-2 border-white/[0.08] bg-[#111118] text-[#ccc] flex items-center justify-center gap-3 hover:border-white/[0.18] hover:bg-[#161620] hover:text-white hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(255,255,255,0.06)]"
+                                            style={mono} id="login-social-github">
                                             <IconGithub />
+                                            SIGN IN WITH GITHUB
                                         </button>
                                     </div>
 
