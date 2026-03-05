@@ -365,7 +365,7 @@ export default function AdminPage() {
                                     { label: "Total Users", value: totalUsers, delta: "+18%", up: true, color: T.admin },
                                     { label: "Admins", value: adminCount, delta: "+5%", up: true, color: T.admin },
                                     { label: "Talent", value: talentCount, delta: "+8%", up: true, color: T.talent },
-                                    { label: "Recruiters", value: recruiterCount, delta: "+12%", up: true, color: T.recruiter },
+                                    { label: "Companies", value: recruiterCount, delta: "+12%", up: true, color: T.recruiter },
                                 ].map((s) => (
                                     <div key={s.label} className="rounded-xl p-5" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
                                         <div className="text-[10px] uppercase tracking-[1.5px] font-bold mb-3" style={{ color: T.textSecondary, ...mono }}>{s.label}</div>
@@ -469,7 +469,7 @@ export default function AdminPage() {
                                             <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} id="admin-role-filter"
                                                 className="appearance-none rounded-lg px-4 py-2.5 pr-8 text-sm cursor-pointer outline-none"
                                                 style={{ background: T.bg, border: `1px solid ${T.cardBorder}`, color: T.textPrimary, ...mono }}>
-                                                <option value="">All Roles</option><option value="ADMIN">Admin</option><option value="TALENT">Talent</option><option value="RECRUITER">Recruiter</option>
+                                                <option value="">All Roles</option><option value="ADMIN">Admin</option><option value="TALENT">Talent</option><option value="RECRUITER">Company</option>
                                             </select>
                                             <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: T.textSecondary }}>{I.chevDown()}</span>
                                         </div>
@@ -477,7 +477,7 @@ export default function AdminPage() {
                                     </div>
                                 </div>
                                 <div className="flex gap-2 mt-3 flex-wrap">
-                                    {[{ l: "All", v: "", c: T.admin }, { l: "Admin", v: "ADMIN", c: T.admin }, { l: "Talent", v: "TALENT", c: T.talent }, { l: "Recruiter", v: "RECRUITER", c: T.recruiter }].map((tag) => (
+                                    {[{ l: "All", v: "", c: T.admin }, { l: "Admin", v: "ADMIN", c: T.admin }, { l: "Talent", v: "TALENT", c: T.talent }, { l: "Company", v: "RECRUITER", c: T.recruiter }].map((tag) => (
                                         <button key={tag.v} onClick={() => { setRoleFilter(tag.v); setTimeout(() => fetchUsers(), 0); }}
                                             className="px-3 py-1.5 rounded-md text-[11px] font-bold border-none cursor-pointer transition-all"
                                             style={roleFilter === tag.v ? { background: tag.c, color: "#0a1415", ...mono } : { background: T.cardBorder, color: T.textSecondary, ...mono }}>{tag.l}</button>

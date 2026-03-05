@@ -522,7 +522,7 @@ export default function SettingsPage() {
                                                     <textarea value={profileForm.bio}
                                                         onChange={e => setProfileForm(f => ({ ...f, bio: e.target.value }))}
                                                         rows={4}
-                                                        placeholder="Tell recruiters about yourself, your passions, and what you build..."
+                                                        placeholder="Tell companies about yourself, your passions, and what you build..."
                                                         className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none resize-none focus:ring-2 focus:ring-[#3CF91A]/20"
                                                         style={{ background: 'var(--theme-input-bg)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
                                                     />
@@ -687,16 +687,16 @@ export default function SettingsPage() {
                             {/*  Privacy  */}
                             {activeTab === "privacy" && (
                                 <div className="p-6 space-y-6">
-                                    <Section title="Privacy & Visibility" desc="Manage what recruiters can see on your public profile">
+                                    <Section title="Privacy & Visibility" desc="Manage what companies can see on your public profile">
 
                                         <div>
                                             <h3 className="text-[11px] uppercase tracking-widest font-semibold mb-2 mt-4" style={{ color: 'var(--theme-text-muted)' }}>Contact Information</h3>
                                             <div className="space-y-4 mb-6">
                                                 <InputField label="Public Contact Email" value={contactEmail} onChange={setContactEmail} type="email" placeholder="e.g. hello@myportfolio.com" />
-                                                <ToggleRow label="Show Email on Profile" desc="Allow recruiters to see your contact email in your profile overview" enabled={showEmail} onToggle={() => setShowEmail(!showEmail)} />
+                                                <ToggleRow label="Show Email on Profile" desc="Allow companies to see your contact email in your profile overview" enabled={showEmail} onToggle={() => setShowEmail(!showEmail)} />
 
                                                 <InputField label="Public Contact Phone" value={contactPhone} onChange={setContactPhone} type="tel" placeholder="e.g. +1 234 567 8900" />
-                                                <ToggleRow label="Show Phone on Profile" desc="Allow recruiters to see your phone number" enabled={showPhone} onToggle={() => setShowPhone(!showPhone)} />
+                                                <ToggleRow label="Show Phone on Profile" desc="Allow companies to see your phone number" enabled={showPhone} onToggle={() => setShowPhone(!showPhone)} />
                                             </div>
 
                                             <h3 className="text-[11px] uppercase tracking-widest font-semibold mb-2 mt-6" style={{ color: 'var(--theme-text-muted)' }}>Social Links</h3>

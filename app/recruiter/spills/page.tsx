@@ -6,7 +6,7 @@ import { Briefcase, Megaphone, MessageSquare, Flame, BarChart2, Edit3, Eye, Hear
 
 /* ══════════════════════════════════════════════════════════════
    S K I L L S P I L L  —  R E C R U I T E R  S P I L L S
-   Recruiter spills management page
+   Company spills management page
    ══════════════════════════════════════════════════════════════ */
 
 /* ── Mock Data ── */
@@ -152,7 +152,7 @@ export default function RecruiterSpillsPage() {
                         <div className="flex items-center gap-3 mb-3">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-violet-600 flex items-center justify-center text-white text-[11px] font-bold shrink-0">RC</div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-[13px] font-bold text-[var(--theme-text-primary)]">Recruiter</p>
+                                <p className="text-[13px] font-bold text-[var(--theme-text-primary)]">Company</p>
                                 <p className="text-[10px] text-[var(--theme-text-muted)]">TechForge Solutions</p>
                             </div>
                         </div>
@@ -277,7 +277,7 @@ export default function RecruiterSpillsPage() {
                                         <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-400 to-violet-600 flex items-center justify-center text-white text-[10px] font-bold">RC</div>
                                         <div>
                                             <div className="flex items-center gap-1.5">
-                                                <p className="text-[13px] font-bold text-[var(--theme-text-primary)]">Recruiter</p>
+                                                <p className="text-[13px] font-bold text-[var(--theme-text-primary)]">Company</p>
                                                 <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#A855F7]/20 text-[#A855F7] font-medium">{typeIcons[spill.type]} {spill.type}</span>
                                             </div>
                                             <p className="text-[10px] text-[var(--theme-text-muted)]">{spill.time} • TechForge Solutions</p>

@@ -199,7 +199,7 @@ function LoginPageInner() {
                                         <a href="/signup/recruiter" onClick={(e) => ripple(e as unknown as React.MouseEvent<HTMLElement>)}
                                             className="flex-1 flex items-center justify-center py-3.5 rounded-lg border-2 border-[#A855F7]/30 bg-[#A855F7]/[0.03] text-[#A855F7] font-bold text-[0.75rem] uppercase tracking-[0.18em] no-underline cursor-pointer transition-all duration-300 hover:border-[#A855F7]/70 hover:bg-[#A855F7]/[0.06] hover:shadow-[0_0_20px_rgba(168,85,247,0.1)] hover:-translate-y-0.5"
                                             style={mono} id="signup-role-recruiter">
-                                            I&apos;M HIRING
+                                            I&apos;M A COMPANY
                                         </a>
                                     </div>
                                 </div>

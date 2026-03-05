@@ -232,7 +232,7 @@ export default function RecruiterShell({
                             {userId.slice(-2).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold truncate" style={{ color: 'var(--theme-text-secondary)' }}>Recruiter</p>
+                            <p className="text-xs font-semibold truncate" style={{ color: 'var(--theme-text-secondary)' }}>Company</p>
                             <p className="text-[10px] font-mono text-[#A855F7]">Talent Scout</p>
                         </div>
                     </div>
@@ -353,7 +353,7 @@ export default function RecruiterShell({
                                     {userId.slice(-2).toUpperCase()}
                                 </div>
                                 <div className="text-left">
-                                    <p className="text-[11px] font-semibold leading-tight" style={{ color: 'var(--theme-text-secondary)' }}>Recruiter</p>
+                                    <p className="text-[11px] font-semibold leading-tight" style={{ color: 'var(--theme-text-secondary)' }}>Company</p>
                                     <p className="text-[9px] leading-tight" style={{ color: 'var(--theme-text-muted)' }}>Talent Scout</p>
                                 </div>
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2">
@@ -370,7 +370,7 @@ export default function RecruiterShell({
                                                 {userId.slice(-2).toUpperCase()}
                                             </div>
                                             <div>
-                                                <p className="text-[12px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Recruiter</p>
+                                                <p className="text-[12px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Company</p>
                                                 <p className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>Talent Scout</p>
                                             </div>
                                         </div>

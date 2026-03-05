@@ -132,7 +132,7 @@ export default function RecruiterSignup() {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
 
-    const COLOR_ACCENT = "#A855F7"; // Purple for Recruiter
+    const COLOR_ACCENT = "#A855F7"; // Purple for Company
 
     const updateForm = (field: keyof RecruiterFormData, value: RecruiterFormData[keyof RecruiterFormData]) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
@@ -330,7 +330,7 @@ export default function RecruiterSignup() {
                 <div className="border border-white/10 bg-[#0A0A0A] rounded-2xl p-6 relative overflow-hidden">
                     <div className="flex justify-between items-start mb-2 relative z-10">
                         <div className="flex flex-col">
-                            <span className="text-[10px] text-[#A855F7] tracking-[0.2em] uppercase font-bold font-mono mb-1">Recruiter Onboarding</span>
+                            <span className="text-[10px] text-[#A855F7] tracking-[0.2em] uppercase font-bold font-mono mb-1">Company Onboarding</span>
                             <h1 className="text-2xl font-bold tracking-tight text-white">{STEPS[currentStep].label}</h1>
                         </div>
                         <span className="text-3xl font-mono font-bold text-[#A855F7] opacity-20">{Math.round(progressPercent)}%</span>

@@ -191,7 +191,7 @@ export default function RecruiterSettingsPage() {
                         Settings
                     </h1>
                     <p className="text-[13px] mt-1" style={{ color: 'var(--theme-text-muted)' }}>
-                        Configure your recruiter experience. <span style={{ color: accent }} className="font-semibold">Fine-tune your workflow.</span>
+                        Configure your company experience. <span style={{ color: accent }} className="font-semibold">Fine-tune your workflow.</span>
                     </p>
                 </div>
 
@@ -237,7 +237,7 @@ export default function RecruiterSettingsPage() {
                             {/*  Company Profile  */}
                             {activeTab === "company" && (
                                 <div className="p-6 space-y-6">
-                                    <Section title="Company Profile" desc="This information appears publicly on your recruiter profile and in search results">
+                                    <Section title="Company Profile" desc="This information appears publicly on your company profile and in search results">
                                         {!companyLoaded ? (
                                             <div className="text-center py-8 text-[12px]" style={{ color: 'var(--theme-text-muted)' }}>Loading your profile...</div>
                                         ) : (
@@ -328,7 +328,7 @@ export default function RecruiterSettingsPage() {
                             {/*  Security  */}
                             {activeTab === "security" && (
                                 <div className="p-6 space-y-6">
-                                    <Section title="Security & Privacy" desc="Protect your SkillSpill recruiter account">
+                                    <Section title="Security & Privacy" desc="Protect your SkillSpill company account">
                                         {/* Password */}
                                         <div className="rounded-xl p-4 space-y-3" style={{ background: 'var(--theme-bg)', border: '1px solid var(--theme-border)' }}>
                                             <h3 className="text-[13px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Change Password</h3>
@@ -382,7 +382,7 @@ export default function RecruiterSettingsPage() {
                             {/*  Connections  */}
                             {activeTab === "connections" && (
                                 <div className="p-6 space-y-6">
-                                    <Section title="Connections" desc="Link external accounts to enhance your recruiter profile">
+                                    <Section title="Connections" desc="Link external accounts to enhance your company profile">
                                         <div className="space-y-3">
                                             {/* GitHub */}
                                             <div className="flex items-center justify-between p-4 rounded-xl" style={{ background: 'var(--theme-bg)', border: '1px solid var(--theme-border)' }}>

@@ -261,12 +261,12 @@ export default function Home() {
             </a>
           </div>
 
-          {/* Recruiter Card */}
+          {/* Company Card */}
           <div className="glass-card-purple rounded-2xl p-8 md:p-12 w-full max-w-[400px] text-center flex flex-col items-center transition-all duration-300 hover:-translate-y-2.5 hover:border-[#A855F7]/50 hover:shadow-neon-purple group" id="card-recruiter">
             <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6 bg-[#A855F7]/10 text-[#A855F7] border border-[#A855F7]/20 group-hover:shadow-[0_0_20px_rgba(168,85,247,0.3)] transition-all">
               <IconBriefcase />
             </div>
-            <h3 className="text-xl font-bold mb-3 text-[#A855F7]">Recruiter</h3>
+            <h3 className="text-xl font-bold mb-3 text-[#A855F7]">Company</h3>
             <p className="text-[#999] mb-6 leading-relaxed flex-grow">Find the architects of tomorrow. Streamline your hiring with AI intelligence.</p>
             <a href="/signup/recruiter" onClick={(e) => ripple(e as unknown as React.MouseEvent<HTMLElement>)} className="bg-[#A855F7] text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 cursor-pointer hover:shadow-neon-purple transition-all no-underline hover:bg-[#9333ea]">
               I&apos;m Hiring <IconArrowRight />
@@ -286,7 +286,7 @@ export default function Home() {
           {[
             { num: "01", icon: <IconGithub />, title: "Connect GitHub", desc: "Link your GitHub profile and let our AI analyze your actual codebase, contributions, and coding patterns." },
             { num: "02", icon: <IconSparkle />, title: "AI Skill Matrix", desc: "We generate a verified skill matrix from real code — no self-assessed ratings, no keyword stuffing." },
-            { num: "03", icon: <IconTerminal />, title: "Get Matched", desc: "Recruiters find talent by actual capability. Developers get matched to roles that fit their real skills." },
+            { num: "03", icon: <IconTerminal />, title: "Get Matched", desc: "Companies find talent by actual capability. Developers get matched to roles that fit their real skills." },
           ].map((step) => (
             <div key={step.num} className="bg-white/5 border border-white/10 p-8 rounded-2xl relative overflow-hidden group hover:border-[#3CF91A]/50 hover:bg-white/[0.07] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(60,249,26,0.1)]">
               {/* Background Accent */}

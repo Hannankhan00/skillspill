@@ -5,8 +5,8 @@ import { redirect } from "next/navigation";
 import RecruiterShell from "./RecruiterShell";
 
 export const metadata = {
-    title: "SkillSpill // Recruiter Dashboard",
-    description: "Recruiter dashboard for SkillSpill platform",
+    title: "SkillSpill // Company Dashboard",
+    description: "Company dashboard for SkillSpill platform",
 };
 
 export default async function RecruiterLayout({

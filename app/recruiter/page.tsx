@@ -305,7 +305,7 @@ export default function RecruiterFeed() {
                                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-400 to-violet-600 flex items-center justify-center text-white text-[13px] font-bold shadow-lg border-2 border-white">
                                     RC
                                 </div>
-                                <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mt-2">Recruiter</h3>
+                                <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mt-2">Company</h3>
                                 <p className="text-[11px] text-[var(--theme-text-muted)] mb-3">Talent Scout • SkillSpill</p>
                                 <div className="grid grid-cols-3 gap-2 text-center">
                                     <div className="bg-[#A855F7]/10 rounded-lg py-2">
