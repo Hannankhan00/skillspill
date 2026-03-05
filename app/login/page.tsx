@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 /* ───────────── Ripple Hook ───────────── */
@@ -67,6 +67,14 @@ function ParticlesCanvas() {
    LOGIN PAGE
    ═══════════════════════════════════════════════════════════ */
 export default function LoginPage() {
+    return (
+        <Suspense fallback={<div className="min-h-svh bg-[#060608]" />}>
+            <LoginPageInner />
+        </Suspense>
+    );
+}
+
+function LoginPageInner() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const ripple = useRipple();
