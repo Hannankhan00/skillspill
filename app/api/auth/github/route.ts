@@ -29,6 +29,10 @@ export async function GET(req: NextRequest) {
     githubAuthUrl.searchParams.append("redirect_uri", redirectUri);
     githubAuthUrl.searchParams.append("scope", scope);
     githubAuthUrl.searchParams.append("state", state);
+    // allow_signup: let new GitHub users create accounts
+    // GitHub automatically skips the authorization screen for returning users
+    // who have already approved the app (no prompt=consent needed)
+    githubAuthUrl.searchParams.append("allow_signup", "true");
 
     return NextResponse.redirect(githubAuthUrl.toString());
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 /* ───────────── Ripple Hook ───────────── */
 function useRipple() {
@@ -68,6 +68,7 @@ function ParticlesCanvas() {
    ═══════════════════════════════════════════════════════════ */
 export default function LoginPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const ripple = useRipple();
     const [tab, setTab] = useState<"login" | "signup">("login");
     const [email, setEmail] = useState("");
@@ -75,6 +76,12 @@ export default function LoginPage() {
     const [showPw, setShowPw] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+
+    // Read error from URL (e.g. from GitHub OAuth redirect)
+    useEffect(() => {
+        const urlError = searchParams.get("error");
+        if (urlError) setError(urlError);
+    }, [searchParams]);
 
     const mono: React.CSSProperties = { fontFamily: "var(--font-jetbrains-mono, 'JetBrains Mono', monospace)" };
 
