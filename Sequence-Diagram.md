@@ -8,6 +8,7 @@ This diagram illustrates the process when a Talent user discovers a Bounty and s
 
 ```mermaid
 %%{init: {
+<!-- [MermaidChart: b305a575-9161-4060-a30b-ccbcdfbd9d3b] -->
   'theme': 'base',
   'themeVariables': {
     'primaryColor': '#ffffff',
