@@ -27,9 +27,7 @@ const IconCode = () => (
 const IconBriefcase = () => (
   <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x={2} y={7} width={20} height={14} rx={2} ry={2} /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>
 );
-const IconSearch = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-);
+
 const IconSparkle = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l1.912 5.813a2 2 0 0 0 1.275 1.275L21 12l-5.813 1.912a2 2 0 0 0-1.275 1.275L12 21l-1.912-5.813a2 2 0 0 0-1.275-1.275L3 12l5.813-1.912a2 2 0 0 0 1.275-1.275L12 3z" /></svg>
 );
@@ -85,14 +83,7 @@ function ParticlesCanvas() {
   return <canvas ref={canvasRef} className="fixed top-0 left-0 w-full h-full pointer-events-none z-0" />;
 }
 
-/* ───────────── Typing Effect ───────────── */
-function useTypingEffect(text: string, speed = 60, delay = 500) {
-  const [displayed, setDisplayed] = useState("");
-  const [started, setStarted] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setStarted(true), delay); return () => clearTimeout(t); }, [delay]);
-  useEffect(() => { if (!started) return; if (displayed.length < text.length) { const t = setTimeout(() => setDisplayed(text.slice(0, displayed.length + 1)), speed); return () => clearTimeout(t); } }, [displayed, started, text, speed]);
-  return displayed;
-}
+
 
 /* ───────────── Skill Tag ───────────── */
 function SkillTag({ label, delay }: { label: string; delay: number }) {
@@ -136,7 +127,7 @@ function AnimatedStat({ target, label, suffix = "" }: { target: number; label: s
 export default function Home() {
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const searchPlaceholder = useTypingEffect("e.g. React developer with Rust experience...", 40, 1800);
+
   const ripple = useRipple();
 
 
@@ -213,24 +204,7 @@ export default function Home() {
             We verify actual <span className="text-white/80">coding capability</span>, not resume keywords.
           </p>
 
-          {/* Search Bar */}
-          <div className="flex justify-center w-full mb-8" id="hero-search">
-            <div className="input-terminal flex items-center rounded-xl p-2 w-full max-w-[500px] sm:flex-row flex-col gap-2 sm:gap-0">
-              <span className="ml-3 text-[#3CF91A]/50 hidden sm:block"><IconSearch /></span>
-              <input
-                type="text"
-                className="flex-1 min-w-0 bg-transparent border-none text-white px-3 py-1 text-sm outline-none placeholder:text-[#555] w-full sm:w-auto"
-                style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }}
-                placeholder={searchPlaceholder + "│"}
-                id="search-input"
-                suppressHydrationWarning
-                onChange={(e) => console.log(e.target.value)}
-              />
-              <button onClick={(e) => { ripple(e); alert("Search functionality coming soon!"); }} className="bg-[#3CF91A] text-black border-none px-4 py-2.5 rounded-lg font-bold flex items-center gap-1.5 cursor-pointer hover:shadow-neon-green-strong transition-all whitespace-nowrap shrink-0 text-sm w-full sm:w-auto justify-center" id="btn-scan">
-                <IconSparkle /> Scan with AI
-              </button>
-            </div>
-          </div>
+
 
           {/* Skill Tags */}
           <div className="flex gap-2 flex-wrap justify-center max-w-[700px]" id="skill-tags">
@@ -275,8 +249,100 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ───── FIND TALENT ───── */}
+      <section className="min-h-screen py-20 md:py-32 px-6 max-w-[1200px] mx-auto flex flex-col md:flex-row items-center justify-center gap-12 scroll-mt-20" id="find-talent">
+        <div className="flex-1 space-y-6">
+          <h2 className="text-3xl md:text-5xl font-bold">Find <span className="text-[#3CF91A]">Top Talent</span></h2>
+          <p className="text-[#888] text-lg leading-relaxed">
+            Stop sifting through keyword-stuffed resumes. Our AI analyzes actual GitHub repositories to build a verified skill matrix. Discover developers who can truly build, not just talk about it.
+          </p>
+          <a href="/signup/recruiter" className="inline-flex items-center gap-2 bg-[#3CF91A]/10 text-[#3CF91A] border border-[#3CF91A]/30 px-6 py-3 rounded-lg font-bold hover:bg-[#3CF91A] hover:text-black hover:shadow-neon-green transition-all no-underline mt-4">
+            Search Developers <IconArrowRight />
+          </a>
+        </div>
+        <div className="flex-1 w-full relative">
+          <div className="absolute inset-0 bg-[#3CF91A]/5 rounded-2xl blur-2xl top-4 -z-10" />
+          <div className="glass-card rounded-2xl p-8 border border-[#3CF91A]/20">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 rounded-full bg-black/50 flex items-center justify-center border border-[#3CF91A]/20 text-[#3CF91A]">
+                <IconCode />
+              </div>
+              <div>
+                <h4 className="font-bold text-white text-lg">Alex Developer</h4>
+                <p className="text-[#3CF91A] text-sm font-mono">Verified System Architect</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center bg-black/40 p-3 rounded-lg border border-white/5">
+                <span className="text-sm text-[#888]">Rust Mastery</span>
+                <span className="text-sm font-bold text-white">99.8% Match</span>
+              </div>
+              <div className="flex justify-between items-center bg-black/40 p-3 rounded-lg border border-white/5">
+                <span className="text-sm text-[#888]">React/Next.js Architecture</span>
+                <span className="text-sm font-bold text-white">95.4% Match</span>
+              </div>
+              <div className="flex justify-between items-center bg-black/40 p-3 rounded-lg border border-white/5">
+                <span className="text-sm text-[#888]">Smart Contract Security</span>
+                <span className="text-sm font-bold text-white">92.1% Match</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ───── POST JOB ───── */}
+      <section className="min-h-screen py-20 md:py-32 px-6 max-w-[1200px] mx-auto flex flex-col md:flex-row-reverse items-center justify-center gap-12 scroll-mt-20" id="post-job">
+        <div className="flex-1 space-y-6">
+          <h2 className="text-3xl md:text-5xl font-bold">Post a <span className="text-[#A855F7]">Mission</span></h2>
+          <p className="text-[#888] text-lg leading-relaxed">
+            Create a mission brief and let our engine match you with the perfect candidates based on their verified coding capabilities. Reach a highly curated network of proven engineers.
+          </p>
+          <a href="/signup/recruiter" className="inline-flex items-center gap-2 bg-[#A855F7]/10 text-[#A855F7] border border-[#A855F7]/30 px-6 py-3 rounded-lg font-bold hover:bg-[#A855F7] hover:text-white hover:shadow-neon-purple transition-all no-underline mt-4 cursor-pointer">
+            Create Your Mission <IconArrowRight />
+          </a>
+        </div>
+        <div className="flex-1 w-full relative">
+          <div className="absolute inset-0 bg-[#A855F7]/5 rounded-2xl blur-2xl top-4 -z-10" />
+          <div className="glass-card-purple rounded-2xl p-8 border border-[#A855F7]/20">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 rounded-full bg-black/50 flex items-center justify-center border border-[#A855F7]/20 text-[#A855F7]">
+                <IconBriefcase />
+              </div>
+              <div>
+                <h4 className="font-bold text-white text-lg">Senior Protocol Engineer</h4>
+                <p className="text-[#A855F7] text-sm font-mono">$180k - $240k • Remote</p>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="flex-1 h-2 bg-[#A855F7]/10 rounded-full overflow-hidden">
+                  <span className="block h-full bg-[#A855F7]" style={{ width: '85%' }}></span>
+                </span>
+                <span className="text-xs text-[#888] font-mono whitespace-nowrap">C++ • 85%</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="flex-1 h-2 bg-[#A855F7]/10 rounded-full overflow-hidden">
+                  <span className="block h-full bg-[#A855F7]" style={{ width: '70%' }}></span>
+                </span>
+                <span className="text-xs text-[#888] font-mono whitespace-nowrap">CUDA • 70%</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="flex-1 h-2 bg-[#A855F7]/10 rounded-full overflow-hidden">
+                  <span className="block h-full bg-[#A855F7]" style={{ width: '90%' }}></span>
+                </span>
+                <span className="text-xs text-[#888] font-mono whitespace-nowrap">Rust • 90%</span>
+              </div>
+            </div>
+            <div className="mt-6 pt-6 border-t border-white/5 flex justify-between items-center">
+              <span className="text-[#888] text-sm">45 AI-Matched Candidates</span>
+              <span className="text-[#A855F7] text-xs uppercase tracking-wider font-bold">Live AI Scan</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ───── HOW IT WORKS ───── */}
-      <section className="py-20 md:py-32 px-6 max-w-[1200px] mx-auto" id="how-it-works">
+      <section className="min-h-screen py-20 md:py-32 px-6 max-w-[1200px] mx-auto flex flex-col justify-center scroll-mt-20" id="how-it-works">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-bold mb-6">How It <span className="text-white/80">Works</span></h2>
           <p className="text-[#888] max-w-2xl mx-auto text-lg leading-relaxed">Three steps to the future of hiring. No resumes, just code.</p>
