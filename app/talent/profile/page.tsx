@@ -56,7 +56,7 @@ export default function TalentProfilePage() {
         );
     }
 
-    const { fullName, username, email, spills } = userData;
+    const { fullName, username, email, spills, avatarUrl } = userData;
     const {
         bio, experienceLevel, isAvailable, skills, projectLinks, workExperience,
         githubUsername, githubConnected, githubRepos, githubStars,
@@ -96,8 +96,12 @@ export default function TalentProfilePage() {
                 {/* Avatar */}
                 <div className="max-w-[900px] mx-auto px-4 sm:px-6">
                     <div className="relative -mt-12 sm:-mt-16 flex items-end gap-4">
-                        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-black text-2xl sm:text-3xl font-bold border-4 border-[var(--theme-bg)] shadow-xl shrink-0">
-                            {initials}
+                        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-black text-2xl sm:text-3xl font-bold border-4 border-[var(--theme-bg)] shadow-xl shrink-0 overflow-hidden">
+                            {avatarUrl ? (
+                                <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
+                            ) : (
+                                initials
+                            )}
                         </div>
                         <div className="pb-1 sm:pb-2 min-w-0 hidden sm:block">
                             <div className="flex items-center gap-2 flex-wrap">
@@ -612,8 +616,12 @@ export default function TalentProfilePage() {
                                             onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border)")}>
                                             <div className="p-4 sm:p-5 flex-1">
                                                 <div className="flex items-center gap-3 mb-3">
-                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-black text-[9px] font-bold shrink-0">
-                                                        {initials}
+                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-black text-[9px] font-bold shrink-0 overflow-hidden">
+                                                        {avatarUrl ? (
+                                                            <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            initials
+                                                        )}
                                                     </div>
                                                     <div>
                                                         <p className="text-[12px] font-bold text-[var(--theme-text-primary)]">@{username}</p>

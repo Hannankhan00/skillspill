@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import React, { useState, useEffect } from "react";
+import { compressImageClient } from "@/lib/client-compress";
 
 /*  Icons  */
 function ShieldIcon() {
@@ -129,6 +130,8 @@ export default function SettingsPage() {
     const [profileLoaded, setProfileLoaded] = useState(false);
     const [savingProfile, setSavingProfile] = useState(false);
     const [profileMsg, setProfileMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+    const [avatarUrl, setAvatarUrl] = useState("");
+    const [avatarUploading, setAvatarUploading] = useState(false);
 
     // Privacy state — populated from the same profile fetch
     const [showEmail, setShowEmail] = useState(false);
@@ -149,6 +152,7 @@ export default function SettingsPage() {
                 if (!d.user) return;
                 const u = d.user;
                 const tp = u.talentProfile || {};
+                setAvatarUrl(u.avatarUrl || "");
                 setProfileForm({
                     fullName: u.fullName || "",
                     bio: tp.bio || "",
@@ -187,6 +191,49 @@ export default function SettingsPage() {
     const updateProject = (i: number, field: keyof Project, val: string) =>
         setProjects(prev => prev.map((p, idx) => idx === i ? { ...p, [field]: val } : p));
 
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+        if (!allowedTypes.includes(file.type)) {
+            alert("Only JPEG, PNG, WebP, or GIF images are allowed.");
+            return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            alert("Image must be under 10MB.");
+            return;
+        }
+        setAvatarUploading(true);
+        try {
+            // Client-side compression first (Canvas API)
+            const compressed = await compressImageClient(file);
+            const fd = new FormData();
+            fd.append("file", compressed);
+            fd.append("category", "avatars");
+            fd.append("folder", "avatars");
+            if (avatarUrl) fd.append("oldFileUrl", avatarUrl);
+            const res = await fetch("/api/upload", { method: "POST", body: fd });
+            const data = await res.json();
+            if (res.ok && data.url) {
+                setAvatarUrl(data.url);
+                // Immediately save to database
+                await fetch("/api/user/profile", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ avatarUrl: data.url }),
+                });
+                setProfileMsg({ type: "ok", text: "Profile picture updated!" });
+                setTimeout(() => setProfileMsg(null), 4000);
+            } else {
+                alert(data.error || "Upload failed.");
+            }
+        } catch {
+            alert("Network error during upload.");
+        } finally {
+            setAvatarUploading(false);
+        }
+    };
+
     const saveProfile = async () => {
         setSavingProfile(true);
         setProfileMsg(null);
@@ -195,6 +242,7 @@ export default function SettingsPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 fullName: profileForm.fullName,
+                avatarUrl: avatarUrl || null,
                 talentProfile: {
                     bio: profileForm.bio,
                     experienceLevel: profileForm.experienceLevel || null,
@@ -494,6 +542,70 @@ export default function SettingsPage() {
                                                     </div>
                                                 )}
 
+                                                {/* Profile Picture */}
+                                                <div className="flex items-center gap-5 pb-5" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
+                                                    <div className="relative group">
+                                                        <input
+                                                            type="file"
+                                                            accept="image/jpeg,image/png,image/webp,image/gif"
+                                                            id="avatar-upload"
+                                                            className="hidden"
+                                                            onChange={handleAvatarUpload}
+                                                        />
+                                                        <div
+                                                            onClick={() => !avatarUploading && document.getElementById('avatar-upload')?.click()}
+                                                            className="w-20 h-20 rounded-full flex items-center justify-center cursor-pointer overflow-hidden border-2 transition-all relative"
+                                                            style={{
+                                                                borderColor: avatarUrl ? '#3CF91A40' : 'var(--theme-border)',
+                                                                background: avatarUrl ? 'transparent' : 'var(--theme-input-bg)',
+                                                            }}
+                                                        >
+                                                            {avatarUrl ? (
+                                                                <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <span className="text-2xl font-bold" style={{ color: 'var(--theme-text-muted)' }}>
+                                                                    {profileForm.fullName ? profileForm.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '??'}
+                                                                </span>
+                                                            )}
+                                                            {/* Hover overlay */}
+                                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full">
+                                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                                                                    <circle cx="12" cy="13" r="4" />
+                                                                </svg>
+                                                            </div>
+                                                            {avatarUploading && (
+                                                                <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-full">
+                                                                    <div className="w-6 h-6 border-2 border-[#3CF91A] border-t-transparent rounded-full animate-spin" />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[13px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Profile Picture</p>
+                                                        <p className="text-[11px] mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>Click to upload. JPEG, PNG, WebP or GIF. Max 10MB. Auto-compressed.</p>
+                                                        {avatarUrl && (
+                                                            <button
+                                                                onClick={async () => {
+                                                                    if (!confirm('Remove your profile picture?')) return;
+                                                                    setAvatarUrl('');
+                                                                    await fetch('/api/user/profile', {
+                                                                        method: 'POST',
+                                                                        headers: { 'Content-Type': 'application/json' },
+                                                                        body: JSON.stringify({ avatarUrl: null }),
+                                                                    });
+                                                                    setProfileMsg({ type: 'ok', text: 'Profile picture removed.' });
+                                                                    setTimeout(() => setProfileMsg(null), 4000);
+                                                                }}
+                                                                className="text-[10px] mt-1.5 font-medium cursor-pointer bg-transparent border-none p-0"
+                                                                style={{ color: '#EF4444' }}
+                                                            >
+                                                                Remove photo
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+
                                                 {/* Basic info */}
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <InputField label="Display Name" value={profileForm.fullName}
@@ -546,9 +658,78 @@ export default function SettingsPage() {
                                                         <InputField label="GitHub Username" value={profileForm.githubUsername}
                                                             onChange={v => setProfileForm(f => ({ ...f, githubUsername: v }))}
                                                             placeholder="e.g. ghost-protocol" />
-                                                        <InputField label="Resume URL" value={profileForm.resumeUrl}
-                                                            onChange={v => setProfileForm(f => ({ ...f, resumeUrl: v }))}
-                                                            placeholder="Paste a link to your CV/resume" />
+                                                        <div>
+                                                            <label className="text-[10px] uppercase tracking-widest font-semibold block mb-1.5" style={{ color: 'var(--theme-text-muted)' }}>
+                                                                Resume (PDF)
+                                                            </label>
+                                                            <div className="flex items-center gap-2">
+                                                                <input
+                                                                    type="file"
+                                                                    accept=".pdf,application/pdf"
+                                                                    id="resume-upload-settings"
+                                                                    className="hidden"
+                                                                    onChange={async (e) => {
+                                                                        const file = e.target.files?.[0];
+                                                                        if (!file) return;
+                                                                        if (file.type !== "application/pdf") { alert("Only PDF files are allowed."); return; }
+                                                                        if (file.size > 10 * 1024 * 1024) { alert("File must be under 10MB."); return; }
+
+                                                                        setProfileForm(f => ({ ...f, resumeUrl: "uploading..." }));
+                                                                        try {
+                                                                            const fd = new FormData();
+                                                                            fd.append("file", file);
+                                                                            fd.append("category", "resumes");
+                                                                            fd.append("folder", "resumes");
+                                                                            if (profileForm.resumeUrl && profileForm.resumeUrl !== "uploading...") {
+                                                                                fd.append("oldFileUrl", profileForm.resumeUrl);
+                                                                            }
+                                                                            const res = await fetch("/api/upload", { method: "POST", body: fd });
+                                                                            const data = await res.json();
+                                                                            if (res.ok && data.url) {
+                                                                                setProfileForm(f => ({ ...f, resumeUrl: data.url }));
+                                                                            } else {
+                                                                                setProfileForm(f => ({ ...f, resumeUrl: "" }));
+                                                                                alert(data.error || "Upload failed.");
+                                                                            }
+                                                                        } catch {
+                                                                            setProfileForm(f => ({ ...f, resumeUrl: "" }));
+                                                                            alert("Network error during upload.");
+                                                                        }
+                                                                    }}
+                                                                />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => document.getElementById("resume-upload-settings")?.click()}
+                                                                    disabled={profileForm.resumeUrl === "uploading..."}
+                                                                    className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all text-left flex items-center justify-between gap-2 cursor-pointer border-none"
+                                                                    style={{
+                                                                        background: 'var(--theme-input-bg)',
+                                                                        border: '1px solid var(--theme-border)',
+                                                                        color: profileForm.resumeUrl && profileForm.resumeUrl !== "uploading..."
+                                                                            ? '#3CF91A'
+                                                                            : 'var(--theme-text-muted)',
+                                                                    }}
+                                                                >
+                                                                    <span className="truncate">
+                                                                        {profileForm.resumeUrl === "uploading..."
+                                                                            ? "⏳ Uploading..."
+                                                                            : profileForm.resumeUrl
+                                                                                ? "✅ Resume uploaded"
+                                                                                : "Click to upload PDF"}
+                                                                    </span>
+                                                                    <span className="text-[10px] shrink-0 opacity-60">
+                                                                        {profileForm.resumeUrl && profileForm.resumeUrl !== "uploading..." ? "Replace" : "Browse"}
+                                                                    </span>
+                                                                </button>
+                                                            </div>
+                                                            {profileForm.resumeUrl && profileForm.resumeUrl !== "uploading..." && (
+                                                                <a href={profileForm.resumeUrl} target="_blank" rel="noopener noreferrer"
+                                                                    className="text-[10px] mt-1 inline-block hover:underline"
+                                                                    style={{ color: '#3CF91A' }}>
+                                                                    View uploaded resume ↗
+                                                                </a>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
 

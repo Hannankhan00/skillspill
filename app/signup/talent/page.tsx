@@ -85,7 +85,7 @@ interface FormData {
     fullName: string; email: string; username: string; password: string; confirmPassword: string;
     selectedSkills: string[]; customSkill: string; experienceLevel: string; bio: string;
     githubConnected: boolean; githubUsername: string; githubRepos: number; githubStars: number;
-    portfolioUrl: string; linkedinUrl: string; resumeFile: File | null; projectLinks: string[];
+    portfolioUrl: string; linkedinUrl: string; resumeFile: File | null; resumeUrl: string; projectLinks: string[];
     agreedToTerms: boolean; emailVerified: boolean;
     githubAccessToken?: string; githubId?: string; sharePrivateRepos?: boolean;
 }
@@ -129,7 +129,7 @@ export default function TalentSignup() {
         fullName: "", email: "", username: "", password: "", confirmPassword: "",
         selectedSkills: [], customSkill: "", experienceLevel: "", bio: "",
         githubConnected: false, githubUsername: "", githubRepos: 0, githubStars: 0,
-        portfolioUrl: "", linkedinUrl: "", resumeFile: null, projectLinks: [""],
+        portfolioUrl: "", linkedinUrl: "", resumeFile: null, resumeUrl: "", projectLinks: [""],
         agreedToTerms: false, emailVerified: false,
         githubAccessToken: "", githubId: "", sharePrivateRepos: false,
     });
@@ -350,6 +350,48 @@ export default function TalentSignup() {
         </div>
     );
 
+    const [resumeUploading, setResumeUploading] = useState(false);
+    const [resumeError, setResumeError] = useState("");
+    const resumeInputRef = useRef<HTMLInputElement>(null);
+
+    const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (file.type !== "application/pdf") {
+            setResumeError("Only PDF files are allowed.");
+            return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            setResumeError("File size must be under 10MB.");
+            return;
+        }
+
+        setResumeUploading(true);
+        setResumeError("");
+
+        try {
+            const fd = new FormData();
+            fd.append("file", file);
+            fd.append("category", "resumes");
+            fd.append("folder", "resumes/signup");
+
+            const res = await fetch("/api/upload", { method: "POST", body: fd });
+            const data = await res.json();
+
+            if (!res.ok) {
+                setResumeError(data.error || "Upload failed.");
+            } else {
+                updateForm("resumeFile", file);
+                updateForm("resumeUrl", data.url);
+            }
+        } catch {
+            setResumeError("Network error during upload.");
+        } finally {
+            setResumeUploading(false);
+        }
+    };
+
     const renderPortfolio = () => (
         <div className="flex flex-col gap-6 animate-in slide-in-from-right-4 fade-in duration-300">
             <div className="mb-2">
@@ -364,10 +406,39 @@ export default function TalentSignup() {
                 <label className="flex items-center gap-2 text-[10px] font-bold text-[#3CF91A] uppercase tracking-wider" style={mono}>
                     <IconUpload className="w-3 h-3" /> Resume
                 </label>
-                <div className="h-24 border border-dashed border-white/20 rounded-xl flex flex-col items-center justify-center text-xs text-[#555] hover:border-[#3CF91A]/50 hover:bg-[#3CF91A]/5 transition-all cursor-pointer">
-                    <span className="text-[#3CF91A] font-bold mb-1">Upload PDF</span>
-                    <span>Max 10MB</span>
+                <input
+                    ref={resumeInputRef}
+                    type="file"
+                    accept=".pdf,application/pdf"
+                    onChange={handleResumeUpload}
+                    className="hidden"
+                />
+                <div
+                    onClick={() => !resumeUploading && resumeInputRef.current?.click()}
+                    className={`h-24 border border-dashed rounded-xl flex flex-col items-center justify-center text-xs transition-all cursor-pointer ${formData.resumeFile
+                        ? "border-[#3CF91A]/50 bg-[#3CF91A]/5 text-[#3CF91A]"
+                        : "border-white/20 text-[#555] hover:border-[#3CF91A]/50 hover:bg-[#3CF91A]/5"
+                        }`}
+                >
+                    {resumeUploading ? (
+                        <>
+                            <span className="text-[#3CF91A] font-bold mb-1 animate-pulse">Uploading...</span>
+                            <span className="text-[#555]">Please wait</span>
+                        </>
+                    ) : formData.resumeFile ? (
+                        <>
+                            <IconCheck className="w-5 h-5 text-[#3CF91A] mb-1" />
+                            <span className="text-[#3CF91A] font-bold mb-0.5">{formData.resumeFile.name}</span>
+                            <span className="text-[#555]">Click to replace</span>
+                        </>
+                    ) : (
+                        <>
+                            <span className="text-[#3CF91A] font-bold mb-1">Upload PDF</span>
+                            <span>Max 10MB</span>
+                        </>
+                    )}
                 </div>
+                {resumeError && <span className="text-[10px] text-[#FF003C] font-mono">{resumeError}</span>}
             </div>
         </div>
     );

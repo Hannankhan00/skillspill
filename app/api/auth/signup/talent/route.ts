@@ -24,6 +24,7 @@ const TalentSchema = z.object({
     githubAccessToken: z.string().optional(),
     githubId: z.string().optional(),
     sharePrivateRepos: z.boolean().optional(),
+    resumeUrl: z.string().url().optional().or(z.literal("")),
 });
 
 export async function POST(req: NextRequest) {
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
         const {
             fullName, username, email, password, selectedSkills, experienceLevel, bio,
             githubConnected, githubUsername, githubRepos, githubStars,
-            portfolioUrl, linkedinUrl, projectLinks, githubAccessToken, githubId, sharePrivateRepos
+            portfolioUrl, linkedinUrl, projectLinks, githubAccessToken, githubId, sharePrivateRepos, resumeUrl
         } = result.data;
 
         // 1. Check if user exists
@@ -100,6 +101,7 @@ export async function POST(req: NextRequest) {
                     sharePrivateRepos: sharePrivateRepos || false,
                     portfolioUrl: portfolioUrl || null,
                     linkedinUrl: linkedinUrl || null,
+                    resumeUrl: resumeUrl || null,
                 },
             });
 
