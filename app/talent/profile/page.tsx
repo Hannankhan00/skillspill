@@ -16,8 +16,8 @@ export default function TalentProfilePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [githubData, setGithubData] = useState<any>(null);
     const [isLoadingGithub, setIsLoadingGithub] = useState(false);
-    const [activeTab, setActiveTab] = useState("Overview");
-    const tabs = ["Overview", "Experience", "Projects", "GitHub", "Skills", "Spills"];
+    const [activeTab, setActiveTab] = useState("Spills");
+    const tabs = ["Spills", "Experience", "Projects", "GitHub", "Skills"];
     
     const [showAvatarMenu, setShowAvatarMenu] = useState(false);
     const [avatarUploading, setAvatarUploading] = useState(false);
@@ -254,6 +254,59 @@ export default function TalentProfilePage() {
             {/* ── MAIN CONTENT ── */}
             <div className="max-w-[900px] mx-auto px-4 sm:px-6 pb-24 lg:pb-8">
 
+                {/* Bio & Social Links */}
+                <div className="mt-4 sm:mt-6">
+                    {bio ? (
+                        <p className="text-[13px] sm:text-[14px] text-[var(--theme-text-primary)] leading-relaxed whitespace-pre-wrap max-w-3xl">
+                            {bio}
+                        </p>
+                    ) : (
+                        <p className="text-[13px] text-[var(--theme-text-muted)] italic">
+                            No bio added yet. Go to Settings → Privacy to add one.
+                        </p>
+                    )}
+
+                    <div className="flex flex-wrap items-center gap-3 mt-4 text-[12px] font-medium">
+                        {currentJob && (
+                            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-card)]" style={{ color: accent }}>
+                                <Briefcase className="w-3.5 h-3.5" />
+                                {currentJob.role} at {currentJob.companyName}
+                            </span>
+                        )}
+                        {experienceLevel && (
+                            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-card)] text-[var(--theme-text-secondary)]">
+                                <Zap className="w-3.5 h-3.5 text-yellow-500" />
+                                {experienceLevel.charAt(0) + experienceLevel.slice(1).toLowerCase()} Level
+                            </span>
+                        )}
+                        {showEmail && contactEmail && (
+                            <a href={`mailto:${contactEmail}`} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:opacity-80 transition-colors bg-[var(--theme-card)] border border-[var(--theme-border)] no-underline text-[var(--theme-text-secondary)]">
+                                <Mail className="w-3.5 h-3.5" /> <span className="hidden sm:inline">{contactEmail}</span>
+                            </a>
+                        )}
+                        {showPhone && contactPhone && (
+                            <a href={`tel:${contactPhone}`} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:opacity-80 transition-colors bg-[var(--theme-card)] border border-[var(--theme-border)] no-underline text-[var(--theme-text-secondary)]">
+                                <Phone className="w-3.5 h-3.5" /> <span className="hidden sm:inline">{contactPhone}</span>
+                            </a>
+                        )}
+                        {showSocials && githubUsername && (
+                            <a href={`https://github.com/${githubUsername}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:opacity-80 transition-colors bg-[var(--theme-card)] border border-[var(--theme-border)] no-underline text-[var(--theme-text-secondary)]">
+                                <Github className="w-3.5 h-3.5" /> <span className="hidden sm:inline">@{githubUsername}</span>
+                            </a>
+                        )}
+                        {showSocials && linkedinUrl && (
+                            <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:opacity-80 transition-colors bg-[var(--theme-card)] border border-[var(--theme-border)] no-underline text-[var(--theme-text-secondary)]">
+                                <Linkedin className="w-3.5 h-3.5 text-blue-500" /> <span className="hidden sm:inline">LinkedIn</span>
+                            </a>
+                        )}
+                        {showSocials && portfolioUrl && (
+                            <a href={portfolioUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:opacity-80 transition-colors bg-[var(--theme-card)] border border-[var(--theme-border)] no-underline text-[var(--theme-text-secondary)]">
+                                <ExternalLink className="w-3.5 h-3.5 text-purple-500" /> <span className="hidden sm:inline">Portfolio</span>
+                            </a>
+                        )}
+                    </div>
+                </div>
+
                 {/* Stats / Actions row */}
                 <div className="flex items-center gap-3 sm:gap-6 mt-4 sm:mt-5 pb-4 border-b border-[var(--theme-border)]">
                     <div className="text-center">
@@ -296,125 +349,7 @@ export default function TalentProfilePage() {
 
                 <div className="mt-5 space-y-5">
 
-                    {/* ── OVERVIEW TAB ── */}
-                    {activeTab === "Overview" && (
-                        <>
-                            {/* About */}
-                            <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
-                                <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-2">About</h2>
-                                <p className="text-[13px] text-[var(--theme-text-tertiary)] leading-relaxed whitespace-pre-wrap">
-                                    {bio || "No bio added yet. Go to Settings → Privacy to add one."}
-                                </p>
-                                <div className="flex flex-wrap gap-3 mt-4 text-[11px] text-[var(--theme-text-muted)] pt-3 border-t border-[var(--theme-border-light)]">
-                                    {currentJob && (
-                                        <span className="flex items-center gap-1.5 font-medium" style={{ color: accent }}>
-                                            <Briefcase className="w-3.5 h-3.5" />
-                                            {currentJob.role} at {currentJob.companyName}
-                                        </span>
-                                    )}
-                                    {experienceLevel && (
-                                        <span className="flex items-center gap-1.5">
-                                            <Zap className="w-3.5 h-3.5" />
-                                            {experienceLevel.charAt(0) + experienceLevel.slice(1).toLowerCase()} Level
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
 
-                            {/* Contact & Socials */}
-                            <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
-                                <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-3 flex items-center gap-2">
-                                    <LinkIcon className="w-4 h-4" /> Contact & Socials
-                                </h2>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {showEmail && contactEmail && (
-                                        <a href={`mailto:${contactEmail}`}
-                                            className="flex items-center gap-3 p-3 rounded-xl border no-underline transition-colors hover:opacity-80 group"
-                                            style={{ background: "var(--theme-bg-secondary)", borderColor: "var(--theme-border-light)" }}
-                                            onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}
-                                            onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border-light)")}>
-                                            <Mail className="w-5 h-5 text-[var(--theme-text-secondary)]" />
-                                            <div>
-                                                <p className="text-[12px] font-bold text-[var(--theme-text-primary)]">Email</p>
-                                                <p className="text-[10px] text-[var(--theme-text-muted)]">{contactEmail}</p>
-                                            </div>
-                                        </a>
-                                    )}
-                                    {showPhone && contactPhone && (
-                                        <a href={`tel:${contactPhone}`}
-                                            className="flex items-center gap-3 p-3 rounded-xl border no-underline transition-colors hover:opacity-80 group"
-                                            style={{ background: "var(--theme-bg-secondary)", borderColor: "var(--theme-border-light)" }}
-                                            onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}
-                                            onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border-light)")}>
-                                            <Phone className="w-5 h-5 text-[var(--theme-text-secondary)]" />
-                                            <div>
-                                                <p className="text-[12px] font-bold text-[var(--theme-text-primary)]">Phone</p>
-                                                <p className="text-[10px] text-[var(--theme-text-muted)]">{contactPhone}</p>
-                                            </div>
-                                        </a>
-                                    )}
-                                    {showSocials && githubUsername && (
-                                        <a href={`https://github.com/${githubUsername}`} target="_blank" rel="noopener noreferrer"
-                                            className="flex items-center gap-3 p-3 rounded-xl border no-underline transition-colors hover:opacity-80 group"
-                                            style={{ background: "var(--theme-bg-secondary)", borderColor: "var(--theme-border-light)" }}
-                                            onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}
-                                            onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border-light)")}>
-                                            <Github className="w-5 h-5 text-[var(--theme-text-secondary)]" />
-                                            <div>
-                                                <p className="text-[12px] font-bold text-[var(--theme-text-primary)]">GitHub</p>
-                                                <p className="text-[10px] text-[var(--theme-text-muted)]">@{githubUsername}</p>
-                                            </div>
-                                        </a>
-                                    )}
-                                    {showSocials && linkedinUrl && (
-                                        <a href={linkedinUrl} target="_blank" rel="noopener noreferrer"
-                                            className="flex items-center gap-3 p-3 rounded-xl border no-underline transition-colors hover:opacity-80 group"
-                                            style={{ background: "var(--theme-bg-secondary)", borderColor: "var(--theme-border-light)" }}
-                                            onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}
-                                            onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border-light)")}>
-                                            <Linkedin className="w-5 h-5 text-[var(--theme-text-secondary)]" />
-                                            <div>
-                                                <p className="text-[12px] font-bold text-[var(--theme-text-primary)]">LinkedIn</p>
-                                                <p className="text-[10px] text-[var(--theme-text-muted)]">View Profile</p>
-                                            </div>
-                                        </a>
-                                    )}
-                                    {showSocials && portfolioUrl && (
-                                        <a href={portfolioUrl} target="_blank" rel="noopener noreferrer"
-                                            className="flex items-center gap-3 p-3 rounded-xl border no-underline transition-colors hover:opacity-80 group"
-                                            style={{ background: "var(--theme-bg-secondary)", borderColor: "var(--theme-border-light)" }}
-                                            onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}
-                                            onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border-light)")}>
-                                            <ExternalLink className="w-5 h-5 text-[var(--theme-text-secondary)]" />
-                                            <div>
-                                                <p className="text-[12px] font-bold text-[var(--theme-text-primary)]">Portfolio</p>
-                                                <p className="text-[10px] text-[var(--theme-text-muted)]">{portfolioUrl.replace(/^https?:\/\//, "")}</p>
-                                            </div>
-                                        </a>
-                                    )}
-                                    {showSocials && resumeUrl && (
-                                        <a href={resumeUrl} target="_blank" rel="noopener noreferrer"
-                                            className="flex items-center gap-3 p-3 rounded-xl border no-underline transition-colors hover:opacity-80 group"
-                                            style={{ background: "var(--theme-bg-secondary)", borderColor: "var(--theme-border-light)" }}
-                                            onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}
-                                            onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border-light)")}>
-                                            <FileText className="w-5 h-5 text-[var(--theme-text-secondary)]" />
-                                            <div>
-                                                <p className="text-[12px] font-bold text-[var(--theme-text-primary)]">Resume</p>
-                                                <p className="text-[10px] text-[var(--theme-text-muted)]">View Document</p>
-                                            </div>
-                                        </a>
-                                    )}
-                                    {!showEmail && !showPhone && !showSocials && (
-                                        <p className="text-[12px] text-[var(--theme-text-muted)] col-span-2">
-                                            Your contact info is hidden. Visit{" "}
-                                            <Link href="/talent/settings" style={{ color: accent }}>Settings → Privacy</Link> to show it.
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                        </>
-                    )}
 
                     {/* ── EXPERIENCE TAB ── */}
                     {activeTab === "Experience" && (

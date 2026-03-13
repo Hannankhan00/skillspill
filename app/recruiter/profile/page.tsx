@@ -42,8 +42,8 @@ function Field({
 export default function RecruiterProfilePage() {
     const [userData, setUserData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState("Overview");
-    const tabs = ["Overview", "Jobs", "Spills"];
+    const [activeTab, setActiveTab] = useState("Spills");
+    const tabs = ["Spills", "Jobs"];
 
     /* ── Edit modal ── */
     const [showEdit, setShowEdit] = useState(false);
@@ -444,6 +444,52 @@ export default function RecruiterProfilePage() {
             {/* ── MAIN CONTENT ── */}
             <div className="max-w-[900px] mx-auto px-4 sm:px-6 pb-24 lg:pb-8">
 
+                {/* Bio & Social Links */}
+                <div className="mt-4 sm:mt-6">
+                    {bio ? (
+                        <p className="text-[13px] sm:text-[14px] text-[var(--theme-text-primary)] leading-relaxed whitespace-pre-wrap max-w-3xl">
+                            {bio}
+                        </p>
+                    ) : (
+                        <p className="text-[13px] text-[var(--theme-text-muted)] italic">
+                            No bio yet.{" "}
+                            <button onClick={() => setShowEdit(true)} className="border-none bg-transparent cursor-pointer font-medium underline" style={{ color: accent }}>
+                                Add one
+                            </button>
+                        </p>
+                    )}
+
+                    <div className="flex flex-wrap items-center gap-3 mt-4 text-[12px] font-medium">
+                        {displayLocation && (
+                            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-card)]" style={{ color: accent }}>
+                                <MapPin className="w-3.5 h-3.5" />
+                                {displayLocation}
+                            </span>
+                        )}
+                        {companyName && (
+                            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-card)] text-[var(--theme-text-secondary)]">
+                                <Building2 className="w-3.5 h-3.5" style={{ color: accent }} />
+                                {companyName}
+                            </span>
+                        )}
+                        {email && (
+                            <a href={`mailto:${email}`} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:opacity-80 transition-colors bg-[var(--theme-card)] border border-[var(--theme-border)] no-underline text-[var(--theme-text-secondary)]">
+                                <Mail className="w-3.5 h-3.5" /> <span className="hidden sm:inline">{email}</span>
+                            </a>
+                        )}
+                        {phone && (
+                            <a href={`tel:${phone}`} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:opacity-80 transition-colors bg-[var(--theme-card)] border border-[var(--theme-border)] no-underline text-[var(--theme-text-secondary)]">
+                                <Phone className="w-3.5 h-3.5" /> <span className="hidden sm:inline">{phone}</span>
+                            </a>
+                        )}
+                        {companyWebsite && (
+                            <a href={companyWebsite.startsWith("http") ? companyWebsite : `https://${companyWebsite}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:opacity-80 transition-colors bg-[var(--theme-card)] border border-[var(--theme-border)] no-underline text-[var(--theme-text-secondary)]">
+                                <Globe className="w-3.5 h-3.5" style={{ color: accent }} /> <span className="hidden sm:inline">Website</span>
+                            </a>
+                        )}
+                    </div>
+                </div>
+
                 {/* Stats / Actions row */}
                 <div className="flex items-center gap-3 sm:gap-6 mt-4 sm:mt-5 pb-4 border-b border-[var(--theme-border)]">
                     <div className="text-center">
@@ -479,122 +525,7 @@ export default function RecruiterProfilePage() {
 
                 <div className="mt-5 space-y-5">
 
-                    {/* ── OVERVIEW TAB ── */}
-                    {activeTab === "Overview" && (
-                        <>
-                            {/* About */}
-                            <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
-                                <div className="flex items-start justify-between gap-2 mb-2">
-                                    <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)]">About</h2>
-                                    <button onClick={() => setShowEdit(true)}
-                                        className="flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-lg border-none cursor-pointer transition-colors"
-                                        style={{ background: `${accent}10`, color: accent }}>
-                                        <Pencil className="w-3 h-3" /> Edit
-                                    </button>
-                                </div>
-                                <p className="text-[13px] text-[var(--theme-text-tertiary)] leading-relaxed whitespace-pre-wrap">
-                                    {bio || (
-                                        <span className="italic text-[var(--theme-text-muted)]">
-                                            No bio yet.{" "}
-                                            <button onClick={() => setShowEdit(true)} className="border-none bg-transparent cursor-pointer font-medium underline" style={{ color: accent }}>
-                                                Add one
-                                            </button>
-                                        </span>
-                                    )}
-                                </p>
-                                <div className="flex flex-wrap gap-3 mt-4 text-[11px] text-[var(--theme-text-muted)] pt-3 border-t border-[var(--theme-border-light)]">
-                                    {displayLocation && (
-                                        <span className="flex items-center gap-1.5">
-                                            <MapPin className="w-3.5 h-3.5" />
-                                            {displayLocation}
-                                        </span>
-                                    )}
-                                    {companyName && (
-                                        <span className="flex items-center gap-1.5 font-medium" style={{ color: accent }}>
-                                            <Building2 className="w-3.5 h-3.5" />
-                                            {companyName}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
 
-                            {/* Contact & Links */}
-                            <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
-                                <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-3 flex items-center gap-2">
-                                    <LinkIcon className="w-4 h-4" /> Contact & Links
-                                </h2>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {email && (
-                                        <a href={`mailto:${email}`}
-                                            className="flex items-center gap-3 p-3 rounded-xl hover:opacity-80 transition-colors border group no-underline"
-                                            style={{ background: "var(--theme-bg-secondary)", borderColor: "var(--theme-border-light)" }}
-                                            onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}
-                                            onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border-light)")}>
-                                            <Mail className="w-5 h-5 text-[var(--theme-text-secondary)]" />
-                                            <div>
-                                                <p className="text-[12px] font-bold text-[var(--theme-text-primary)]">Email</p>
-                                                <p className="text-[10px] text-[var(--theme-text-muted)]">{email}</p>
-                                            </div>
-                                        </a>
-                                    )}
-                                    {phone && (
-                                        <a href={`tel:${phone}`}
-                                            className="flex items-center gap-3 p-3 rounded-xl hover:opacity-80 transition-colors border group no-underline"
-                                            style={{ background: "var(--theme-bg-secondary)", borderColor: "var(--theme-border-light)" }}
-                                            onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}
-                                            onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border-light)")}>
-                                            <Phone className="w-5 h-5 text-[var(--theme-text-secondary)]" />
-                                            <div>
-                                                <p className="text-[12px] font-bold text-[var(--theme-text-primary)]">Phone</p>
-                                                <p className="text-[10px] text-[var(--theme-text-muted)]">{phone}</p>
-                                            </div>
-                                        </a>
-                                    )}
-                                    {companyWebsite && (
-                                        <a href={companyWebsite.startsWith("http") ? companyWebsite : `https://${companyWebsite}`}
-                                            target="_blank" rel="noopener noreferrer"
-                                            className="flex items-center gap-3 p-3 rounded-xl hover:opacity-80 transition-colors border group no-underline"
-                                            style={{ background: "var(--theme-bg-secondary)", borderColor: "var(--theme-border-light)" }}
-                                            onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}
-                                            onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border-light)")}>
-                                            <Globe className="w-5 h-5 text-[var(--theme-text-secondary)]" />
-                                            <div>
-                                                <p className="text-[12px] font-bold text-[var(--theme-text-primary)]">Website</p>
-                                                <p className="text-[10px] text-[var(--theme-text-muted)]">{companyWebsite.replace(/^https?:\/\//, "")}</p>
-                                            </div>
-                                        </a>
-                                    )}
-                                    {!email && !phone && !companyWebsite && (
-                                        <p className="text-[12px] text-[var(--theme-text-muted)] col-span-2">
-                                            No contact info yet.{" "}
-                                            <button onClick={() => setShowEdit(true)} className="border-none bg-transparent cursor-pointer font-medium underline" style={{ color: accent }}>
-                                                Add some
-                                            </button>
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Industries */}
-                            {industries && industries.length > 0 && (
-                                <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
-                                    <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-3 flex items-center gap-2">
-                                        <Users className="w-4 h-4" style={{ color: accent }} /> Industries & Specialties
-                                    </h2>
-                                    <div className="flex flex-wrap gap-2">
-                                        {industries.map((ind: any) => (
-                                            <span key={ind.id || ind.industryName}
-                                                className="px-3 py-1.5 rounded-lg text-[11px] sm:text-[12px] font-medium border flex items-center gap-1.5"
-                                                style={{ background: "var(--theme-input-bg)", borderColor: "var(--theme-border-light)", color: "var(--theme-text-secondary)" }}>
-                                                <CheckCircle className="w-3 h-3" style={{ color: accent }} />
-                                                {ind.industryName}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </>
-                    )}
 
                     {/* ── JOBS / BOUNTIES TAB ── */}
                     {activeTab === "Jobs" && (
