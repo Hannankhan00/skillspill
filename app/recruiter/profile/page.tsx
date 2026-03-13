@@ -59,6 +59,12 @@ export default function RecruiterProfilePage() {
 
     const [showAvatarMenu, setShowAvatarMenu] = useState(false);
     const [avatarUploading, setAvatarUploading] = useState(false);
+    const [toastMessage, setToastMessage] = useState<{ type: "success" | "error", text: string } | null>(null);
+
+    const showToast = (type: "success" | "error", text: string) => {
+        setToastMessage({ type, text });
+        setTimeout(() => setToastMessage(null), 4000);
+    };
 
     /* ── Fetch profile ── */
     const loadProfile = () => {
@@ -144,6 +150,8 @@ export default function RecruiterProfilePage() {
             const processedFile = await compressImageClient(file);
             const fd = new FormData();
             fd.append("file", processedFile);
+            fd.append("category", "avatars");
+            fd.append("folder", "avatars");
             
             const res = await fetch("/api/upload", { method: "POST", body: fd });
             const data = await res.json();
@@ -156,12 +164,13 @@ export default function RecruiterProfilePage() {
                     body: JSON.stringify({ avatarUrl: data.url })
                 });
                 setUserData((prev: any) => ({ ...prev, avatarUrl: data.url }));
+                showToast("success", "Profile picture updated!");
             } else {
-                alert(data.error || "Upload failed");
+                showToast("error", data.error || "Upload failed");
             }
         } catch (error) {
             console.error("Avatar upload failed:", error);
-            alert("Upload failed. Check console for details.");
+            showToast("error", "Upload failed. Check console for details.");
         } finally {
             setAvatarUploading(false);
             if (fileInputRef.current) fileInputRef.current.value = "";
@@ -179,8 +188,10 @@ export default function RecruiterProfilePage() {
                 body: JSON.stringify({ avatarUrl: "" })
             });
             setUserData((prev: any) => ({ ...prev, avatarUrl: "" }));
+            showToast("success", "Profile picture removed!");
         } catch (err) {
             console.error("Failed to remove avatar", err);
+            showToast("error", "Failed to remove avatar");
         } finally {
             setAvatarUploading(false);
         }
@@ -215,6 +226,18 @@ export default function RecruiterProfilePage() {
 
     return (
         <div style={{ background: "var(--theme-bg)" }} className="min-h-full">
+            {toastMessage && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-bottom-5 fade-in duration-300">
+                    <div className={`px-4 py-3 rounded-xl shadow-2xl border flex items-center gap-3 ${
+                        toastMessage.type === "success" 
+                            ? "bg-purple-500/10 border-purple-500/30 text-purple-500" 
+                            : "bg-red-500/10 border-red-500/30 text-red-500"
+                    }`} style={{ backdropFilter: "blur(12px)" }}>
+                        {toastMessage.type === "success" ? <CheckCircle className="w-5 h-5" /> : <X className="w-5 h-5" />}
+                        <p className="text-sm font-semibold">{toastMessage.text}</p>
+                    </div>
+                </div>
+            )}
 
             {/* ══ EDIT PROFILE MODAL ══ */}
             {showEdit && (
@@ -353,7 +376,7 @@ export default function RecruiterProfilePage() {
                 <div className="max-w-[900px] mx-auto px-4 sm:px-6">
                     <div className="relative -mt-12 sm:-mt-16 flex items-end gap-4">
                         {/* Interactive Avatar Container */}
-                        <div className="relative group shrink-0" onMouseLeave={() => setShowAvatarMenu(false)}>
+                        <div className="relative group shrink-0">
                             <div 
                                 onClick={() => setShowAvatarMenu(prev => !prev)}
                                 className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold border-4 border-[var(--theme-bg)] shadow-xl shrink-0 cursor-pointer overflow-hidden relative">
@@ -374,20 +397,23 @@ export default function RecruiterProfilePage() {
                             
                             {/* Dropdown Menu */}
                             {showAvatarMenu && (
-                                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 rounded-xl shadow-xl border border-[var(--theme-border)] bg-[var(--theme-card)] z-50 overflow-hidden text-sm animate-in fade-in zoom-in duration-200">
-                                    <div className="p-1 flex flex-col">
-                                        <button onClick={() => { setShowAvatarMenu(false); fileInputRef.current?.click(); }}
-                                            className="w-full text-left px-4 py-2 hover:bg-[var(--theme-bg-secondary)] text-[var(--theme-text-primary)] rounded-lg transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer">
-                                            <Upload className="w-4 h-4" /> Upload Photo
-                                        </button>
-                                        {(avatarUrl && avatarUrl !== "") && (
-                                            <button onClick={() => { setShowAvatarMenu(false); handleRemoveAvatar(); }}
-                                                className="w-full text-left px-4 py-2 hover:bg-red-500/10 text-red-500 rounded-lg transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer mt-1">
-                                                <Trash className="w-4 h-4" /> Remove Photo
+                                <>
+                                    <div className="fixed inset-0 z-40" onClick={() => setShowAvatarMenu(false)} />
+                                    <div className="absolute top-full left-0 translate-x-0 sm:left-1/2 sm:-translate-x-1/2 mt-2 w-48 rounded-xl shadow-xl border border-[var(--theme-border)] bg-[var(--theme-card)] z-50 overflow-hidden text-sm animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
+                                        <div className="p-1 flex flex-col">
+                                            <button onClick={() => { setShowAvatarMenu(false); fileInputRef.current?.click(); }}
+                                                className="w-full text-left px-4 py-2 hover:bg-[var(--theme-bg-secondary)] text-[var(--theme-text-primary)] rounded-lg transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer">
+                                                <Upload className="w-4 h-4" /> Upload Photo
                                             </button>
-                                        )}
+                                            {(avatarUrl && avatarUrl !== "") && (
+                                                <button onClick={() => { setShowAvatarMenu(false); handleRemoveAvatar(); }}
+                                                    className="w-full text-left px-4 py-2 hover:bg-red-500/10 text-red-500 rounded-lg transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer mt-1">
+                                                    <Trash className="w-4 h-4" /> Remove Photo
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
+                                </>
                             )}
                         </div>
                         <input type="file" ref={fileInputRef} className="hidden" accept="image/jpeg,image/png,image/webp" onChange={handleFileChange} />
