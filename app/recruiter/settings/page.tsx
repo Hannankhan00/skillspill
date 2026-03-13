@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { compressImageClient } from "@/lib/client-compress";
 
 const accent = "#A855F7";
 
@@ -116,6 +117,8 @@ export default function RecruiterSettingsPage() {
     const [companyLoaded, setCompanyLoaded] = useState(false);
     const [savingCompany, setSavingCompany] = useState(false);
     const [companyMsg, setCompanyMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+    const [avatarUrl, setAvatarUrl] = useState("");
+    const [avatarUploading, setAvatarUploading] = useState(false);
 
     useEffect(() => {
         fetch("/api/user/profile")
@@ -124,6 +127,7 @@ export default function RecruiterSettingsPage() {
                 if (!d.user) return;
                 const u = d.user;
                 const rp = u.recruiterProfile || {};
+                setAvatarUrl(u.avatarUrl || "");
                 setCompanyForm({
                     fullName: u.fullName || "",
                     jobTitle: rp.jobTitle || "",
@@ -139,6 +143,47 @@ export default function RecruiterSettingsPage() {
             .catch(() => { });
     }, []);
 
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+        if (!allowedTypes.includes(file.type)) {
+            alert("Only JPEG, PNG, WebP, or GIF images are allowed.");
+            return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            alert("Image must be under 10MB.");
+            return;
+        }
+        setAvatarUploading(true);
+        try {
+            const compressed = await compressImageClient(file);
+            const fd = new FormData();
+            fd.append("file", compressed);
+            fd.append("category", "avatars");
+            fd.append("folder", "avatars");
+            if (avatarUrl) fd.append("oldFileUrl", avatarUrl);
+            const res = await fetch("/api/upload", { method: "POST", body: fd });
+            const data = await res.json();
+            if (res.ok && data.url) {
+                setAvatarUrl(data.url);
+                await fetch("/api/user/profile", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ avatarUrl: data.url }),
+                });
+                setCompanyMsg({ type: "ok", text: "Profile picture updated!" });
+                setTimeout(() => setCompanyMsg(null), 4000);
+            } else {
+                alert(data.error || "Upload failed.");
+            }
+        } catch {
+            alert("Network error during upload.");
+        } finally {
+            setAvatarUploading(false);
+        }
+    };
+
     const saveCompany = async () => {
         setSavingCompany(true);
         setCompanyMsg(null);
@@ -147,6 +192,7 @@ export default function RecruiterSettingsPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 fullName: companyForm.fullName,
+                avatarUrl: avatarUrl || null,
                 recruiterProfile: {
                     jobTitle: companyForm.jobTitle || null,
                     companyName: companyForm.companyName || "Unknown",
@@ -252,6 +298,70 @@ export default function RecruiterSettingsPage() {
                                                         {companyMsg.text}
                                                     </div>
                                                 )}
+
+                                                {/* Profile Picture */}
+                                                <div className="flex items-center gap-5 pb-5" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
+                                                    <div className="relative group">
+                                                        <input
+                                                            type="file"
+                                                            accept="image/jpeg,image/png,image/webp,image/gif"
+                                                            id="avatar-upload"
+                                                            className="hidden"
+                                                            onChange={handleAvatarUpload}
+                                                        />
+                                                        <div
+                                                            onClick={() => !avatarUploading && document.getElementById('avatar-upload')?.click()}
+                                                            className="w-20 h-20 rounded-full flex items-center justify-center cursor-pointer overflow-hidden border-2 transition-all relative"
+                                                            style={{
+                                                                borderColor: avatarUrl ? `${accent}40` : 'var(--theme-border)',
+                                                                background: avatarUrl ? 'transparent' : 'var(--theme-input-bg)',
+                                                            }}
+                                                        >
+                                                            {avatarUrl ? (
+                                                                <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <span className="text-2xl font-bold" style={{ color: 'var(--theme-text-muted)' }}>
+                                                                    {companyForm.fullName ? companyForm.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '??'}
+                                                                </span>
+                                                            )}
+                                                            {/* Hover overlay */}
+                                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full">
+                                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                                                                    <circle cx="12" cy="13" r="4" />
+                                                                </svg>
+                                                            </div>
+                                                            {avatarUploading && (
+                                                                <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-full">
+                                                                    <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: accent }} />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[13px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Profile Picture</p>
+                                                        <p className="text-[11px] mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>Click to upload. JPEG, PNG, WebP or GIF. Max 10MB.</p>
+                                                        {avatarUrl && (
+                                                            <button
+                                                                onClick={async () => {
+                                                                    if (!confirm('Remove your profile picture?')) return;
+                                                                    setAvatarUrl('');
+                                                                    await fetch('/api/user/profile', {
+                                                                        method: 'POST',
+                                                                        headers: { 'Content-Type': 'application/json' },
+                                                                        body: JSON.stringify({ avatarUrl: null }),
+                                                                    });
+                                                                    setCompanyMsg({ type: 'ok', text: 'Profile picture removed.' });
+                                                                    setTimeout(() => setCompanyMsg(null), 4000);
+                                                                }}
+                                                                className="text-[10px] mt-1.5 font-medium cursor-pointer bg-transparent border-none p-0"
+                                                                style={{ color: '#EF4444' }}
+                                                            >
+                                                                Remove Photo
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
 
                                                 {/* Identity */}
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

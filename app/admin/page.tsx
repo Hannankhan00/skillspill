@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 import { ThemeToggle } from "@/app/components/ThemeProvider";
+import { compressImageClient } from "@/lib/client-compress";
 
 /* ═══════════════════════════════════════════
    DESIGN TOKENS
@@ -140,6 +141,10 @@ export default function AdminPage() {
     const [suspensionReason, setSuspensionReason] = useState("");
     const [suspensionLoading, setSuspensionLoading] = useState(false);
 
+    // Admin Profile State for Avatar
+    const [adminProfile, setAdminProfile] = useState<{ fullName: string, avatarUrl: string } | null>(null);
+    const [avatarUploading, setAvatarUploading] = useState(false);
+
     const fetchUsers = useCallback(async (page = 1) => {
         setUsersLoading(true);
         try {
@@ -168,6 +173,48 @@ export default function AdminPage() {
 
     useEffect(() => { if (activeTab === "users" || activeTab === "dashboard") fetchUsers(); }, [activeTab, fetchUsers]);
     useEffect(() => { if (activeTab === "appeals") fetchAppeals(); }, [activeTab, fetchAppeals]);
+    useEffect(() => {
+        fetch("/api/user/profile").then(r => r.json()).then(d => {
+            if (d.user) setAdminProfile({ fullName: d.user.fullName, avatarUrl: d.user.avatarUrl || "" });
+        }).catch(() => {});
+    }, []);
+
+    const handleAdminAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setAvatarUploading(true);
+        try {
+            const compressed = await compressImageClient(file);
+            const fd = new FormData();
+            fd.append("file", compressed);
+            fd.append("category", "avatars");
+            fd.append("folder", "avatars");
+            if (adminProfile?.avatarUrl) fd.append("oldFileUrl", adminProfile.avatarUrl);
+            const res = await fetch("/api/upload", { method: "POST", body: fd });
+            const data = await res.json();
+            if (res.ok && data.url) {
+                setAdminProfile(p => p ? { ...p, avatarUrl: data.url } : null);
+                await fetch("/api/user/profile", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ avatarUrl: data.url })
+                });
+            } else alert(data.error || "Failed");
+        } catch { alert("Error"); }
+        finally { setAvatarUploading(false); }
+    };
+
+    const handleRemoveAdminAvatar = async () => {
+        if (!confirm('Remove profile picture?')) return;
+        setAvatarUploading(true);
+        try {
+            setAdminProfile(p => p ? { ...p, avatarUrl: "" } : null);
+            await fetch("/api/user/profile", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ avatarUrl: "" })
+            });
+        } catch { alert("Error"); }
+        finally { setAvatarUploading(false); }
+    };
 
     const handleAppealAction = async (appealId: string, status: "APPROVED" | "REJECTED") => {
         setAppealActionLoading(true);
@@ -254,14 +301,38 @@ export default function AdminPage() {
 
             {/* ═══════════ SIDEBAR ═══════════ */}
             <aside className="hidden lg:flex flex-col w-[200px] shrink-0 border-r" style={{ background: T.sidebar, borderColor: T.cardBorder }}>
-                {/* Logo */}
-                <div className="px-5 pt-5 pb-4 flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: T.admin, boxShadow: `0 0 16px ${T.admin}40` }}>
-                        {I.bolt(16)}
+                {/* Logo & Avatar */}
+                <div className="px-5 pt-5 pb-4 flex items-center gap-2.5 group/header">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center relative cursor-pointer group" style={{ background: adminProfile?.avatarUrl ? 'transparent' : T.admin, boxShadow: `0 0 16px ${T.admin}40` }}>
+                        {adminProfile?.avatarUrl ? (
+                            <img src={adminProfile.avatarUrl} alt="Admin" className="w-full h-full object-cover rounded-lg" />
+                        ) : (
+                            I.bolt(16)
+                        )}
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center rounded-lg">
+                            <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept="image/jpeg,image/png,image/webp" onChange={handleAdminAvatarUpload} title="Change Profile Picture" />
+                            {I.arrowUp()}
+                        </div>
+                        {avatarUploading && (
+                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-lg">
+                                <span className="inline-block w-3 h-3 border-2 border-[var(--theme-bg)] border-t-transparent rounded-full animate-spin" />
+                            </div>
+                        )}
                     </div>
-                    <div>
-                        <div className="text-[13px] font-bold" style={{ color: T.textPrimary, ...sans }}>SkillSpill</div>
-                        <div className="text-[8px] uppercase tracking-[2px] font-bold" style={{ color: T.admin, ...mono }}>Admin Nexus</div>
+                    <div className="relative">
+                        <div className="text-[13px] font-bold truncate max-w-[120px]" style={{ color: T.textPrimary, ...sans }} title={adminProfile?.fullName || "SkillSpill"}>
+                            {adminProfile?.fullName || "SkillSpill Admin"}
+                        </div>
+                        <div className="text-[8px] uppercase tracking-[2px] font-bold flex gap-2 items-center" style={{ color: T.admin, ...mono }}>
+                            <span>Admin Nexus</span>
+                        </div>
+                        {adminProfile?.avatarUrl && (
+                            <div className="absolute top-1/2 left-full ml-2 -translate-y-1/2 opacity-0 group-hover/header:opacity-100 transition-opacity z-10 w-max">
+                                <button onClick={handleRemoveAdminAvatar} className="px-1.5 py-0.5 rounded text-[8px] uppercase font-bold text-red-100 bg-red-600/80 border border-red-500 hover:bg-red-500 cursor-pointer shadow-lg backdrop-blur" style={mono}>
+                                    Remove Photo
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
 

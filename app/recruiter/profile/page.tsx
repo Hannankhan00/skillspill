@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
@@ -6,7 +6,9 @@ import {
     Building2, MapPin, Globe, Phone, Mail,
     Briefcase, Loader2, Link as LinkIcon, Heart, MessageSquare,
     Share2, Eye, Sparkles, Users, CheckCircle, Pencil, X,
+    Camera, Upload, Trash
 } from "lucide-react";
+import { compressImageClient } from "@/lib/client-compress";
 
 const accent = "#A855F7";
 
@@ -53,6 +55,10 @@ export default function RecruiterProfilePage() {
     const [saving, setSaving] = useState(false);
     const [saveMsg, setSaveMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
     const overlayRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const [showAvatarMenu, setShowAvatarMenu] = useState(false);
+    const [avatarUploading, setAvatarUploading] = useState(false);
 
     /* ── Fetch profile ── */
     const loadProfile = () => {
@@ -128,6 +134,58 @@ export default function RecruiterProfilePage() {
         }
     };
 
+    /* Avatar Handlers */
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+            setAvatarUploading(true);
+            const processedFile = await compressImageClient(file);
+            const fd = new FormData();
+            fd.append("file", processedFile);
+            
+            const res = await fetch("/api/upload", { method: "POST", body: fd });
+            const data = await res.json();
+            
+            if (res.ok && data.url) {
+                // Save URL in DB
+                await fetch("/api/user/profile", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ avatarUrl: data.url })
+                });
+                setUserData((prev: any) => ({ ...prev, avatarUrl: data.url }));
+            } else {
+                alert(data.error || "Upload failed");
+            }
+        } catch (error) {
+            console.error("Avatar upload failed:", error);
+            alert("Upload failed. Check console for details.");
+        } finally {
+            setAvatarUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+        }
+    };
+
+    const handleRemoveAvatar = async () => {
+        if (!userData?.avatarUrl) return;
+        setAvatarUploading(true);
+        try {
+            // Unlink from DB, you could optionally call DELETE on your BLOB
+            await fetch("/api/user/profile", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ avatarUrl: "" })
+            });
+            setUserData((prev: any) => ({ ...prev, avatarUrl: "" }));
+        } catch (err) {
+            console.error("Failed to remove avatar", err);
+        } finally {
+            setAvatarUploading(false);
+        }
+    };
+
     /* ─── Loading / Error states ─── */
     if (isLoading) {
         return (
@@ -146,7 +204,7 @@ export default function RecruiterProfilePage() {
         );
     }
 
-    const { fullName, username, email, recruiterProfile, spills } = userData;
+    const { fullName, username, email, recruiterProfile, spills, avatarUrl } = userData;
     const { bio, companyName, companyWebsite, city, state, country, phone, industries } = recruiterProfile || {};
     const displayLocation = [city, state, country].filter(Boolean).join(", ");
     const bounties = recruiterProfile?.bounties ?? [];
@@ -294,9 +352,46 @@ export default function RecruiterProfilePage() {
                 {/* Avatar */}
                 <div className="max-w-[900px] mx-auto px-4 sm:px-6">
                     <div className="relative -mt-12 sm:-mt-16 flex items-end gap-4">
-                        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold border-4 border-[var(--theme-bg)] shadow-xl shrink-0">
-                            {initials}
+                        {/* Interactive Avatar Container */}
+                        <div className="relative group shrink-0" onMouseLeave={() => setShowAvatarMenu(false)}>
+                            <div 
+                                onClick={() => setShowAvatarMenu(prev => !prev)}
+                                className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold border-4 border-[var(--theme-bg)] shadow-xl shrink-0 cursor-pointer overflow-hidden relative">
+                                {avatarUrl ? (
+                                    <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
+                                ) : (
+                                    initials
+                                )}
+                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Camera className="w-6 h-6 sm:w-8 sm:h-8 text-white opacity-80" />
+                                </div>
+                                {avatarUploading && (
+                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                        <Loader2 className="w-6 h-6 animate-spin text-white" />
+                                    </div>
+                                )}
+                            </div>
+                            
+                            {/* Dropdown Menu */}
+                            {showAvatarMenu && (
+                                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 rounded-xl shadow-xl border border-[var(--theme-border)] bg-[var(--theme-card)] z-50 overflow-hidden text-sm animate-in fade-in zoom-in duration-200">
+                                    <div className="p-1 flex flex-col">
+                                        <button onClick={() => { setShowAvatarMenu(false); fileInputRef.current?.click(); }}
+                                            className="w-full text-left px-4 py-2 hover:bg-[var(--theme-bg-secondary)] text-[var(--theme-text-primary)] rounded-lg transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer">
+                                            <Upload className="w-4 h-4" /> Upload Photo
+                                        </button>
+                                        {(avatarUrl && avatarUrl !== "") && (
+                                            <button onClick={() => { setShowAvatarMenu(false); handleRemoveAvatar(); }}
+                                                className="w-full text-left px-4 py-2 hover:bg-red-500/10 text-red-500 rounded-lg transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer mt-1">
+                                                <Trash className="w-4 h-4" /> Remove Photo
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </div>
+                        <input type="file" ref={fileInputRef} className="hidden" accept="image/jpeg,image/png,image/webp" onChange={handleFileChange} />
+
                         <div className="pb-1 sm:pb-2 min-w-0 hidden sm:block">
                             <div className="flex items-center gap-2 flex-wrap">
                                 <h1 className="text-xl sm:text-2xl font-bold text-[var(--theme-text-primary)]">{fullName}</h1>
