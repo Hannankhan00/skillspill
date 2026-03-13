@@ -1,15 +1,80 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
     Sparkles, CheckCircle, Github, Linkedin, Briefcase, FileText,
     Loader2, Link as LinkIcon, Phone, Mail, Heart, MessageSquare,
-    Eye, Share2, Zap, ExternalLink, Star, Camera, Upload, Trash, X
+    Eye, Share2, Zap, ExternalLink, Star, Camera, Upload, Trash, X, Pencil
 } from "lucide-react";
 import { compressImageClient } from "@/lib/client-compress";
 
 const accent = "#3CF91A";
+
+/* ─── Styled input for the modal ─── */
+function Field({
+    label, value, onChange, type = "text", placeholder, textarea = false, icon,
+}: {
+    label: string; value: string; onChange: (v: string) => void;
+    type?: string; placeholder?: string; textarea?: boolean; icon?: React.ReactNode;
+}) {
+    return (
+        <div>
+            <label className="text-[10px] uppercase tracking-widest font-semibold mb-1.5 flex items-center gap-1.5"
+                style={{ color: "var(--theme-text-muted)" }}>
+                {icon && <span style={{ color: "#3CF91A" }}>{icon}</span>}
+                {label}
+            </label>
+            {textarea
+                ? <textarea value={value} onChange={e => onChange(e.target.value)}
+                    placeholder={placeholder} rows={3}
+                    className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all resize-none"
+                    style={{
+                        background: "var(--theme-input-bg)",
+                        border: "1px solid var(--theme-border)",
+                        color: "var(--theme-text-primary)",
+                        boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)",
+                    }}
+                    onFocus={e => e.currentTarget.style.boxShadow = "0 0 0 2px rgba(60,249,26,0.15), inset 0 1px 3px rgba(0,0,0,0.1)"}
+                    onBlur={e => e.currentTarget.style.boxShadow = "inset 0 1px 3px rgba(0,0,0,0.1)"} />
+                : <input type={type} value={value} onChange={e => onChange(e.target.value)}
+                    placeholder={placeholder}
+                    className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all"
+                    style={{
+                        background: "var(--theme-input-bg)",
+                        border: "1px solid var(--theme-border)",
+                        color: "var(--theme-text-primary)",
+                        boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)",
+                    }}
+                    onFocus={e => e.currentTarget.style.boxShadow = "0 0 0 2px rgba(60,249,26,0.15), inset 0 1px 3px rgba(0,0,0,0.1)"}
+                    onBlur={e => e.currentTarget.style.boxShadow = "inset 0 1px 3px rgba(0,0,0,0.1)"} />}
+        </div>
+    );
+}
+
+/* ─── Custom toggle switch ─── */
+function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+    return (
+        <label className="flex items-center gap-2.5 cursor-pointer group">
+            <div
+                onClick={() => onChange(!checked)}
+                className="relative w-9 h-5 rounded-full transition-all duration-200"
+                style={{
+                    background: checked ? "linear-gradient(135deg, #3CF91A, #10B981)" : "var(--theme-input-bg)",
+                    border: checked ? "1px solid #3CF91A40" : "1px solid var(--theme-border)",
+                    boxShadow: checked ? "0 0 8px rgba(60,249,26,0.3)" : "none",
+                }}>
+                <div
+                    className="absolute top-0.5 w-4 h-4 rounded-full transition-all duration-200 shadow-sm"
+                    style={{
+                        left: checked ? "17px" : "2px",
+                        background: checked ? "#fff" : "var(--theme-text-muted)",
+                    }} />
+            </div>
+            <span className="text-[11px] font-medium text-[var(--theme-text-secondary)] group-hover:text-[var(--theme-text-primary)] transition-colors">{label}</span>
+        </label>
+    );
+}
 
 export default function TalentProfilePage() {
     const [userData, setUserData] = useState<any>(null);
@@ -24,6 +89,19 @@ export default function TalentProfilePage() {
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     const [toastMessage, setToastMessage] = useState<{ type: "success" | "error", text: string } | null>(null);
 
+    /* ── Edit modal ── */
+    const [showEdit, setShowEdit] = useState(false);
+    const [form, setForm] = useState({
+        fullName: "", bio: "", experienceLevel: "",
+        contactEmail: "", contactPhone: "",
+        linkedinUrl: "", portfolioUrl: "",
+        showEmail: false, showPhone: false, showSocials: true,
+        isAvailable: true,
+    });
+    const [saving, setSaving] = useState(false);
+    const [saveMsg, setSaveMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+    const overlayRef = useRef<HTMLDivElement>(null);
+
     const showToast = (type: "success" | "error", text: string) => {
         setToastMessage({ type, text });
         setTimeout(() => setToastMessage(null), 4000);
@@ -33,7 +111,23 @@ export default function TalentProfilePage() {
         fetch("/api/user/profile")
             .then(r => r.json())
             .then(d => {
-                if (d.user) setUserData(d.user);
+                if (d.user) {
+                    setUserData(d.user);
+                    const tp = d.user.talentProfile || {};
+                    setForm({
+                        fullName: d.user.fullName || "",
+                        bio: tp.bio || "",
+                        experienceLevel: tp.experienceLevel || "",
+                        contactEmail: tp.contactEmail || "",
+                        contactPhone: tp.contactPhone || "",
+                        linkedinUrl: tp.linkedinUrl || "",
+                        portfolioUrl: tp.portfolioUrl || "",
+                        showEmail: tp.showEmail ?? false,
+                        showPhone: tp.showPhone ?? false,
+                        showSocials: tp.showSocials ?? true,
+                        isAvailable: tp.isAvailable ?? true,
+                    });
+                }
                 setIsLoading(false);
             })
             .catch(() => setIsLoading(false));
@@ -48,6 +142,66 @@ export default function TalentProfilePage() {
             }).catch(() => setIsLoadingGithub(false));
         }
     }, [userData]);
+
+    /* Close modal on backdrop click */
+    const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (e.target === overlayRef.current) setShowEdit(false);
+    };
+
+    /* Save profile via modal */
+    const handleProfileSave = async () => {
+        setSaving(true);
+        setSaveMsg(null);
+        try {
+            const res = await fetch("/api/user/profile", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    fullName: form.fullName,
+                    talentProfile: {
+                        bio: form.bio || null,
+                        experienceLevel: form.experienceLevel || null,
+                        contactEmail: form.contactEmail || null,
+                        contactPhone: form.contactPhone || null,
+                        linkedinUrl: form.linkedinUrl || null,
+                        portfolioUrl: form.portfolioUrl || null,
+                        showEmail: form.showEmail,
+                        showPhone: form.showPhone,
+                        showSocials: form.showSocials,
+                        isAvailable: form.isAvailable,
+                    },
+                }),
+            });
+            const data = await res.json();
+            setSaving(false);
+            if (res.ok && data.success) {
+                setSaveMsg({ type: "ok", text: "Profile updated!" });
+                setUserData((prev: any) => ({
+                    ...prev,
+                    fullName: form.fullName,
+                    talentProfile: {
+                        ...prev.talentProfile,
+                        bio: form.bio,
+                        experienceLevel: form.experienceLevel,
+                        contactEmail: form.contactEmail,
+                        contactPhone: form.contactPhone,
+                        linkedinUrl: form.linkedinUrl,
+                        portfolioUrl: form.portfolioUrl,
+                        showEmail: form.showEmail,
+                        showPhone: form.showPhone,
+                        showSocials: form.showSocials,
+                        isAvailable: form.isAvailable,
+                    },
+                }));
+                setTimeout(() => { setSaveMsg(null); setShowEdit(false); }, 1200);
+            } else {
+                setSaveMsg({ type: "err", text: data.error || "Failed to save. Try again." });
+            }
+        } catch {
+            setSaving(false);
+            setSaveMsg({ type: "err", text: "Network error. Try again." });
+        }
+    };
 
     /* Avatar Handlers */
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -155,6 +309,177 @@ export default function TalentProfilePage() {
                     }`} style={{ backdropFilter: "blur(12px)" }}>
                         {toastMessage.type === "success" ? <CheckCircle className="w-5 h-5" /> : <X className="w-5 h-5" />}
                         <p className="text-sm font-semibold">{toastMessage.text}</p>
+                    </div>
+                </div>
+            )}
+
+            {/* ══ EDIT PROFILE MODAL ══ */}
+            {showEdit && (
+                <div
+                    ref={overlayRef}
+                    onClick={handleOverlayClick}
+                    className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
+                    style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(8px)" }}>
+                    <div
+                        className="w-full max-w-lg rounded-2xl overflow-hidden relative"
+                        style={{
+                            background: "var(--theme-card)",
+                            border: `1px solid ${accent}25`,
+                            boxShadow: `0 0 40px ${accent}10, 0 25px 50px rgba(0,0,0,0.4)`,
+                        }}>
+
+                        {/* ── Gradient accent bar ── */}
+                        <div className="h-1" style={{ background: `linear-gradient(90deg, ${accent}, #10B981, ${accent})` }} />
+
+                        {/* ── Modal header ── */}
+                        <div className="flex items-center justify-between px-5 sm:px-6 py-4 relative overflow-hidden">
+                            {/* Decorative code watermark */}
+                            <div className="absolute right-12 top-1 text-[9px] font-mono opacity-[0.06] text-[var(--theme-text-primary)] select-none leading-tight hidden sm:block">
+                                <p>{`const profile = {`}</p>
+                                <p>{`  name: "...",`}</p>
+                                <p>{`  status: "editing"`}</p>
+                                <p>{`};`}</p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                                    style={{ background: `${accent}15`, border: `1px solid ${accent}25` }}>
+                                    <Pencil className="w-4 h-4" style={{ color: accent }} />
+                                </div>
+                                <div>
+                                    <h2 className="text-[15px] font-bold text-[var(--theme-text-primary)]">Edit Profile</h2>
+                                    <p className="text-[10px] text-[var(--theme-text-muted)] font-medium mt-0.5 flex items-center gap-1">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                                        Changes are saved instantly
+                                    </p>
+                                </div>
+                            </div>
+                            <button onClick={() => setShowEdit(false)}
+                                className="p-2 rounded-xl border cursor-pointer transition-all hover:scale-110 hover:rotate-90 duration-200 z-10"
+                                style={{ background: "var(--theme-bg-secondary)", borderColor: "var(--theme-border)", color: "var(--theme-text-muted)" }}>
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        {/* ── Body — scrollable ── */}
+                        <div className="px-5 sm:px-6 pb-5 space-y-5 overflow-y-auto max-h-[65vh]">
+
+                            {/* Status banner */}
+                            {saveMsg && (
+                                <div className="rounded-xl px-4 py-3 text-[12px] font-semibold flex items-center gap-2"
+                                    style={{
+                                        background: saveMsg.type === "ok" ? `${accent}08` : "rgba(239,68,68,0.06)",
+                                        border: `1px solid ${saveMsg.type === "ok" ? `${accent}30` : "rgba(239,68,68,0.2)"}`,
+                                        color: saveMsg.type === "ok" ? accent : "#EF4444",
+                                    }}>
+                                    {saveMsg.type === "ok" ? <CheckCircle className="w-4 h-4 shrink-0" /> : <X className="w-4 h-4 shrink-0" />}
+                                    {saveMsg.text}
+                                </div>
+                            )}
+
+                            {/* ── Section: Basic Info ── */}
+                            <div className="rounded-xl p-4 space-y-3"
+                                style={{ background: "var(--theme-bg-secondary)", border: "1px solid var(--theme-border)" }}>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <Sparkles className="w-3.5 h-3.5" style={{ color: accent }} />
+                                    <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: accent }}>Basic Info</span>
+                                </div>
+                                <Field label="Full Name *" value={form.fullName}
+                                    onChange={v => setForm(f => ({ ...f, fullName: v }))}
+                                    placeholder="e.g. John Doe" />
+                                <Field label="Bio" value={form.bio}
+                                    onChange={v => setForm(f => ({ ...f, bio: v }))}
+                                    placeholder="Tell us about yourself, your skills, and what you're looking for..."
+                                    textarea />
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="text-[10px] uppercase tracking-widest font-semibold mb-1.5 flex items-center gap-1.5"
+                                            style={{ color: "var(--theme-text-muted)" }}>
+                                            <Zap className="w-3 h-3" style={{ color: "#3CF91A" }} />
+                                            Experience Level
+                                        </label>
+                                        <select value={form.experienceLevel}
+                                            onChange={e => setForm(f => ({ ...f, experienceLevel: e.target.value }))}
+                                            className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all"
+                                            style={{ background: "var(--theme-input-bg)", border: "1px solid var(--theme-border)", color: "var(--theme-text-primary)", boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)" }}>
+                                            <option value="">Select...</option>
+                                            <option value="JUNIOR">Junior</option>
+                                            <option value="MID">Mid-Level</option>
+                                            <option value="SENIOR">Senior</option>
+                                            <option value="LEAD">Lead</option>
+                                            <option value="PRINCIPAL">Principal</option>
+                                        </select>
+                                    </div>
+                                    <div className="flex items-end pb-1">
+                                        <Toggle checked={form.isAvailable}
+                                            onChange={v => setForm(f => ({ ...f, isAvailable: v }))}
+                                            label="Open to Work" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* ── Section: Contact & Socials ── */}
+                            <div className="rounded-xl p-4 space-y-3"
+                                style={{ background: "var(--theme-bg-secondary)", border: "1px solid var(--theme-border)" }}>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <Mail className="w-3.5 h-3.5" style={{ color: accent }} />
+                                    <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: accent }}>Contact & Socials</span>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <Field label="Contact Email" value={form.contactEmail}
+                                        onChange={v => setForm(f => ({ ...f, contactEmail: v }))}
+                                        placeholder="you@example.com" type="email"
+                                        icon={<Mail className="w-3 h-3" />} />
+                                    <Field label="Contact Phone" value={form.contactPhone}
+                                        onChange={v => setForm(f => ({ ...f, contactPhone: v }))}
+                                        placeholder="+92 300 1234567"
+                                        icon={<Phone className="w-3 h-3" />} />
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <Field label="LinkedIn URL" value={form.linkedinUrl}
+                                        onChange={v => setForm(f => ({ ...f, linkedinUrl: v }))}
+                                        placeholder="https://linkedin.com/in/you"
+                                        icon={<Linkedin className="w-3 h-3" />} />
+                                    <Field label="Portfolio URL" value={form.portfolioUrl}
+                                        onChange={v => setForm(f => ({ ...f, portfolioUrl: v }))}
+                                        placeholder="https://yourportfolio.com"
+                                        icon={<ExternalLink className="w-3 h-3" />} />
+                                </div>
+                            </div>
+
+                            {/* ── Section: Privacy ── */}
+                            <div className="rounded-xl p-4"
+                                style={{ background: "var(--theme-bg-secondary)", border: "1px solid var(--theme-border)" }}>
+                                <div className="flex items-center gap-2 mb-3">
+                                    <Eye className="w-3.5 h-3.5" style={{ color: accent }} />
+                                    <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: accent }}>Visibility</span>
+                                </div>
+                                <div className="flex flex-wrap gap-x-6 gap-y-3">
+                                    <Toggle checked={form.showEmail} onChange={v => setForm(f => ({ ...f, showEmail: v }))} label="Show Email" />
+                                    <Toggle checked={form.showPhone} onChange={v => setForm(f => ({ ...f, showPhone: v }))} label="Show Phone" />
+                                    <Toggle checked={form.showSocials} onChange={v => setForm(f => ({ ...f, showSocials: v }))} label="Show Socials" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* ── Footer ── */}
+                        <div className="px-5 sm:px-6 py-4 border-t border-[var(--theme-border)] flex items-center justify-between gap-3"
+                            style={{ background: "var(--theme-bg-secondary)" }}>
+                            <p className="text-[10px] text-[var(--theme-text-muted)] hidden sm:block font-mono">
+                                {"// profile.save()"}
+                            </p>
+                            <div className="flex items-center gap-2 ml-auto">
+                                <button onClick={() => setShowEdit(false)}
+                                    className="px-4 py-2.5 rounded-xl text-[12px] font-medium border cursor-pointer transition-all hover:opacity-80"
+                                    style={{ background: "transparent", borderColor: "var(--theme-border)", color: "var(--theme-text-muted)" }}>
+                                    Cancel
+                                </button>
+                                <button onClick={handleProfileSave} disabled={saving}
+                                    className="px-6 py-2.5 rounded-xl text-[12px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105 disabled:opacity-60 flex items-center gap-2"
+                                    style={{ background: `linear-gradient(135deg, ${accent}, #10B981)`, boxShadow: saving ? "none" : `0 4px 20px ${accent}40` }}>
+                                    {saving ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving...</> : <><CheckCircle className="w-3.5 h-3.5" /> Save Changes</>}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
@@ -328,11 +653,13 @@ export default function TalentProfilePage() {
                         <p className="text-[9px] sm:text-[10px] text-[var(--theme-text-muted)] uppercase tracking-wider">Spills</p>
                     </div>
                     <div className="ml-auto flex gap-2">
-                        <Link href="/talent/settings"
-                            className="px-4 sm:px-5 py-2 rounded-xl text-[11px] sm:text-[12px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105 no-underline"
+                        <button
+                            onClick={() => setShowEdit(true)}
+                            className="flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-xl text-[11px] sm:text-[12px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105"
                             style={{ background: accent, boxShadow: `0 0 15px ${accent}40` }}>
+                            <Pencil className="w-3.5 h-3.5" />
                             Edit Profile
-                        </Link>
+                        </button>
                     </div>
                 </div>
 
@@ -387,12 +714,13 @@ export default function TalentProfilePage() {
                                         </div>
                                     ))}
                                     <div className="pt-2">
-                                        <Link href="/talent/settings"
-                                            className="inline-flex items-center gap-1.5 text-[11px] font-medium no-underline transition-all hover:opacity-80"
-                                            style={{ color: accent }}
-                                            onClick={() => { /* will navigate to settings, user must switch to Experience tab */ }}>
-                                            <span>+ Add or edit experience in Settings</span>
-                                        </Link>
+                                        <button
+                                            onClick={() => setShowEdit(true)}
+                                            className="inline-flex items-center gap-1.5 text-[11px] font-medium transition-all hover:opacity-80 border-none bg-transparent cursor-pointer"
+                                            style={{ color: accent }}>
+                                            <Pencil className="w-3 h-3" />
+                                            <span>Edit Profile Info</span>
+                                        </button>
                                     </div>
                                 </>
                             ) : (
@@ -402,11 +730,12 @@ export default function TalentProfilePage() {
                                     </div>
                                     <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-1">No Work Experience Yet</h3>
                                     <p className="text-[12px] text-[var(--theme-text-muted)] mb-3">Add your current and past roles — they'll appear here and on your public profile.</p>
-                                    <Link href="/talent/settings"
-                                        className="px-4 py-2 rounded-xl text-[12px] font-bold text-black no-underline transition-all hover:scale-105"
+                                    <button
+                                        onClick={() => setShowEdit(true)}
+                                        className="px-4 py-2 rounded-xl text-[12px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105"
                                         style={{ background: accent }}>
-                                        Add Experience in Settings
-                                    </Link>
+                                        Edit Profile
+                                    </button>
                                 </div>
                             )}
                         </div>
@@ -431,9 +760,9 @@ export default function TalentProfilePage() {
                             ) : (
                                 <div className="text-center py-6">
                                     <p className="text-[12px] text-[var(--theme-text-muted)] mb-2">No skills added yet.</p>
-                                    <Link href="/talent/settings" className="text-[11px] no-underline font-medium" style={{ color: accent }}>
-                                        Add skills in Settings
-                                    </Link>
+                                    <button onClick={() => setShowEdit(true)} className="text-[11px] font-medium border-none bg-transparent cursor-pointer" style={{ color: accent }}>
+                                        Edit Profile
+                                    </button>
                                 </div>
                             )}
                         </div>

@@ -12,29 +12,43 @@ import { compressImageClient } from "@/lib/client-compress";
 
 const accent = "#A855F7";
 
-/* ─── Tiny reusable input for the modal ─── */
+/* ─── Styled input for the modal ─── */
 function Field({
-    label, value, onChange, type = "text", placeholder, textarea = false,
+    label, value, onChange, type = "text", placeholder, textarea = false, icon,
 }: {
     label: string; value: string; onChange: (v: string) => void;
-    type?: string; placeholder?: string; textarea?: boolean;
+    type?: string; placeholder?: string; textarea?: boolean; icon?: React.ReactNode;
 }) {
-    const cls = "w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all focus:ring-2 focus:ring-[#A855F7]/20";
-    const style: React.CSSProperties = {
-        background: "var(--theme-input-bg)",
-        border: "1px solid var(--theme-border)",
-        color: "var(--theme-text-primary)",
-    };
     return (
         <div>
-            <label className="text-[10px] uppercase tracking-widest font-semibold block mb-1.5"
-                style={{ color: "var(--theme-text-muted)" }}>{label}</label>
+            <label className="text-[10px] uppercase tracking-widest font-semibold mb-1.5 flex items-center gap-1.5"
+                style={{ color: "var(--theme-text-muted)" }}>
+                {icon && <span style={{ color: "#A855F7" }}>{icon}</span>}
+                {label}
+            </label>
             {textarea
                 ? <textarea value={value} onChange={e => onChange(e.target.value)}
-                    placeholder={placeholder} rows={4}
-                    className={`${cls} resize-none`} style={style} />
+                    placeholder={placeholder} rows={3}
+                    className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all resize-none"
+                    style={{
+                        background: "var(--theme-input-bg)",
+                        border: "1px solid var(--theme-border)",
+                        color: "var(--theme-text-primary)",
+                        boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)",
+                    }}
+                    onFocus={e => e.currentTarget.style.boxShadow = "0 0 0 2px rgba(168,85,247,0.15), inset 0 1px 3px rgba(0,0,0,0.1)"}
+                    onBlur={e => e.currentTarget.style.boxShadow = "inset 0 1px 3px rgba(0,0,0,0.1)"} />
                 : <input type={type} value={value} onChange={e => onChange(e.target.value)}
-                    placeholder={placeholder} className={cls} style={style} />}
+                    placeholder={placeholder}
+                    className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all"
+                    style={{
+                        background: "var(--theme-input-bg)",
+                        border: "1px solid var(--theme-border)",
+                        color: "var(--theme-text-primary)",
+                        boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)",
+                    }}
+                    onFocus={e => e.currentTarget.style.boxShadow = "0 0 0 2px rgba(168,85,247,0.15), inset 0 1px 3px rgba(0,0,0,0.1)"}
+                    onBlur={e => e.currentTarget.style.boxShadow = "inset 0 1px 3px rgba(0,0,0,0.1)"} />}
         </div>
     );
 }
@@ -244,84 +258,129 @@ export default function RecruiterProfilePage() {
                 <div
                     ref={overlayRef}
                     onClick={handleOverlayClick}
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
-                    style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}>
+                    className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
+                    style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(8px)" }}>
                     <div
-                        className="w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl"
-                        style={{ background: "var(--theme-card)", border: "1px solid var(--theme-border)" }}>
+                        className="w-full max-w-lg rounded-2xl overflow-hidden relative"
+                        style={{
+                            background: "var(--theme-card)",
+                            border: `1px solid ${accent}25`,
+                            boxShadow: `0 0 40px ${accent}10, 0 25px 50px rgba(0,0,0,0.4)`,
+                        }}>
 
-                        {/* Modal header */}
-                        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--theme-border)]">
-                            <div>
-                                <h2 className="text-[15px] font-bold text-[var(--theme-text-primary)]">Edit Profile</h2>
-                                <p className="text-[11px] text-[var(--theme-text-muted)]">Updates appear on your public profile instantly</p>
+                        {/* ── Gradient accent bar ── */}
+                        <div className="h-1" style={{ background: `linear-gradient(90deg, ${accent}, #7C3AED, ${accent})` }} />
+
+                        {/* ── Modal header ── */}
+                        <div className="flex items-center justify-between px-5 sm:px-6 py-4 relative overflow-hidden">
+                            {/* Decorative code watermark */}
+                            <div className="absolute right-12 top-1 text-[9px] font-mono opacity-[0.06] text-[var(--theme-text-primary)] select-none leading-tight hidden sm:block">
+                                <p>{`const company = {`}</p>
+                                <p>{`  mode: "editing",`}</p>
+                                <p>{`  status: "active"`}</p>
+                                <p>{`};`}</p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                                    style={{ background: `${accent}15`, border: `1px solid ${accent}25` }}>
+                                    <Pencil className="w-4 h-4" style={{ color: accent }} />
+                                </div>
+                                <div>
+                                    <h2 className="text-[15px] font-bold text-[var(--theme-text-primary)]">Edit Company Profile</h2>
+                                    <p className="text-[10px] text-[var(--theme-text-muted)] font-medium mt-0.5 flex items-center gap-1">
+                                        <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: accent }} />
+                                        Changes are saved instantly
+                                    </p>
+                                </div>
                             </div>
                             <button onClick={() => setShowEdit(false)}
-                                className="p-1.5 rounded-lg border-none cursor-pointer transition-colors"
-                                style={{ background: "var(--theme-bg-secondary)", color: "var(--theme-text-muted)" }}>
+                                className="p-2 rounded-xl border cursor-pointer transition-all hover:scale-110 hover:rotate-90 duration-200 z-10"
+                                style={{ background: "var(--theme-bg-secondary)", borderColor: "var(--theme-border)", color: "var(--theme-text-muted)" }}>
                                 <X className="w-4 h-4" />
                             </button>
                         </div>
 
-                        {/* Body — scrollable */}
-                        <div className="p-5 space-y-4 overflow-y-auto max-h-[70vh]">
+                        {/* ── Body — scrollable ── */}
+                        <div className="px-5 sm:px-6 pb-5 space-y-5 overflow-y-auto max-h-[65vh]">
 
-                            {/* Banner */}
+                            {/* Status banner */}
                             {saveMsg && (
-                                <div className="rounded-xl px-4 py-2.5 text-[12px] font-medium"
+                                <div className="rounded-xl px-4 py-3 text-[12px] font-semibold flex items-center gap-2"
                                     style={{
-                                        background: saveMsg.type === "ok" ? `${accent}10` : "rgba(239,68,68,0.08)",
+                                        background: saveMsg.type === "ok" ? `${accent}08` : "rgba(239,68,68,0.06)",
                                         border: `1px solid ${saveMsg.type === "ok" ? `${accent}30` : "rgba(239,68,68,0.2)"}`,
                                         color: saveMsg.type === "ok" ? accent : "#EF4444",
                                     }}>
+                                    {saveMsg.type === "ok" ? <CheckCircle className="w-4 h-4 shrink-0" /> : <X className="w-4 h-4 shrink-0" />}
                                     {saveMsg.text}
                                 </div>
                             )}
 
-                            {/* Company core */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <Field label="Company Name *" value={form.companyName}
-                                    onChange={v => setForm(f => ({ ...f, companyName: v }))}
-                                    placeholder="e.g. NastecSol" />
-                                <Field label="Company Website" value={form.companyWebsite}
-                                    onChange={v => setForm(f => ({ ...f, companyWebsite: v }))}
-                                    placeholder="https://yourcompany.com" />
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            {/* ── Section: Company Info ── */}
+                            <div className="rounded-xl p-4 space-y-3"
+                                style={{ background: "var(--theme-bg-secondary)", border: "1px solid var(--theme-border)" }}>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <Building2 className="w-3.5 h-3.5" style={{ color: accent }} />
+                                    <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: accent }}>Company Info</span>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <Field label="Company Name *" value={form.companyName}
+                                        onChange={v => setForm(f => ({ ...f, companyName: v }))}
+                                        placeholder="e.g. NastecSol"
+                                        icon={<Building2 className="w-3 h-3" />} />
+                                    <Field label="Company Website" value={form.companyWebsite}
+                                        onChange={v => setForm(f => ({ ...f, companyWebsite: v }))}
+                                        placeholder="https://yourcompany.com"
+                                        icon={<Globe className="w-3 h-3" />} />
+                                </div>
                                 <div>
-                                    <label className="text-[10px] uppercase tracking-widest font-semibold block mb-1.5"
-                                        style={{ color: "var(--theme-text-muted)" }}>Company Size</label>
+                                    <label className="text-[10px] uppercase tracking-widest font-semibold mb-1.5 flex items-center gap-1.5"
+                                        style={{ color: "var(--theme-text-muted)" }}>
+                                        <Users className="w-3 h-3" style={{ color: "#A855F7" }} />
+                                        Company Size
+                                    </label>
                                     <select value={form.companySize}
                                         onChange={e => setForm(f => ({ ...f, companySize: e.target.value }))}
-                                        className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none"
-                                        style={{ background: "var(--theme-input-bg)", border: "1px solid var(--theme-border)", color: "var(--theme-text-primary)" }}>
-                                        <option value="">Size...</option>
-                                        <option value="1-10">1–10</option>
-                                        <option value="11-50">11–50</option>
-                                        <option value="51-200">51–200</option>
-                                        <option value="201-500">201–500</option>
-                                        <option value="501-1000">501–1000</option>
-                                        <option value="1001+">1001+</option>
+                                        className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all"
+                                        style={{ background: "var(--theme-input-bg)", border: "1px solid var(--theme-border)", color: "var(--theme-text-primary)", boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)" }}>
+                                        <option value="">Select size...</option>
+                                        <option value="1-10">1–10 employees</option>
+                                        <option value="11-50">11–50 employees</option>
+                                        <option value="51-200">51–200 employees</option>
+                                        <option value="201-500">201–500 employees</option>
+                                        <option value="501-1000">501–1000 employees</option>
+                                        <option value="1001+">1001+ employees</option>
                                     </select>
-                                    <div className="col-span-1 sm:col-span-2 mt-2">
-                                        <h4 className="text-[12px] font-bold text-[var(--theme-text-primary)] mb-2 flex items-center gap-2 border-b border-[var(--theme-border-light)] pb-2">
-                                            <MapPin className="w-4 h-4" style={{ color: accent }} />
-                                            Company Address
-                                        </h4>
-                                    </div>
-                                    <Field label="Address Line 1" value={form.addressLine1}
-                                        onChange={v => setForm(f => ({ ...f, addressLine1: v }))}
-                                        placeholder="Street address, P.O. box" />
-                                    <Field label="Address Line 2" value={form.addressLine2}
-                                        onChange={v => setForm(f => ({ ...f, addressLine2: v }))}
-                                        placeholder="Apartment, suite, unit (optional)" />
+                                </div>
+                                <Field label="Company Bio" value={form.bio}
+                                    onChange={v => setForm(f => ({ ...f, bio: v }))}
+                                    placeholder="Describe your company, culture, and what makes it great..."
+                                    textarea
+                                    icon={<Sparkles className="w-3 h-3" />} />
+                            </div>
+
+                            {/* ── Section: Address ── */}
+                            <div className="rounded-xl p-4 space-y-3"
+                                style={{ background: "var(--theme-bg-secondary)", border: "1px solid var(--theme-border)" }}>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <MapPin className="w-3.5 h-3.5" style={{ color: accent }} />
+                                    <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: accent }}>Company Address</span>
+                                </div>
+                                <Field label="Address Line 1" value={form.addressLine1}
+                                    onChange={v => setForm(f => ({ ...f, addressLine1: v }))}
+                                    placeholder="Street address, P.O. box" />
+                                <Field label="Address Line 2" value={form.addressLine2}
+                                    onChange={v => setForm(f => ({ ...f, addressLine2: v }))}
+                                    placeholder="Apartment, suite, unit (optional)" />
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <Field label="City" value={form.city}
                                         onChange={v => setForm(f => ({ ...f, city: v }))}
                                         placeholder="e.g. Karachi" />
                                     <Field label="State / Province" value={form.state}
                                         onChange={v => setForm(f => ({ ...f, state: v }))}
                                         placeholder="e.g. Sindh" />
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <Field label="Postal Code" value={form.postalCode}
                                         onChange={v => setForm(f => ({ ...f, postalCode: v }))}
                                         placeholder="e.g. 75500" />
@@ -329,29 +388,38 @@ export default function RecruiterProfilePage() {
                                         onChange={v => setForm(f => ({ ...f, country: v }))}
                                         placeholder="e.g. Pakistan" />
                                 </div>
-
-                                <Field label="Company Phone" value={form.phone}
-                                    onChange={v => setForm(f => ({ ...f, phone: v }))}
-                                    placeholder="+92 300 1234567" />
-
-                                {/* Bio */}
-                                <Field label="Company Bio" value={form.bio}
-                                    onChange={v => setForm(f => ({ ...f, bio: v }))}
-                                    placeholder="Describe your company, culture, and what makes it great..."
-                                    textarea />
                             </div>
 
-                            {/* Footer */}
-                            <div className="px-5 py-4 border-t border-[var(--theme-border)] flex items-center justify-end gap-2">
+                            {/* ── Section: Contact ── */}
+                            <div className="rounded-xl p-4 space-y-3"
+                                style={{ background: "var(--theme-bg-secondary)", border: "1px solid var(--theme-border)" }}>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <Phone className="w-3.5 h-3.5" style={{ color: accent }} />
+                                    <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: accent }}>Contact</span>
+                                </div>
+                                <Field label="Company Phone" value={form.phone}
+                                    onChange={v => setForm(f => ({ ...f, phone: v }))}
+                                    placeholder="+92 300 1234567"
+                                    icon={<Phone className="w-3 h-3" />} />
+                            </div>
+                        </div>
+
+                        {/* ── Footer ── */}
+                        <div className="px-5 sm:px-6 py-4 border-t border-[var(--theme-border)] flex items-center justify-between gap-3"
+                            style={{ background: "var(--theme-bg-secondary)" }}>
+                            <p className="text-[10px] text-[var(--theme-text-muted)] hidden sm:block font-mono">
+                                {"// company.save()"}
+                            </p>
+                            <div className="flex items-center gap-2 ml-auto">
                                 <button onClick={() => setShowEdit(false)}
-                                    className="px-4 py-2 rounded-xl text-[12px] font-medium border-none cursor-pointer"
-                                    style={{ background: "var(--theme-bg-secondary)", color: "var(--theme-text-muted)" }}>
+                                    className="px-4 py-2.5 rounded-xl text-[12px] font-medium border cursor-pointer transition-all hover:opacity-80"
+                                    style={{ background: "transparent", borderColor: "var(--theme-border)", color: "var(--theme-text-muted)" }}>
                                     Cancel
                                 </button>
                                 <button onClick={handleSave} disabled={saving}
-                                    className="px-5 py-2 rounded-xl text-[12px] font-bold text-white border-none cursor-pointer transition-all hover:scale-105 disabled:opacity-60"
-                                    style={{ background: `linear-gradient(135deg, ${accent}, #7C3AED)`, boxShadow: saving ? "none" : `0 4px 15px ${accent}50` }}>
-                                    {saving ? "Saving..." : "Save Changes"}
+                                    className="px-6 py-2.5 rounded-xl text-[12px] font-bold text-white border-none cursor-pointer transition-all hover:scale-105 disabled:opacity-60 flex items-center gap-2"
+                                    style={{ background: `linear-gradient(135deg, ${accent}, #7C3AED)`, boxShadow: saving ? "none" : `0 4px 20px ${accent}40` }}>
+                                    {saving ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving...</> : <><CheckCircle className="w-3.5 h-3.5" /> Save Changes</>}
                                 </button>
                             </div>
                         </div>
