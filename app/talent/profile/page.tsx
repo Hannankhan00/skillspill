@@ -293,9 +293,7 @@ export default function TalentProfilePage() {
     const currentJob = workExperience?.find((w: any) => w.isCurrent);
     const displayRole = currentJob
         ? `${currentJob.role} at ${currentJob.companyName}`
-        : experienceLevel
-            ? `${experienceLevel.charAt(0) + experienceLevel.slice(1).toLowerCase()} Developer`
-            : "Developer";
+        : null;
 
     const fmtDate = (d: string) => new Date(d).toLocaleDateString("en-US", { month: "short", year: "numeric" });
 
@@ -614,7 +612,7 @@ export default function TalentProfilePage() {
                                     </span>
                                 )}
                             </div>
-                            <p className="text-[13px] text-[var(--theme-text-muted)] mt-0.5">{displayRole}</p>
+                            {displayRole && <p className="text-[13px] text-[var(--theme-text-muted)] mt-0.5">{displayRole}</p>}
                             <p className="text-[11px] font-medium flex items-center gap-1 mt-1" style={{ color: accent }}>
                                 <Sparkles className="w-3 h-3" /> Talent Profile
                             </p>
@@ -629,7 +627,7 @@ export default function TalentProfilePage() {
                     <h1 className="text-lg font-bold text-[var(--theme-text-primary)]">{fullName}</h1>
                     <span className="text-[11px] font-medium text-[var(--theme-text-muted)]">@{username}</span>
                 </div>
-                <p className="text-[12px] text-[var(--theme-text-muted)]">{displayRole}</p>
+                {displayRole && <p className="text-[12px] text-[var(--theme-text-muted)]">{displayRole}</p>}
                 {isAvailable !== false && (
                     <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 uppercase tracking-widest border border-green-500/20 inline-block mt-1">
                         Open to Work
