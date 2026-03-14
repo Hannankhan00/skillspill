@@ -6,7 +6,7 @@ import {
     Building2, MapPin, Globe, Phone, Mail,
     Briefcase, Loader2, Link as LinkIcon, Heart, MessageSquare,
     Share2, Eye, Sparkles, Users, CheckCircle, Pencil, X,
-    Camera, Upload, Trash
+    Camera, Upload, Trash, Shield
 } from "lucide-react";
 import { compressImageClient } from "@/lib/client-compress";
 
@@ -70,6 +70,7 @@ export default function RecruiterProfilePage() {
     const [saveMsg, setSaveMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
     const overlayRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [editTab, setEditTab] = useState<"basic" | "address" | "contact">("basic");
 
     const [showAvatarMenu, setShowAvatarMenu] = useState(false);
     const [avatarUploading, setAvatarUploading] = useState(false);
@@ -258,170 +259,220 @@ export default function RecruiterProfilePage() {
                 <div
                     ref={overlayRef}
                     onClick={handleOverlayClick}
-                    className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
-                    style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(8px)" }}>
+                    className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-300"
+                    style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(12px)" }}>
                     <div
-                        className="w-full max-w-lg rounded-2xl overflow-hidden relative"
+                        className="w-full max-w-4xl rounded-2xl overflow-hidden relative flex flex-col sm:flex-row max-h-[85vh] sm:min-h-[600px] shadow-2xl animate-in zoom-in-95 duration-300"
                         style={{
                             background: "var(--theme-card)",
-                            border: `1px solid ${accent}25`,
-                            boxShadow: `0 0 40px ${accent}10, 0 25px 50px rgba(0,0,0,0.4)`,
+                            border: `1px solid ${accent}30`,
+                            boxShadow: `0 0 40px ${accent}15, 0 30px 60px rgba(0,0,0,0.5)`,
                         }}>
+                        
+                        {/* ── Close Button (Mobile Absolute) ── */}
+                        <button onClick={() => setShowEdit(false)}
+                            className="absolute top-4 right-4 sm:hidden p-2 rounded-xl z-50 text-[var(--theme-text-muted)] bg-[var(--theme-bg-secondary)] border border-[var(--theme-border)]">
+                            <X className="w-4 h-4" />
+                        </button>
 
-                        {/* ── Gradient accent bar ── */}
-                        <div className="h-1" style={{ background: `linear-gradient(90deg, ${accent}, #7C3AED, ${accent})` }} />
-
-                        {/* ── Modal header ── */}
-                        <div className="flex items-center justify-between px-5 sm:px-6 py-4 relative overflow-hidden">
-                            {/* Decorative code watermark */}
-                            <div className="absolute right-12 top-1 text-[9px] font-mono opacity-[0.06] text-[var(--theme-text-primary)] select-none leading-tight hidden sm:block">
-                                <p>{`const company = {`}</p>
-                                <p>{`  mode: "editing",`}</p>
-                                <p>{`  status: "active"`}</p>
-                                <p>{`};`}</p>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                                    style={{ background: `${accent}15`, border: `1px solid ${accent}25` }}>
-                                    <Pencil className="w-4 h-4" style={{ color: accent }} />
+                        {/* ── Sidebar Navigation ── */}
+                        <div className="w-full sm:w-1/3 border-b sm:border-b-0 sm:border-r border-[var(--theme-border)] bg-[var(--theme-bg)]/50 p-6 flex flex-col relative overflow-hidden">
+                            {/* Decorative gradient orb */}
+                            <div className="absolute top-0 left-0 w-full h-32 opacity-20 pointer-events-none"
+                                style={{ background: `radial-gradient(circle at top left, ${accent}, transparent 70%)` }} />
+                            
+                            <div className="flex items-center gap-3 mb-8 relative z-10">
+                                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-lg"
+                                    style={{ background: `linear-gradient(135deg, ${accent}20, ${accent}10)`, border: `1px solid ${accent}30` }}>
+                                    <Pencil className="w-5 h-5" style={{ color: accent }} />
                                 </div>
-                                <div>
-                                    <h2 className="text-[15px] font-bold text-[var(--theme-text-primary)]">Edit Company Profile</h2>
-                                    <p className="text-[10px] text-[var(--theme-text-muted)] font-medium mt-0.5 flex items-center gap-1">
-                                        <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: accent }} />
-                                        Changes are saved instantly
+                                <div className="hidden sm:block">
+                                    <h2 className="text-[16px] font-bold text-[var(--theme-text-primary)] tracking-wide">Edit Company</h2>
+                                    <p className="text-[11px] text-[var(--theme-text-muted)] font-medium mt-0.5">Customize your appearance</p>
+                                </div>
+                            </div>
+
+                            <nav className="flex sm:flex-col gap-2 overflow-x-auto sm:overflow-visible pb-2 sm:pb-0 hide-scrollbar relative z-10">
+                                <button onClick={() => setEditTab("basic")}
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-[13px] font-semibold transition-all whitespace-nowrap sm:whitespace-normal cursor-pointer border ${
+                                        editTab === "basic" 
+                                        ? "bg-black/20 text-white" 
+                                        : "bg-transparent border-transparent text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg-secondary)] hover:text-[var(--theme-text-primary)]"
+                                    }`}
+                                    style={editTab === "basic" ? { borderColor: `${accent}40`, boxShadow: `inset 0 0 20px ${accent}10` } : {}}>
+                                    <Building2 className="w-4 h-4" style={{ color: editTab === "basic" ? accent : "inherit" }} />
+                                    Company Info
+                                </button>
+                                <button onClick={() => setEditTab("address")}
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-[13px] font-semibold transition-all whitespace-nowrap sm:whitespace-normal cursor-pointer border ${
+                                        editTab === "address" 
+                                        ? "bg-black/20 text-white" 
+                                        : "bg-transparent border-transparent text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg-secondary)] hover:text-[var(--theme-text-primary)]"
+                                    }`}
+                                    style={editTab === "address" ? { borderColor: `${accent}40`, boxShadow: `inset 0 0 20px ${accent}10` } : {}}>
+                                    <MapPin className="w-4 h-4" style={{ color: editTab === "address" ? accent : "inherit" }} />
+                                    Address Details
+                                </button>
+                                <button onClick={() => setEditTab("contact")}
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-[13px] font-semibold transition-all whitespace-nowrap sm:whitespace-normal cursor-pointer border ${
+                                        editTab === "contact" 
+                                        ? "bg-black/20 text-white" 
+                                        : "bg-transparent border-transparent text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg-secondary)] hover:text-[var(--theme-text-primary)]"
+                                    }`}
+                                    style={editTab === "contact" ? { borderColor: `${accent}40`, boxShadow: `inset 0 0 20px ${accent}10` } : {}}>
+                                    <Phone className="w-4 h-4" style={{ color: editTab === "contact" ? accent : "inherit" }} />
+                                    Contact Info
+                                </button>
+                            </nav>
+
+                            <div className="mt-auto hidden sm:block relative z-10">
+                                <div className="p-4 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg-secondary)]">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Shield className="w-4 h-4" style={{ color: accent }} />
+                                        <p className="text-[11px] font-bold text-[var(--theme-text-primary)]">Profile Tips</p>
+                                    </div>
+                                    <p className="text-[10px] text-[var(--theme-text-muted)] leading-relaxed">
+                                        A complete profile helps talent understand your company culture and location. Updating these details improves matchmaking.
                                     </p>
                                 </div>
                             </div>
-                            <button onClick={() => setShowEdit(false)}
-                                className="p-2 rounded-xl border cursor-pointer transition-all hover:scale-110 hover:rotate-90 duration-200 z-10"
-                                style={{ background: "var(--theme-bg-secondary)", borderColor: "var(--theme-border)", color: "var(--theme-text-muted)" }}>
-                                <X className="w-4 h-4" />
-                            </button>
                         </div>
 
-                        {/* ── Body — scrollable ── */}
-                        <div className="px-5 sm:px-6 pb-5 space-y-5 overflow-y-auto max-h-[65vh]">
-
-                            {/* Status banner */}
-                            {saveMsg && (
-                                <div className="rounded-xl px-4 py-3 text-[12px] font-semibold flex items-center gap-2"
-                                    style={{
-                                        background: saveMsg.type === "ok" ? `${accent}08` : "rgba(239,68,68,0.06)",
-                                        border: `1px solid ${saveMsg.type === "ok" ? `${accent}30` : "rgba(239,68,68,0.2)"}`,
-                                        color: saveMsg.type === "ok" ? accent : "#EF4444",
-                                    }}>
-                                    {saveMsg.type === "ok" ? <CheckCircle className="w-4 h-4 shrink-0" /> : <X className="w-4 h-4 shrink-0" />}
-                                    {saveMsg.text}
-                                </div>
-                            )}
-
-                            {/* ── Section: Company Info ── */}
-                            <div className="rounded-xl p-4 space-y-3"
-                                style={{ background: "var(--theme-bg-secondary)", border: "1px solid var(--theme-border)" }}>
-                                <div className="flex items-center gap-2 mb-1">
-                                    <Building2 className="w-3.5 h-3.5" style={{ color: accent }} />
-                                    <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: accent }}>Company Info</span>
-                                </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <Field label="Company Name *" value={form.companyName}
-                                        onChange={v => setForm(f => ({ ...f, companyName: v }))}
-                                        placeholder="e.g. NastecSol"
-                                        icon={<Building2 className="w-3 h-3" />} />
-                                    <Field label="Company Website" value={form.companyWebsite}
-                                        onChange={v => setForm(f => ({ ...f, companyWebsite: v }))}
-                                        placeholder="https://yourcompany.com"
-                                        icon={<Globe className="w-3 h-3" />} />
-                                </div>
-                                <div>
-                                    <label className="text-[10px] uppercase tracking-widest font-semibold mb-1.5 flex items-center gap-1.5"
-                                        style={{ color: "var(--theme-text-muted)" }}>
-                                        <Users className="w-3 h-3" style={{ color: "#A855F7" }} />
-                                        Company Size
-                                    </label>
-                                    <select value={form.companySize}
-                                        onChange={e => setForm(f => ({ ...f, companySize: e.target.value }))}
-                                        className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all"
-                                        style={{ background: "var(--theme-input-bg)", border: "1px solid var(--theme-border)", color: "var(--theme-text-primary)", boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)" }}>
-                                        <option value="">Select size...</option>
-                                        <option value="1-10">1–10 employees</option>
-                                        <option value="11-50">11–50 employees</option>
-                                        <option value="51-200">51–200 employees</option>
-                                        <option value="201-500">201–500 employees</option>
-                                        <option value="501-1000">501–1000 employees</option>
-                                        <option value="1001+">1001+ employees</option>
-                                    </select>
-                                </div>
-                                <Field label="Company Bio" value={form.bio}
-                                    onChange={v => setForm(f => ({ ...f, bio: v }))}
-                                    placeholder="Describe your company, culture, and what makes it great..."
-                                    textarea
-                                    icon={<Sparkles className="w-3 h-3" />} />
-                            </div>
-
-                            {/* ── Section: Address ── */}
-                            <div className="rounded-xl p-4 space-y-3"
-                                style={{ background: "var(--theme-bg-secondary)", border: "1px solid var(--theme-border)" }}>
-                                <div className="flex items-center gap-2 mb-1">
-                                    <MapPin className="w-3.5 h-3.5" style={{ color: accent }} />
-                                    <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: accent }}>Company Address</span>
-                                </div>
-                                <Field label="Address Line 1" value={form.addressLine1}
-                                    onChange={v => setForm(f => ({ ...f, addressLine1: v }))}
-                                    placeholder="Street address, P.O. box" />
-                                <Field label="Address Line 2" value={form.addressLine2}
-                                    onChange={v => setForm(f => ({ ...f, addressLine2: v }))}
-                                    placeholder="Apartment, suite, unit (optional)" />
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <Field label="City" value={form.city}
-                                        onChange={v => setForm(f => ({ ...f, city: v }))}
-                                        placeholder="e.g. Karachi" />
-                                    <Field label="State / Province" value={form.state}
-                                        onChange={v => setForm(f => ({ ...f, state: v }))}
-                                        placeholder="e.g. Sindh" />
-                                </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <Field label="Postal Code" value={form.postalCode}
-                                        onChange={v => setForm(f => ({ ...f, postalCode: v }))}
-                                        placeholder="e.g. 75500" />
-                                    <Field label="Country" value={form.country}
-                                        onChange={v => setForm(f => ({ ...f, country: v }))}
-                                        placeholder="e.g. Pakistan" />
-                                </div>
-                            </div>
-
-                            {/* ── Section: Contact ── */}
-                            <div className="rounded-xl p-4 space-y-3"
-                                style={{ background: "var(--theme-bg-secondary)", border: "1px solid var(--theme-border)" }}>
-                                <div className="flex items-center gap-2 mb-1">
-                                    <Phone className="w-3.5 h-3.5" style={{ color: accent }} />
-                                    <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: accent }}>Contact</span>
-                                </div>
-                                <Field label="Company Phone" value={form.phone}
-                                    onChange={v => setForm(f => ({ ...f, phone: v }))}
-                                    placeholder="+92 300 1234567"
-                                    icon={<Phone className="w-3 h-3" />} />
-                            </div>
-                        </div>
-
-                        {/* ── Footer ── */}
-                        <div className="px-5 sm:px-6 py-4 border-t border-[var(--theme-border)] flex items-center justify-between gap-3"
-                            style={{ background: "var(--theme-bg-secondary)" }}>
-                            <p className="text-[10px] text-[var(--theme-text-muted)] hidden sm:block font-mono">
-                                {"// company.save()"}
-                            </p>
-                            <div className="flex items-center gap-2 ml-auto">
+                        {/* ── Main Content Area ── */}
+                        <div className="w-full sm:w-2/3 flex flex-col h-full bg-[var(--theme-bg)] relative">
+                            
+                            {/* Header (Desktop) */}
+                            <div className="hidden sm:flex items-center justify-between px-8 py-5 border-b border-[var(--theme-border)]">
+                                <p className="text-[13px] text-[var(--theme-text-muted)] font-mono flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: accent }} />
+                                    {editTab === "basic" ? "Editing Company Details" : editTab === "address" ? "Updating Location Info" : "Managing Contact Info"}
+                                </p>
                                 <button onClick={() => setShowEdit(false)}
-                                    className="px-4 py-2.5 rounded-xl text-[12px] font-medium border cursor-pointer transition-all hover:opacity-80"
-                                    style={{ background: "transparent", borderColor: "var(--theme-border)", color: "var(--theme-text-muted)" }}>
-                                    Cancel
-                                </button>
-                                <button onClick={handleSave} disabled={saving}
-                                    className="px-6 py-2.5 rounded-xl text-[12px] font-bold text-white border-none cursor-pointer transition-all hover:scale-105 disabled:opacity-60 flex items-center gap-2"
-                                    style={{ background: `linear-gradient(135deg, ${accent}, #7C3AED)`, boxShadow: saving ? "none" : `0 4px 20px ${accent}40` }}>
-                                    {saving ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving...</> : <><CheckCircle className="w-3.5 h-3.5" /> Save Changes</>}
+                                    className="p-2 rounded-xl border cursor-pointer transition-all hover:scale-110 hover:rotate-90 duration-200"
+                                    style={{ background: "var(--theme-bg-secondary)", borderColor: "var(--theme-border)", color: "var(--theme-text-muted)" }}>
+                                    <X className="w-4 h-4" />
                                 </button>
                             </div>
+
+                            {/* Scrollable Form Content */}
+                            <div className="p-6 sm:p-8 overflow-y-auto flex-1 custom-scrollbar">
+                                {saveMsg && (
+                                    <div className="rounded-xl px-4 py-3 text-[12px] font-semibold flex items-center gap-2 mb-6"
+                                        style={{
+                                            background: saveMsg.type === "ok" ? `${accent}08` : "rgba(239,68,68,0.06)",
+                                            border: `1px solid ${saveMsg.type === "ok" ? `${accent}30` : "rgba(239,68,68,0.2)"}`,
+                                            color: saveMsg.type === "ok" ? accent : "#EF4444",
+                                        }}>
+                                        {saveMsg.type === "ok" ? <CheckCircle className="w-4 h-4 shrink-0" /> : <X className="w-4 h-4 shrink-0" />}
+                                        {saveMsg.text}
+                                    </div>
+                                )}
+
+                                {editTab === "basic" && (
+                                    <div className="space-y-5 animate-in slide-in-from-right-4 fade-in duration-300">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                            <div className="sm:col-span-2">
+                                                <Field label="Company Name *" value={form.companyName}
+                                                    onChange={v => setForm(f => ({ ...f, companyName: v }))}
+                                                    placeholder="e.g. NastecSol"
+                                                    icon={<Building2 className="w-3 h-3" />} />
+                                            </div>
+                                            <div>
+                                                <Field label="Company Website" value={form.companyWebsite}
+                                                    onChange={v => setForm(f => ({ ...f, companyWebsite: v }))}
+                                                    placeholder="https://yourcompany.com"
+                                                    icon={<Globe className="w-3 h-3" />} />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] uppercase tracking-widest font-semibold mb-1.5 flex items-center gap-1.5"
+                                                    style={{ color: "var(--theme-text-muted)" }}>
+                                                    <Users className="w-3 h-3" style={{ color: accent }} />
+                                                    Company Size
+                                                </label>
+                                                <select value={form.companySize}
+                                                    onChange={e => setForm(f => ({ ...f, companySize: e.target.value }))}
+                                                    className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all cursor-pointer"
+                                                    style={{ background: "var(--theme-input-bg)", border: "1px solid var(--theme-border)", color: "var(--theme-text-primary)", boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)" }}>
+                                                    <option value="">Select size...</option>
+                                                    <option value="1-10">1–10 employees</option>
+                                                    <option value="11-50">11–50 employees</option>
+                                                    <option value="51-200">51–200 employees</option>
+                                                    <option value="201-500">201–500 employees</option>
+                                                    <option value="501-1000">501–1000 employees</option>
+                                                    <option value="1001+">1001+ employees</option>
+                                                </select>
+                                            </div>
+                                            <div className="sm:col-span-2">
+                                                <Field label="Company Bio" value={form.bio}
+                                                    onChange={v => setForm(f => ({ ...f, bio: v }))}
+                                                    placeholder="Describe your company, culture, and what makes it great..."
+                                                    textarea
+                                                    icon={<Sparkles className="w-3 h-3" />} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {editTab === "address" && (
+                                    <div className="space-y-5 animate-in slide-in-from-right-4 fade-in duration-300">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                            <div className="sm:col-span-2">
+                                                <Field label="Address Line 1" value={form.addressLine1}
+                                                    onChange={v => setForm(f => ({ ...f, addressLine1: v }))}
+                                                    placeholder="Street address, P.O. box" />
+                                            </div>
+                                            <div className="sm:col-span-2">
+                                                <Field label="Address Line 2" value={form.addressLine2}
+                                                    onChange={v => setForm(f => ({ ...f, addressLine2: v }))}
+                                                    placeholder="Apartment, suite, unit (optional)" />
+                                            </div>
+                                            <Field label="City" value={form.city}
+                                                onChange={v => setForm(f => ({ ...f, city: v }))}
+                                                placeholder="e.g. Karachi" />
+                                            <Field label="State / Province" value={form.state}
+                                                onChange={v => setForm(f => ({ ...f, state: v }))}
+                                                placeholder="e.g. Sindh" />
+                                            <Field label="Postal Code" value={form.postalCode}
+                                                onChange={v => setForm(f => ({ ...f, postalCode: v }))}
+                                                placeholder="e.g. 75500" />
+                                            <Field label="Country" value={form.country}
+                                                onChange={v => setForm(f => ({ ...f, country: v }))}
+                                                placeholder="e.g. Pakistan" />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {editTab === "contact" && (
+                                    <div className="space-y-5 animate-in slide-in-from-right-4 fade-in duration-300">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                            <Field label="Company Phone" value={form.phone}
+                                                onChange={v => setForm(f => ({ ...f, phone: v }))}
+                                                placeholder="+92 300 1234567"
+                                                icon={<Phone className="w-3 h-3" />} />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Footer Actions */}
+                            <div className="px-6 py-4 border-t border-[var(--theme-border)] bg-[var(--theme-bg)] flex items-center justify-between z-10">
+                                <p className="text-[10px] text-[var(--theme-text-muted)] hidden sm:block font-mono">
+                                    {"// company.save()"}
+                                </p>
+                                <div className="flex items-center gap-3 w-full sm:w-auto">
+                                    <button onClick={() => setShowEdit(false)}
+                                        className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-[13px] font-medium border cursor-pointer transition-all hover:bg-[var(--theme-bg-secondary)]"
+                                        style={{ background: "transparent", borderColor: "var(--theme-border)", color: "var(--theme-text-primary)" }}>
+                                        Cancel
+                                    </button>
+                                    <button onClick={handleSave} disabled={saving}
+                                        className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-[13px] font-bold text-white border-none cursor-pointer transition-all hover:scale-105 disabled:opacity-60 flex items-center justify-center gap-2 shadow-xl"
+                                        style={{ background: `linear-gradient(135deg, ${accent}, #7C3AED)`, boxShadow: saving ? "none" : `0 4px 20px ${accent}40` }}>
+                                        {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : <><CheckCircle className="w-4 h-4" /> Save Changes</>}
+                                    </button>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
