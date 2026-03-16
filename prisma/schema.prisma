@@ -75,7 +75,11 @@ model User {
   sessions         Session[]
   notifications    Notification[]
   appeals          Appeal[]
-  spills           Spill[]
+  spillPosts       SpillPost[]
+  spillLikes       SpillLike[]
+  spillComments    SpillComment[]
+  spillReposts     SpillRepost[]
+  spillSaves       SpillSave[]
   conversationsAsA Conversation[] @relation("ConversationUserA")
   conversationsAsB Conversation[] @relation("ConversationUserB")
   messagesSent     Message[]
@@ -184,28 +188,146 @@ model TalentWorkExperience {
 }
 
 // ─────────────────────────────────────────────
-// SPILLS (User Posts)
+// SPILL POSTS (Social Feed)
 // ─────────────────────────────────────────────
 
-model Spill {
-  id          String   @id @default(cuid())
-  userId      String
-  content     String   @db.Text
-  code        String?  @db.Text
-  codeLang    String?
-  tags        String?
-  status      String   @default("published")
-  likes       Int      @default(0)
-  comments    Int      @default(0)
-  shares      Int      @default(0)
-  views       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model SpillPost {
+  id            String   @id @default(cuid())
+  userId        String
+  postType      String   @default("text") // text, image, video, code, github, hiring, open_to_work, we_are_hiring
+  caption       String?  @db.Text
+  hashtags      String?  @db.Text // JSON array e.g. ["react","hiring"]
+  visibility    String   @default("public") // public, followers
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Code snippet fields
+  code          String?  @db.Text
+  codeLang      String?
+
+  // Video fields
+  videoUrl      String?  @db.Text
+  thumbnailUrl  String?  @db.Text
+
+  // GitHub repo fields
+  githubRepoName  String?
+  githubRepoDesc  String?  @db.Text
+  githubRepoLang  String?
+  githubRepoStars Int?
+  githubRepoForks Int?
+  githubRepoUrl   String?
+
+  // Hiring post fields (recruiter only)
+  hiringTitle         String?
+  hiringSkills        String?  @db.Text // JSON array
+  hiringLocationType  String?  // remote, onsite, hybrid
+  hiringCompType      String?  // paid, unpaid, equity, negotiable
+  hiringDeadline      DateTime?
+
+  // Counters (denormalized for performance)
+  likesCount    Int      @default(0)
+  commentsCount Int      @default(0)
+  repostsCount  Int      @default(0)
+  viewsCount    Int      @default(0)
+
+  isPinned      Boolean  @default(false)
+  status        String   @default("published") // published, draft, deleted
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  media      SpillMedia[]
+  likes      SpillLike[]
+  comments   SpillComment[]
+  reposts    SpillRepost[]
+  saves      SpillSave[]
 
   @@index([userId])
-  @@map("spills")
+  @@index([createdAt])
+  @@index([postType])
+  @@index([status, visibility, createdAt])
+  @@map("spill_posts")
+}
+
+model SpillMedia {
+  id         String   @id @default(cuid())
+  postId     String
+  url        String   @db.Text
+  mediaType  String   // image, video
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  post SpillPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@map("spill_media")
+}
+
+model SpillLike {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  post SpillPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([userId])
+  @@map("spill_likes")
+}
+
+model SpillComment {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  post SpillPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
+  @@index([userId])
+  @@map("spill_comments")
+}
+
+model SpillRepost {
+  id         String   @id @default(cuid())
+  originalId String
+  userId     String
+  createdAt  DateTime @default(now())
+
+  original SpillPost @relation(fields: [originalId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([originalId, userId])
+  @@index([userId])
+  @@map("spill_reposts")
+}
+
+model SpillSave {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  post SpillPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([userId])
+  @@map("spill_saves")
+}
+
+model SpillHashtag {
+  id        String @id @default(cuid())
+  tag       String @unique
+  useCount  Int    @default(1)
+  updatedAt DateTime @updatedAt
+
+  @@index([useCount])
+  @@map("spill_hashtags")
 }
 
 // ─────────────────────────────────────────────

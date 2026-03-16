@@ -23,19 +23,20 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
                 fullName: true,
                 username: true,
                 email: true,
-                spills: {
+                spillPosts: {
                     where: { status: "published" },
                     orderBy: { createdAt: "desc" },
                     select: {
                         id: true,
-                        content: true,
+                        caption: true,
                         code: true,
                         codeLang: true,
-                        tags: true,
-                        likes: true,
-                        comments: true,
-                        shares: true,
-                        views: true,
+                        hashtags: true,
+                        postType: true,
+                        likesCount: true,
+                        commentsCount: true,
+                        repostsCount: true,
+                        viewsCount: true,
                         createdAt: true,
                     }
                 },

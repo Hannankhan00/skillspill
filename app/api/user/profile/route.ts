@@ -30,7 +30,7 @@ export async function GET() {
                         },
                     }
                 },
-                spills: {
+                spillPosts: {
                     orderBy: { createdAt: "desc" },
                     take: 20,
                 },

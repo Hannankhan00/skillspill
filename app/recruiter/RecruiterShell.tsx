@@ -83,6 +83,7 @@ function SpillsIcon() {
 /* ── Nav Items ── */
 const recruiterNavItems = [
     { label: "Feed", icon: <HomeIcon />, href: "/recruiter" },
+    { label: "The Spill", icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" /><path d="M8 12l2 2 4-4" /></svg>, href: "/feed" },
     { label: "My Spills", icon: <SpillsIcon />, href: "/recruiter/spills" },
     { label: "Search", icon: <SearchIcon />, href: "/recruiter/search" },
     { label: "Jobs", icon: <BriefcaseIcon />, href: "/recruiter/jobs" },
