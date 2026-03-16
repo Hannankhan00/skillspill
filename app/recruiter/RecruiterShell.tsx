@@ -132,6 +132,19 @@ export default function RecruiterShell({
     const dropdownRef = useRef<HTMLDivElement>(null);
     const accent = "#A855F7";
 
+    const [userData, setUserData] = useState<any>(null);
+
+    useEffect(() => {
+        fetch("/api/user/profile")
+            .then(res => res.json())
+            .then(data => {
+                if (data.user) {
+                    setUserData(data.user);
+                }
+            })
+            .catch(() => { });
+    }, []);
+
     const navItems = recruiterNavItems;
 
     const handleLogout = async () => {
@@ -160,7 +173,7 @@ export default function RecruiterShell({
     }, []);
 
     return (
-        <div className="h-screen overflow-hidden flex" style={{ background: 'var(--theme-bg)', color: 'var(--theme-text-primary)' }}>
+        <div className="h-[100dvh] overflow-hidden flex" style={{ background: 'var(--theme-bg)', color: 'var(--theme-text-primary)' }}>
 
             {/* ══════════════════════════════════════
                 DESKTOP SIDEBAR (hidden on mobile)
@@ -222,16 +235,20 @@ export default function RecruiterShell({
                 {/* Bottom Section */}
                 <div className="p-4 space-y-3" style={{ borderTop: '1px solid var(--theme-border-light)' }}>
                     <div className="flex items-center gap-3">
-                        <div
-                            className="w-9 h-9 rounded-full flex items-center justify-center text-[11px] font-bold"
-                            style={{
-                                background: `linear-gradient(135deg, ${accent}30, ${accent}10)`,
-                                border: `1px solid ${accent}40`,
-                                color: accent,
-                            }}
-                        >
-                            {userId.slice(-2).toUpperCase()}
-                        </div>
+                        {userData?.avatarUrl ? (
+                            <img src={userData.avatarUrl} alt="Company" className="w-9 h-9 rounded-full object-cover shrink-0" style={{ border: `1px solid ${accent}40` }} />
+                        ) : (
+                            <div
+                                className="w-9 h-9 rounded-full flex items-center justify-center text-[11px] font-bold"
+                                style={{
+                                    background: `linear-gradient(135deg, ${accent}30, ${accent}10)`,
+                                    border: `1px solid ${accent}40`,
+                                    color: accent,
+                                }}
+                            >
+                                {userId.slice(-2).toUpperCase()}
+                            </div>
+                        )}
                         <div className="flex-1 min-w-0">
                             <p className="text-xs font-semibold truncate" style={{ color: 'var(--theme-text-secondary)' }}>Company</p>
                             <p className="text-[10px] font-mono text-[#A855F7]">Talent Scout</p>
@@ -274,16 +291,20 @@ export default function RecruiterShell({
                 <header className="shrink-0 h-12 flex items-center gap-3 px-3 lg:hidden" style={{ background: 'var(--theme-surface)', borderBottom: '1px solid var(--theme-border)' }}>
                     {/* Profile pic */}
                     <Link href="/recruiter/profile" className="shrink-0">
-                        <div
-                            className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm border-2"
-                            style={{
-                                background: `linear-gradient(135deg, #A855F7, #7C3AED)`,
-                                color: "#fff",
-                                borderColor: `${accent}40`,
-                            }}
-                        >
-                            {userId.slice(-2).toUpperCase()}
-                        </div>
+                        {userData?.avatarUrl ? (
+                            <img src={userData.avatarUrl} alt="Company" className="w-8 h-8 rounded-full object-cover shadow-sm border-2" style={{ borderColor: `${accent}40` }} />
+                        ) : (
+                            <div
+                                className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm border-2"
+                                style={{
+                                    background: `linear-gradient(135deg, #A855F7, #7C3AED)`,
+                                    color: "#fff",
+                                    borderColor: `${accent}40`,
+                                }}
+                            >
+                                {userId.slice(-2).toUpperCase()}
+                            </div>
+                        )}
                     </Link>
 
                     {/* Search bar */}
@@ -299,15 +320,23 @@ export default function RecruiterShell({
                         />
                     </div>
 
-                    {/* Chat icon */}
-                    <ThemeToggle size="sm" />
+                    {/* Right icons */}
+                    <div className="flex items-center gap-3 shrink-0">
+                        <ThemeToggle size="sm" />
 
-                    <Link href="/recruiter/messages" className="shrink-0 relative transition-colors" style={{ color: 'var(--theme-text-muted)' }}>
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                        </svg>
-                        <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full" style={{ border: '1px solid var(--theme-surface)' }} />
-                    </Link>
+                        <Link href="/recruiter/messages" className="relative transition-colors" style={{ color: 'var(--theme-text-muted)' }}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                            </svg>
+                            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full" style={{ border: '1px solid var(--theme-surface)' }} />
+                        </Link>
+
+                        <button onClick={handleLogout} className="relative transition-colors bg-transparent border-none cursor-pointer p-0 flex items-center justify-center hover:text-red-500" style={{ color: 'var(--theme-text-muted)' }} title="Sign Out">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
+                            </svg>
+                        </button>
+                    </div>
                 </header>
 
                 {/* ══════════════════════════════════════
@@ -349,10 +378,14 @@ export default function RecruiterShell({
                                 onClick={() => setProfileDropdown(!profileDropdown)}
                                 className="flex items-center gap-2 p-1 rounded-xl transition-all cursor-pointer bg-transparent border-none"
                             >
-                                <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm"
-                                    style={{ background: `linear-gradient(135deg, #A855F7, #7C3AED)`, color: "#fff" }}>
-                                    {userId.slice(-2).toUpperCase()}
-                                </div>
+                                {userData?.avatarUrl ? (
+                                    <img src={userData.avatarUrl} alt="Company" className="w-8 h-8 rounded-full object-cover shadow-sm border border-black/10" />
+                                ) : (
+                                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm"
+                                        style={{ background: `linear-gradient(135deg, #A855F7, #7C3AED)`, color: "#fff" }}>
+                                        {userId.slice(-2).toUpperCase()}
+                                    </div>
+                                )}
                                 <div className="text-left">
                                     <p className="text-[11px] font-semibold leading-tight" style={{ color: 'var(--theme-text-secondary)' }}>Company</p>
                                     <p className="text-[9px] leading-tight" style={{ color: 'var(--theme-text-muted)' }}>Talent Scout</p>
@@ -366,10 +399,14 @@ export default function RecruiterShell({
                                 <div className="absolute right-0 top-12 w-52 rounded-xl shadow-xl py-1.5 z-50" style={{ background: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}>
                                     <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
                                         <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-full flex items-center justify-center text-[10px] font-bold"
-                                                style={{ background: `linear-gradient(135deg, #A855F7, #7C3AED)`, color: "#fff" }}>
-                                                {userId.slice(-2).toUpperCase()}
-                                            </div>
+                                            {userData?.avatarUrl ? (
+                                                <img src={userData.avatarUrl} alt="Company" className="w-9 h-9 rounded-full object-cover border border-black/10" />
+                                            ) : (
+                                                <div className="w-9 h-9 rounded-full flex items-center justify-center text-[10px] font-bold"
+                                                    style={{ background: `linear-gradient(135deg, #A855F7, #7C3AED)`, color: "#fff" }}>
+                                                    {userId.slice(-2).toUpperCase()}
+                                                </div>
+                                            )}
                                             <div>
                                                 <p className="text-[12px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Company</p>
                                                 <p className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>Talent Scout</p>

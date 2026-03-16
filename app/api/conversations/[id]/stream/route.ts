@@ -63,7 +63,7 @@ export async function GET(
                         where,
                         orderBy: { createdAt: "asc" },
                         include: {
-                            sender: { select: { id: true, fullName: true, username: true } },
+                            sender: { select: { id: true, fullName: true, username: true, avatarUrl: true } },
                         },
                     });
 

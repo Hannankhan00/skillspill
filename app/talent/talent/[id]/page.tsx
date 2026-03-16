@@ -134,7 +134,7 @@ export default function TalentProfileViewPage() {
                         {talentData?.id && (
                             <FollowButton targetUserId={talentData.id} initialIsFollowing={talentData.isFollowing} />
                         )}
-                        <Link href={`/recruiter/messages?with=${talentData?.id}`}
+                        <Link href={`/talent/messages?with=${talentData?.id}`}
                             className="px-4 sm:px-5 py-2 rounded-xl text-[11px] sm:text-[12px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105 shadow-lg shadow-[#3CF91A]/20 no-underline"
                             style={{ background: `linear-gradient(135deg, ${accent}, #10B981)` }}>
                             Message Talent

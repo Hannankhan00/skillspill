@@ -336,8 +336,8 @@ export default function TalentProfilePage() {
                         {/* ── Sidebar Navigation ── */}
                         <div className="w-full sm:w-1/3 border-b sm:border-b-0 sm:border-r border-[var(--theme-border)] bg-[var(--theme-bg)]/50 p-6 flex flex-col relative overflow-hidden">
                             {/* Decorative gradient orb */}
-                            <div className="absolute top-0 left-0 w-full h-32 opacity-20 pointer-events-none"
-                                style={{ background: `radial-gradient(circle at top left, ${accent}, transparent 70%)` }} />
+                            <div className="absolute -top-32 -left-32 w-64 h-64 rounded-full pointer-events-none blur-[80px] opacity-40"
+                                style={{ background: accent }} />
                             
                             <div className="flex items-center gap-3 mb-8 relative z-10">
                                 <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-lg"
@@ -350,35 +350,35 @@ export default function TalentProfilePage() {
                                 </div>
                             </div>
 
-                            <nav className="flex sm:flex-col gap-2 overflow-x-auto sm:overflow-visible pb-2 sm:pb-0 hide-scrollbar relative z-10">
+                            <nav className="flex flex-wrap sm:flex-col gap-2 relative z-10 w-full mb-1 sm:mb-0">
                                 <button onClick={() => setEditTab("basic")}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-[13px] font-semibold transition-all whitespace-nowrap sm:whitespace-normal cursor-pointer border ${
+                                    className={`flex-1 min-w-[90px] sm:flex-none flex flex-col sm:flex-row items-center sm:justify-start gap-1.5 sm:gap-3 px-2 sm:px-4 py-2 sm:py-3 rounded-xl text-[10px] sm:text-[13px] font-semibold transition-all cursor-pointer border text-center sm:text-left ${
                                         editTab === "basic" 
                                         ? "bg-black/20 text-white" 
                                         : "bg-transparent border-transparent text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg-secondary)] hover:text-[var(--theme-text-primary)]"
                                     }`}
                                     style={editTab === "basic" ? { borderColor: `${accent}40`, boxShadow: `inset 0 0 20px ${accent}10` } : {}}>
-                                    <Sparkles className="w-4 h-4" style={{ color: editTab === "basic" ? accent : "inherit" }} />
+                                    <Sparkles className="w-4 h-4 shrink-0" style={{ color: editTab === "basic" ? accent : "inherit" }} />
                                     Basic Info
                                 </button>
                                 <button onClick={() => setEditTab("contact")}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-[13px] font-semibold transition-all whitespace-nowrap sm:whitespace-normal cursor-pointer border ${
+                                    className={`flex-1 min-w-[90px] sm:flex-none flex flex-col sm:flex-row items-center sm:justify-start gap-1.5 sm:gap-3 px-2 sm:px-4 py-2 sm:py-3 rounded-xl text-[10px] sm:text-[13px] font-semibold transition-all cursor-pointer border text-center sm:text-left ${
                                         editTab === "contact" 
                                         ? "bg-black/20 text-white" 
                                         : "bg-transparent border-transparent text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg-secondary)] hover:text-[var(--theme-text-primary)]"
                                     }`}
                                     style={editTab === "contact" ? { borderColor: `${accent}40`, boxShadow: `inset 0 0 20px ${accent}10` } : {}}>
-                                    <Mail className="w-4 h-4" style={{ color: editTab === "contact" ? accent : "inherit" }} />
-                                    Contact & Socials
+                                    <Mail className="w-4 h-4 shrink-0" style={{ color: editTab === "contact" ? accent : "inherit" }} />
+                                    Contact
                                 </button>
                                 <button onClick={() => setEditTab("privacy")}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-[13px] font-semibold transition-all whitespace-nowrap sm:whitespace-normal cursor-pointer border ${
+                                    className={`flex-1 min-w-[90px] sm:flex-none flex flex-col sm:flex-row items-center sm:justify-start gap-1.5 sm:gap-3 px-2 sm:px-4 py-2 sm:py-3 rounded-xl text-[10px] sm:text-[13px] font-semibold transition-all cursor-pointer border text-center sm:text-left ${
                                         editTab === "privacy" 
                                         ? "bg-black/20 text-white" 
                                         : "bg-transparent border-transparent text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg-secondary)] hover:text-[var(--theme-text-primary)]"
                                     }`}
                                     style={editTab === "privacy" ? { borderColor: `${accent}40`, boxShadow: `inset 0 0 20px ${accent}10` } : {}}>
-                                    <Eye className="w-4 h-4" style={{ color: editTab === "privacy" ? accent : "inherit" }} />
+                                    <Eye className="w-4 h-4 shrink-0" style={{ color: editTab === "privacy" ? accent : "inherit" }} />
                                     Visibility
                                 </button>
                             </nav>

@@ -83,8 +83,30 @@ model User {
   conversationsAsA Conversation[] @relation("ConversationUserA")
   conversationsAsB Conversation[] @relation("ConversationUserB")
   messagesSent     Message[]
+  followers        Follow[] @relation("Followers")
+  following        Follow[] @relation("Following")
 
   @@map("users")
+}
+
+// ─────────────────────────────────────────────
+// FOLLOW SYSTEM
+// ─────────────────────────────────────────────
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+
+  @@map("follows")
 }
 
 // ─────────────────────────────────────────────
@@ -501,6 +523,8 @@ model Message {
   conversationId String
   senderId       String
   content        String   @db.Text
+  attachmentUrl  String?  @db.Text
+  attachmentType String?  // image, video, document
   isRead         Boolean  @default(false)
   createdAt      DateTime @default(now())
 

@@ -83,6 +83,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
                             }
                         }
                     }
+                },
+                followers: {
+                    where: { followerId: session.userId },
+                    select: { id: true }
                 }
             }
         });
@@ -91,7 +95,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
             return NextResponse.json({ error: "Talent not found" }, { status: 404 });
         }
 
-        return NextResponse.json({ talent });
+        const talentAny = talent as any;
+        const isFollowing = talentAny.followers && talentAny.followers.length > 0;
+        const formattedTalent = { ...talentAny, isFollowing, followers: undefined };
+
+        return NextResponse.json({ talent: formattedTalent });
     } catch (error) {
         console.error("Error fetching talent:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

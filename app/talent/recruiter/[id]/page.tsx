@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import FollowButton from "@/app/components/FollowButton";
 
-const accent = "#A855F7";
+const accent = "#3CF91A";
 
 export default function RecruiterProfileViewPage() {
     const params = useParams();
@@ -131,9 +131,9 @@ export default function RecruiterProfileViewPage() {
                         {recruiterData?.id && (
                             <FollowButton targetUserId={recruiterData.id} initialIsFollowing={recruiterData.isFollowing} />
                         )}
-                        <Link href={`/recruiter/messages?with=${recruiterData.id}`}
-                            className="px-4 sm:px-5 py-2 rounded-xl text-[11px] sm:text-[12px] font-bold text-white border-none cursor-pointer transition-all hover:scale-105 no-underline"
-                            style={{ background: `linear-gradient(135deg, ${accent}, #7C3AED)`, boxShadow: `0 0 15px ${accent}40` }}>
+                        <Link href={`/talent/messages?with=${recruiterData.id}`}
+                            className="px-4 sm:px-5 py-2 rounded-xl text-[11px] sm:text-[12px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105 no-underline"
+                            style={{ background: `linear-gradient(135deg, ${accent}, #10B981)`, boxShadow: `0 0 15px ${accent}40` }}>
                             Message
                         </Link>
                     </div>
@@ -144,7 +144,7 @@ export default function RecruiterProfileViewPage() {
                     {tabs.map(tab => (
                         <button key={tab} onClick={() => setActiveTab(tab)}
                             className={`px-4 sm:px-6 py-3 text-[12px] sm:text-[13px] font-semibold border-b-2 transition-all cursor-pointer bg-transparent whitespace-nowrap
-                                ${activeTab === tab ? "border-[#A855F7] text-[#A855F7]" : "border-transparent text-[var(--theme-text-muted)] hover:text-[var(--theme-text-tertiary)]"}`}>
+                                ${activeTab === tab ? "border-[#3CF91A] text-[#3CF91A]" : "border-transparent text-[var(--theme-text-muted)] hover:text-[var(--theme-text-tertiary)]"}`}>
                             {tab}
                         </button>
                     ))}

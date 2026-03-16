@@ -62,12 +62,20 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
                         },
                     },
                 },
+                followers: {
+                    where: { followerId: session.userId },
+                    select: { id: true }
+                }
             },
         });
 
         if (!recruiter) return NextResponse.json({ error: "Recruiter not found" }, { status: 404 });
 
-        return NextResponse.json({ recruiter });
+        const recAny = recruiter as any;
+        const isFollowing = recAny.followers && recAny.followers.length > 0;
+        const formattedRecruiter = { ...recAny, isFollowing, followers: undefined };
+
+        return NextResponse.json({ recruiter: formattedRecruiter });
     } catch (err) {
         console.error(err);
         return NextResponse.json({ error: "Server error" }, { status: 500 });

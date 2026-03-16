@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import CommentThread from "./CommentThread";
+import FollowButton from "@/app/components/FollowButton";
 
 function timeAgo(dateStr: string) {
     const diff = Date.now() - new Date(dateStr).getTime();
@@ -181,11 +182,17 @@ export default function PostCard({ post, currentUserId, currentUserRole, onDelet
                             </div>
                         </div>
                     </div>
-                    {/* Three-dot menu */}
-                    <div className="relative">
-                        <button onClick={() => setShowMenu(!showMenu)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[var(--theme-input-bg)] cursor-pointer bg-transparent border-none transition-all" style={{ color: "var(--theme-text-muted)" }}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" /></svg>
-                        </button>
+                    
+                    {/* Actions Area (Follow + Menu) */}
+                    <div className="flex items-center gap-3">
+                        {!isOwn && currentUserId && (
+                            <FollowButton targetUserId={user.id} initialIsFollowing={post.isFollowing} className="py-1 px-3 text-[11px]" />
+                        )}
+                        {/* Three-dot menu */}
+                        <div className="relative">
+                            <button onClick={() => setShowMenu(!showMenu)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[var(--theme-input-bg)] cursor-pointer bg-transparent border-none transition-all" style={{ color: "var(--theme-text-muted)" }}>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" /></svg>
+                            </button>
                         {showMenu && (
                             <div className="absolute right-0 top-10 w-44 rounded-xl shadow-xl py-1 z-20" style={{ background: "var(--theme-surface)", border: "1px solid var(--theme-border)" }}>
                                 {isOwn ? (
@@ -202,6 +209,7 @@ export default function PostCard({ post, currentUserId, currentUserRole, onDelet
                             </div>
                         )}
                     </div>
+                  </div>
                 </div>
 
                 {/* Caption */}

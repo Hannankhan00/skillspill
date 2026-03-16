@@ -16,8 +16,8 @@ export async function GET() {
                 ],
             },
             include: {
-                userA: { select: { id: true, fullName: true, username: true, role: true } },
-                userB: { select: { id: true, fullName: true, username: true, role: true } },
+                userA: { select: { id: true, fullName: true, username: true, role: true, avatarUrl: true } },
+                userB: { select: { id: true, fullName: true, username: true, role: true, avatarUrl: true } },
                 messages: {
                     orderBy: { createdAt: "desc" },
                     take: 1,
@@ -66,8 +66,8 @@ export async function POST(req: Request) {
             create: { userAId, userBId },
             update: {},
             include: {
-                userA: { select: { id: true, fullName: true, username: true, role: true } },
-                userB: { select: { id: true, fullName: true, username: true, role: true } },
+                userA: { select: { id: true, fullName: true, username: true, role: true, avatarUrl: true } },
+                userB: { select: { id: true, fullName: true, username: true, role: true, avatarUrl: true } },
             },
         });
 

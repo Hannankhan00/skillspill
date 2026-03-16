@@ -54,6 +54,10 @@ export async function GET(req: NextRequest) {
                         talentProfile: {
                             select: { githubConnected: true, githubStars: true },
                         },
+                        followers: {
+                            where: { followerId: session.userId },
+                            select: { id: true }
+                        }
                     },
                 },
                 media: {
@@ -81,6 +85,8 @@ export async function GET(req: NextRequest) {
             isLiked: post.likes.length > 0,
             isSaved: post.saves.length > 0,
             isReposted: post.reposts.length > 0,
+            isFollowing: post.user.followers?.length > 0,
+            user: { ...post.user, followers: undefined },
             likes: undefined,
             saves: undefined,
             reposts: undefined,

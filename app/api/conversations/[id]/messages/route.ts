@@ -18,7 +18,7 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
         const messages = await prisma.message.findMany({
             where: { conversationId: id },
             orderBy: { createdAt: "asc" },
-            include: { sender: { select: { id: true, fullName: true, username: true } } },
+            include: { sender: { select: { id: true, fullName: true, username: true, avatarUrl: true } } },
         });
 
         // Mark messages from other as read
@@ -41,8 +41,11 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
         if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const { id } = await context.params;
-        const { content } = await req.json();
-        if (!content?.trim()) return NextResponse.json({ error: "Content required" }, { status: 400 });
+        const { content, attachmentUrl, attachmentType } = await req.json();
+        
+        if (!content?.trim() && !attachmentUrl) {
+            return NextResponse.json({ error: "Content or attachment required" }, { status: 400 });
+        }
 
         const convo = await prisma.conversation.findUnique({ where: { id } });
         if (!convo || (convo.userAId !== session.userId && convo.userBId !== session.userId)) {
@@ -50,14 +53,20 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
         }
 
         const message = await prisma.message.create({
-            data: { conversationId: id, senderId: session.userId, content: content.trim() },
-            include: { sender: { select: { id: true, fullName: true, username: true } } },
+            data: { 
+                conversationId: id, 
+                senderId: session.userId, 
+                content: content?.trim() || "",
+                attachmentUrl,
+                attachmentType
+            },
+            include: { sender: { select: { id: true, fullName: true, username: true, avatarUrl: true } } },
         });
 
         // Update conversation's lastMessage + lastAt
         await prisma.conversation.update({
             where: { id },
-            data: { lastMessage: content.trim(), lastAt: new Date() },
+            data: { lastMessage: content?.trim() || "Sent an attachment", lastAt: new Date() },
         });
 
         return NextResponse.json({ message });

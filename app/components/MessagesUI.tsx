@@ -9,6 +9,7 @@ interface OtherUser {
     fullName: string;
     username: string;
     role: string;
+    avatarUrl?: string | null;
 }
 
 interface Conversation {
@@ -24,9 +25,11 @@ interface Message {
     conversationId: string;
     senderId: string;
     content: string;
+    attachmentUrl?: string;
+    attachmentType?: string;
     isRead: boolean;
     createdAt: string;
-    sender: { id: string; fullName: string; username: string };
+    sender: { id: string; fullName: string; username: string; avatarUrl?: string | null };
 }
 
 function getInitials(name: string) {
@@ -63,6 +66,13 @@ export default function MessagesUI({ accent }: { accent: string }) {
     const [sseConnected, setSseConnected] = useState(false);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
+    // Attachment State
+    const [attachment, setAttachment] = useState<{ url: string; type: string } | null>(null);
+    const [uploadingAttr, setUploadingAttr] = useState(false);
+    const [showAttachMenu, setShowAttachMenu] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const attachMenuRef = useRef<HTMLDivElement>(null);
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     // Keep latest messages in a ref so SSE handler can read them without stale closures
@@ -73,6 +83,19 @@ export default function MessagesUI({ accent }: { accent: string }) {
     // Sync ref with state
     useEffect(() => { messagesRef.current = messages; }, [messages]);
     useEffect(() => { activeConvoIdRef.current = activeConvoId; }, [activeConvoId]);
+
+    // Close attach dropdown on outside click
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (attachMenuRef.current && !attachMenuRef.current.contains(e.target as Node)) {
+                setShowAttachMenu(false);
+            }
+        };
+        if (showAttachMenu) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [showAttachMenu]);
 
     // Fetch current user ID once
     useEffect(() => {
@@ -217,46 +240,103 @@ export default function MessagesUI({ accent }: { accent: string }) {
 
     // ── Send message ──────────────────────────────────────────────────────────
     const sendMessage = async () => {
-        if (!draft.trim() || !activeConvoId || sending) return;
+        if ((!draft.trim() && !attachment) || !activeConvoId || sending) return;
         const content = draft.trim();
+        const finalAttachment = attachment;
+        
         setSending(true);
         setDraft("");
+        setAttachment(null); // clear staging
 
         // Optimistic message (shown immediately)
         const optimisticId = `tmp-${Date.now()}`;
-        const optimistic: Message = {
+        const optimistic = {
             id: optimisticId,
             conversationId: activeConvoId,
             senderId: currentUserId ?? "",
             content,
+            attachmentUrl: finalAttachment?.url,
+            attachmentType: finalAttachment?.type,
             isRead: false,
             createdAt: new Date().toISOString(),
             sender: { id: currentUserId ?? "", fullName: "You", username: "you" },
-        };
+        } as Message;
         setMessages(prev => [...prev, optimistic]);
 
         try {
             const res = await fetch(`/api/conversations/${activeConvoId}/messages`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ content }),
+                body: JSON.stringify({ content, attachmentUrl: finalAttachment?.url, attachmentType: finalAttachment?.type }),
             });
             const data = await res.json();
             if (data.message) {
                 // Replace optimistic with real message
                 setMessages(prev => prev.map(m => m.id === optimisticId ? data.message : m));
                 setConversations(prev => prev.map(c =>
-                    c.id === activeConvoId ? { ...c, lastMessage: content, lastAt: data.message.createdAt } : c
+                    c.id === activeConvoId ? { ...c, lastMessage: content || "Sent an attachment", lastAt: data.message.createdAt } : c
                 ));
-                // SSE will naturally pick up the new message on the other side
             }
         } catch {
             // Remove optimistic on failure
             setMessages(prev => prev.filter(m => m.id !== optimisticId));
-            setDraft(content); // restore draft
+            setDraft(content); 
+            setAttachment(finalAttachment);
         }
         setSending(false);
         inputRef.current?.focus();
+    };
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploadingAttr(true);
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("category", "messages");
+        fd.append("folder", "messages");
+
+        try {
+            const res = await fetch("/api/upload", { method: "POST", body: fd });
+            const data = await res.json();
+            if (res.ok && data.url) {
+                let type = "document";
+                if (file.type.startsWith("image/")) type = "image";
+                else if (file.type.startsWith("video/")) type = "video";
+                else if (file.type.startsWith("audio/")) type = "audio";
+
+                setAttachment({ url: data.url, type });
+            }
+        } catch (err) {
+            console.error("Upload error", err);
+        } finally {
+            setUploadingAttr(false);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+        }
+    };
+
+    const handleAttachClick = (type: string) => {
+        setShowAttachMenu(false);
+        if (!fileInputRef.current) return;
+
+        fileInputRef.current.removeAttribute('capture');
+        
+        if (type === 'document') {
+            fileInputRef.current.accept = "*/*";
+            fileInputRef.current.click();
+        } else if (type === 'media') {
+            fileInputRef.current.accept = "image/*,video/*";
+            fileInputRef.current.click();
+        } else if (type === 'camera') {
+            fileInputRef.current.accept = "image/*,video/*";
+            fileInputRef.current.setAttribute('capture', 'environment');
+            fileInputRef.current.click();
+        } else if (type === 'audio') {
+            fileInputRef.current.accept = "audio/*";
+            fileInputRef.current.click();
+        }
+        // Other types (Poll, Contact, etc) can just close the menu for now as placeholders
     };
 
     const activeConvo = conversations.find(c => c.id === activeConvoId);
@@ -298,9 +378,13 @@ export default function MessagesUI({ accent }: { accent: string }) {
                             <button key={c.id} onClick={() => setActiveConvoId(c.id)}
                                 className="w-full flex items-start gap-3 p-3.5 text-left border-b border-[var(--theme-border-light)] cursor-pointer border-none transition-colors"
                                 style={{ background: activeConvoId === c.id ? `${accent}12` : "transparent" }}>
-                                <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${gradientFor(c.other.role)} flex items-center justify-center text-white text-[11px] font-bold shrink-0`}>
-                                    {getInitials(c.other.fullName)}
-                                </div>
+                                {c.other.avatarUrl ? (
+                                    <img src={c.other.avatarUrl} alt={c.other.fullName} className="w-10 h-10 rounded-full object-cover shrink-0" />
+                                ) : (
+                                    <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${gradientFor(c.other.role)} flex items-center justify-center text-white text-[11px] font-bold shrink-0`}>
+                                        {getInitials(c.other.fullName)}
+                                    </div>
+                                )}
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between mb-0.5">
                                         <p className="text-[13px] font-semibold text-[var(--theme-text-primary)] truncate">{c.other.fullName}</p>
@@ -331,9 +415,13 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                     className="sm:hidden p-1.5 -ml-1 rounded-lg cursor-pointer bg-transparent border-none text-[var(--theme-text-muted)]">
                                     <ArrowLeft className="w-5 h-5" />
                                 </button>
-                                <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${gradientFor(activeConvo.other.role)} flex items-center justify-center text-white text-[10px] font-bold shrink-0`}>
-                                    {getInitials(activeConvo.other.fullName)}
-                                </div>
+                                {activeConvo.other.avatarUrl ? (
+                                    <img src={activeConvo.other.avatarUrl} alt={activeConvo.other.fullName} className="w-9 h-9 rounded-full object-cover shrink-0 border border-black/10" />
+                                ) : (
+                                    <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${gradientFor(activeConvo.other.role)} flex items-center justify-center text-white text-[10px] font-bold shrink-0`}>
+                                        {getInitials(activeConvo.other.fullName)}
+                                    </div>
+                                )}
                                 <div>
                                     <p className="text-[13px] font-bold text-[var(--theme-text-primary)]">{activeConvo.other.fullName}</p>
                                     <div className="flex items-center gap-1.5">
@@ -380,13 +468,33 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                             )}
                                             <div className={`flex items-end gap-2.5 ${isMine ? "justify-end" : "justify-start"}`}>
                                                 {!isMine && (
-                                                    <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${gradientFor(activeConvo.other.role)} flex items-center justify-center text-white text-[9px] font-bold shrink-0 mb-1`}>
-                                                        {getInitials(activeConvo.other.fullName)}
-                                                    </div>
+                                                    msg.sender.avatarUrl ? (
+                                                        <img src={msg.sender.avatarUrl} alt={msg.sender.fullName} className="w-7 h-7 rounded-full object-cover shrink-0 mb-1" />
+                                                    ) : (
+                                                        <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${gradientFor(activeConvo.other.role)} flex items-center justify-center text-white text-[9px] font-bold shrink-0 mb-1`}>
+                                                            {getInitials(activeConvo.other.fullName)}
+                                                        </div>
+                                                    )
                                                 )}
-                                                <div className={`flex flex-col ${isMine ? "items-end" : "items-start"} max-w-[72%]`}>
-                                                    <div className={`px-3.5 py-2 text-[13px] leading-relaxed break-words ${isMine ? "rounded-2xl rounded-br-sm text-white" : "rounded-2xl rounded-bl-sm text-[var(--theme-text-primary)] border border-[var(--theme-border)]"} ${isOptimistic ? "opacity-70" : ""}`}
+                                                <div className={`flex flex-col ${isMine ? "items-end" : "items-start"} max-w-[85%] sm:max-w-[72%]`}>
+                                                    <div className={`px-3.5 py-2 leading-relaxed break-words ${isMine ? "rounded-2xl rounded-br-sm text-[14px] sm:text-[13px] text-white" : "rounded-2xl rounded-bl-sm text-[14px] sm:text-[13px] text-[var(--theme-text-primary)] border border-[var(--theme-border)]"} ${isOptimistic ? "opacity-70" : ""}`}
                                                         style={isMine ? { background: `linear-gradient(135deg, ${accent}, ${accent}bb)` } : { background: "var(--theme-card)" }}>
+                                                        
+                                                        {/* Attachment renderer */}
+                                                        {msg.attachmentUrl && (
+                                                            <div className="mb-2 max-w-full rounded-lg overflow-hidden border border-black/10">
+                                                                {msg.attachmentType === "image" ? (
+                                                                    <img src={msg.attachmentUrl} alt="Attachment" className="max-w-full max-h-64 object-contain" />
+                                                                ) : msg.attachmentType === "video" ? (
+                                                                    <video src={msg.attachmentUrl} controls className="max-w-full max-h-64 rounded-lg" />
+                                                                ) : (
+                                                                    <a href={msg.attachmentUrl} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 px-3 py-2 ${isMine ? "text-white hover:text-white/80" : "text-[var(--theme-text-primary)] hover:text-[var(--theme-text-secondary)] "} underline break-all text-[12px]`}>
+                                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>
+                                                                        View Document
+                                                                    </a>
+                                                                )}
+                                                            </div>
+                                                        )}
                                                         {msg.content}
                                                     </div>
                                                     <span className="text-[9px] text-[var(--theme-text-muted)] mt-0.5 px-1 flex items-center gap-1">
@@ -409,25 +517,111 @@ export default function MessagesUI({ accent }: { accent: string }) {
                         </div>
 
                         {/* Input */}
-                        <div className="shrink-0 p-3 sm:p-4 border-t border-[var(--theme-border)]"
+                        <div className="shrink-0 p-3 sm:p-4 border-t border-[var(--theme-border)] relative"
                             style={{ background: "var(--theme-surface)" }}>
+                            
+                            {/* WhatsApp-Style Attachment Menu */}
+                            {showAttachMenu && (
+                                <div ref={attachMenuRef} className="absolute bottom-[calc(100%-8px)] left-4 mb-2 z-50 rounded-2xl shadow-2xl p-2 w-[220px] animate-in slide-in-from-bottom-2 fade-in duration-200"
+                                    style={{ background: "#20232b", border: "1px solid rgba(255,255,255,0.05)" }}>
+                                    <div className="flex flex-col gap-1">
+                                        <button onClick={() => handleAttachClick('document')} className="flex items-center gap-3 w-full p-2 rounded-xl border-none cursor-pointer bg-transparent hover:bg-white/5 transition-colors text-left group">
+                                            <div className="w-8 h-8 rounded-full bg-[#5F66CD] flex items-center justify-center shrink-0">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
+                                            </div>
+                                            <span className="text-[14px] font-medium text-white group-hover:text-white/90">Document</span>
+                                        </button>
+                                        <button onClick={() => handleAttachClick('media')} className="flex items-center gap-3 w-full p-2 rounded-xl border-none cursor-pointer bg-transparent hover:bg-white/5 transition-colors text-left group">
+                                            <div className="w-8 h-8 rounded-full bg-[#007AFF] flex items-center justify-center shrink-0">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
+                                            </div>
+                                            <span className="text-[14px] font-medium text-white group-hover:text-white/90">Photos & videos</span>
+                                        </button>
+                                        <button onClick={() => handleAttachClick('camera')} className="flex items-center gap-3 w-full p-2 rounded-xl border-none cursor-pointer bg-transparent hover:bg-white/5 transition-colors text-left group">
+                                            <div className="w-8 h-8 rounded-full bg-[#FF2D55] flex items-center justify-center shrink-0">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>
+                                            </div>
+                                            <span className="text-[14px] font-medium text-white group-hover:text-white/90">Camera</span>
+                                        </button>
+                                        <button onClick={() => handleAttachClick('audio')} className="flex items-center gap-3 w-full p-2 rounded-xl border-none cursor-pointer bg-transparent hover:bg-white/5 transition-colors text-left group">
+                                            <div className="w-8 h-8 rounded-full bg-[#FF9500] flex items-center justify-center shrink-0">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M3 18v-6a9 9 0 0 1 18 0v6" /><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" /></svg>
+                                            </div>
+                                            <span className="text-[14px] font-medium text-white group-hover:text-white/90">Audio</span>
+                                        </button>
+                                        <button onClick={() => handleAttachClick('contact')} className="flex items-center gap-3 w-full p-2 rounded-xl border-none cursor-pointer bg-transparent hover:bg-white/5 transition-colors text-left group">
+                                            <div className="w-8 h-8 rounded-full bg-[#00C7BE] flex items-center justify-center shrink-0">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                                            </div>
+                                            <span className="text-[14px] font-medium text-white group-hover:text-white/90">Contact</span>
+                                        </button>
+                                        <button onClick={() => handleAttachClick('poll')} className="flex items-center gap-3 w-full p-2 rounded-xl border-none cursor-pointer bg-transparent hover:bg-white/5 transition-colors text-left group">
+                                            <div className="w-8 h-8 rounded-full bg-[#FFCC00] flex items-center justify-center shrink-0">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" /></svg>
+                                            </div>
+                                            <span className="text-[14px] font-medium text-white group-hover:text-white/90">Poll</span>
+                                        </button>
+                                        <button onClick={() => handleAttachClick('event')} className="flex items-center gap-3 w-full p-2 rounded-xl border-none cursor-pointer bg-transparent hover:bg-white/5 transition-colors text-left group">
+                                            <div className="w-8 h-8 rounded-full bg-[#FF2D55] flex items-center justify-center shrink-0">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+                                            </div>
+                                            <span className="text-[14px] font-medium text-white group-hover:text-white/90">Event</span>
+                                        </button>
+                                        <button onClick={() => handleAttachClick('sticker')} className="flex items-center gap-3 w-full p-2 rounded-xl border-none cursor-pointer bg-transparent hover:bg-white/5 transition-colors text-left group">
+                                            <div className="w-8 h-8 rounded-full bg-[#00C7BE] flex items-center justify-center shrink-0">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M12 22a10 10 0 1 1 10-10c0 5.52-4.48 10-10 10z" /><circle cx="9" cy="9" r="1" /><circle cx="15" cy="9" r="1" /><path d="M8 14s1.5 2 4 2 4-2 4-2" /><path d="M21.5 21.5L19 19" /></svg>
+                                            </div>
+                                            <span className="text-[14px] font-medium text-white group-hover:text-white/90">New sticker</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {/* Staged Attachment Preview */}
+                            {attachment && (
+                                <div className="mb-3 px-3 py-2 rounded-xl flex items-center justify-between border" style={{ background: "var(--theme-card)", borderColor: "var(--theme-border)" }}>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${accent}15`, color: accent }}>
+                                            {attachment.type === "image" ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg> : 
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>}
+                                        </div>
+                                        <div>
+                                            <p className="text-[12px] font-semibold text-[var(--theme-text-primary)]">Attached File</p>
+                                            <p className="text-[10px] text-[var(--theme-text-muted)] uppercase tracking-wider">{attachment.type}</p>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setAttachment(null)} className="p-1.5 rounded-full hover:bg-[var(--theme-bg-secondary)] text-[var(--theme-text-muted)] cursor-pointer border-none bg-transparent">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                                    </button>
+                                </div>
+                            )}
+
                             <form onSubmit={e => { e.preventDefault(); sendMessage(); }}
                                 className="flex items-center gap-2 px-3 py-2 rounded-2xl border transition-all"
                                 style={{ background: "var(--theme-input-bg)", border: `1px solid var(--theme-border)` }}>
+                                
+                                <button type="button" onClick={() => setShowAttachMenu(!showAttachMenu)} disabled={uploadingAttr} className={`p-1.5 rounded-full cursor-pointer border-none bg-transparent transition-colors ${showAttachMenu ? "text-[--theme-text-primary]" : "text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg-secondary)]"}`}>
+                                    {uploadingAttr ? <Loader2 className="w-4 h-4 animate-spin" /> : 
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: showAttachMenu ? 'rotate(45deg)' : 'none', transition: 'transform 0.2s' }}>
+                                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+                                    </svg>}
+                                </button>
+                                <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
+
                                 <input
                                     ref={inputRef}
                                     type="text"
                                     value={draft}
                                     onChange={e => setDraft(e.target.value)}
-                                    onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                                    // Make sure text ends up >=16px on mobile (so Safari does not zoom)
+                                    className="flex-1 bg-transparent border-none outline-none text-[16px] sm:text-[13px] placeholder:text-[var(--theme-text-muted)] py-1"
                                     placeholder="Type a message…"
                                     autoComplete="off"
-                                    className="flex-1 bg-transparent border-none outline-none text-[13px] placeholder:text-[var(--theme-text-muted)] py-1"
                                     style={{ color: "var(--theme-text-primary)" }}
                                 />
-                                <button type="submit" disabled={!draft.trim() || sending}
+                                <button type="submit" disabled={(!draft.trim() && !attachment) || sending}
                                     className="w-8 h-8 rounded-full flex items-center justify-center text-white border-none cursor-pointer transition-all hover:scale-105 active:scale-95 disabled:opacity-40 shrink-0"
-                                    style={{ background: draft.trim() ? `linear-gradient(135deg, ${accent}, ${accent}aa)` : "var(--theme-border)" }}>
+                                    style={{ background: draft.trim() || attachment ? `linear-gradient(135deg, ${accent}, ${accent}aa)` : "var(--theme-border)" }}>
                                     {sending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
                                 </button>
                             </form>
