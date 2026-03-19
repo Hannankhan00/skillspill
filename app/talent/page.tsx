@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -91,13 +91,6 @@ const feedPosts = [
     },
 ];
 
-const trendingSkills = [
-    { name: "Rust", posts: "2.4k", growth: "+31%" },
-    { name: "TypeScript", posts: "8.1k", growth: "+12%" },
-    { name: "WebAssembly", posts: "1.2k", growth: "+48%" },
-    { name: "Solidity", posts: "980", growth: "+24%" },
-    { name: "Go", posts: "3.7k", growth: "+18%" },
-];
 
 const suggestedUsers = [
     { name: "Alex_Kernel", role: "Kernel Dev", initials: "AK", grad: "from-red-400 to-rose-600" },
@@ -114,7 +107,6 @@ const jobSuggestions = [
 /* ═══════════════ MAIN FEED ═══════════════ */
 export default function TalentFeed() {
     const [feedTab, setFeedTab] = useState("For You");
-    const [composerText, setComposerText] = useState("");
     const [likedPosts, setLikedPosts] = useState<Record<number, boolean>>({ 2: true });
     const [savedPosts, setSavedPosts] = useState<Record<number, boolean>>({ 2: true });
 
@@ -158,42 +150,7 @@ export default function TalentFeed() {
                     {/* ════════ MAIN FEED ════════ */}
                     <div className="flex-1 min-w-0 space-y-4">
 
-                        {/* —— Composer —— */}
-                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4">
-                            <div className="flex items-start gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-[#2edb13] flex items-center justify-center text-white text-[11px] font-bold shadow-md shrink-0 border border-[var(--theme-card)]">
-                                    {initials}
-                                </div>
-                                <div className="flex-1">
-                                    <textarea
-                                        placeholder="What are you working on? Share a spill..."
-                                        value={composerText}
-                                        onChange={(e) => setComposerText(e.target.value)}
-                                        className="w-full bg-[var(--theme-bg-secondary)] border border-[var(--theme-border)] rounded-xl px-4 py-3 text-[13px] text-[var(--theme-text-secondary)] placeholder:text-[var(--theme-text-muted)] resize-none outline-none focus:border-[#3CF91A] focus:ring-2 focus:ring-[#3CF91A]/10 transition-all"
-                                        rows={2}
-                                    />
-                                    <div className="flex items-center justify-between mt-3">
-                                        <div className="flex items-center gap-2">
-                                            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium text-[var(--theme-text-muted)] hover:text-[var(--theme-text-tertiary)] hover:bg-[var(--theme-bg-secondary)] transition-all bg-transparent border-none cursor-pointer">
-                                                <CodeIcon /> Code
-                                            </button>
-                                            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium text-[var(--theme-text-muted)] hover:text-[var(--theme-text-tertiary)] hover:bg-[var(--theme-bg-secondary)] transition-all bg-transparent border-none cursor-pointer">
-                                                <ImageIcon /> Image
-                                            </button>
-                                        </div>
-                                        <button
-                                            className={`px-5 py-2 rounded-xl text-[12px] font-bold uppercase tracking-wider border-none cursor-pointer transition-all duration-200 ${composerText.trim()
-                                                ? "bg-[#3CF91A] text-black hover:bg-[#2edb13] shadow-md shadow-[#3CF91A20]"
-                                                : "bg-[var(--theme-input-bg)] text-[var(--theme-text-muted)] cursor-default"
-                                                }`}
-                                            disabled={!composerText.trim()}
-                                        >
-                                            Spill It 🔥
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+
 
                         {/* —— Feed Tabs —— */}
                         <div className="flex items-center gap-1 px-1 overflow-x-auto">
@@ -301,7 +258,7 @@ export default function TalentFeed() {
                     </div>
 
                     {/* ════════ RIGHT SIDEBAR (hidden on mobile) ════════ */}
-                    <div className="hidden lg:block w-[300px] shrink-0 space-y-5">
+                    <div className="hidden lg:block w-[300px] shrink-0 space-y-5" style={{ position: "sticky", top: "1.25rem", alignSelf: "flex-start" }}>
 
                         {/* —— Profile Card Mini —— */}
                         <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
@@ -333,28 +290,7 @@ export default function TalentFeed() {
                             </div>
                         </div>
 
-                        {/* —— Trending Skills —— */}
-                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
-                            <div className="px-4 py-3 border-b border-[var(--theme-border-light)]">
-                                <h3 className="text-[11px] font-bold text-[var(--theme-text-muted)] uppercase tracking-[2px]"
-                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}>🔥 Trending Skills</h3>
-                            </div>
-                            <div className="divide-y divide-[var(--theme-border-light)]">
-                                {trendingSkills.map((skill, i) => (
-                                    <div key={skill.name} className="flex items-center justify-between px-4 py-2.5 hover:bg-[var(--theme-bg-secondary)] transition-colors cursor-pointer" style={{ borderColor: "var(--theme-border-light)" }}>
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-[11px] font-bold text-[var(--theme-text-faint)] w-4">{i + 1}</span>
-                                            <div>
-                                                <p className="text-[12px] font-semibold text-[var(--theme-text-secondary)]">{skill.name}</p>
-                                                <p className="text-[10px] text-[var(--theme-text-muted)]">{skill.posts} spills</p>
-                                            </div>
-                                        </div>
-                                        <span className="text-[10px] font-bold text-[#3CF91A]"
-                                            style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{skill.growth}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+
 
                         {/* —— Job Suggestions —— */}
                         <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">

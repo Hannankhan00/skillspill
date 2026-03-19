@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Sparkles, Briefcase, Target, BarChart2 } from "lucide-react";
 
@@ -109,24 +109,36 @@ const topCandidates = [
     { name: "Aisha Patel", role: "ML Eng", initials: "AP", grad: "from-emerald-400 to-teal-500", score: 89 },
 ];
 
-const skillDemand = [
-    { name: "React", demand: 92, color: "#8B5CF6" },
-    { name: "Rust", demand: 78, color: "#6366F1" },
-    { name: "TypeScript", demand: 88, color: "#0EA5E9" },
-    { name: "Python", demand: 85, color: "#16A34A" },
-];
+
 
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• MAIN FEED â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 export default function RecruiterFeed() {
     const [feedTab, setFeedTab] = useState("Discover");
-    const [composerText, setComposerText] = useState("");
     const [likedPosts, setLikedPosts] = useState<Record<number, boolean>>({ 2: true });
     const [savedPosts, setSavedPosts] = useState<Record<number, boolean>>({});
+
+    const [userData, setUserData] = useState<any>(null);
+
+    useEffect(() => {
+        fetch("/api/user/profile")
+            .then(res => res.json())
+            .then(data => {
+                if (data.user) {
+                    setUserData(data.user);
+                }
+            })
+            .catch(() => {});
+    }, []);
 
     const toggleLike = (id: number) => setLikedPosts(p => ({ ...p, [id]: !p[id] }));
     const toggleSave = (id: number) => setSavedPosts(p => ({ ...p, [id]: !p[id] }));
 
     const tabs = ["Discover", "My Network", "Trending", "Code", "Saved"];
+
+    const companyName = userData?.recruiterProfile?.companyName || "Company";
+    const jobTitle = userData?.recruiterProfile?.jobTitle || "Talent Scout";
+    const initials = companyName ? companyName.substring(0, 2).toUpperCase() : "RC";
+
 
     return (
         <div style={{ background: "var(--theme-bg)" }} className="min-h-full">
@@ -136,46 +148,6 @@ export default function RecruiterFeed() {
                     {/* â•â•â•â•â•â•â•â• MAIN FEED â•â•â•â•â•â•â•â• */}
                     <div className="flex-1 min-w-0 space-y-4">
 
-                        {/* ── Composer ── */}
-                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4">
-                            <div className="flex items-start gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-violet-600 flex items-center justify-center text-white text-[11px] font-bold shadow-md shrink-0">
-                                    RC
-                                </div>
-                                <div className="flex-1">
-                                    <textarea
-                                        placeholder="Share an update, post a job, or spill some knowledge..."
-                                        value={composerText}
-                                        onChange={(e) => setComposerText(e.target.value)}
-                                        className="w-full bg-[var(--theme-bg-secondary)] border border-[var(--theme-border)] rounded-xl px-4 py-3 text-[13px] text-[var(--theme-text-secondary)] placeholder:text-[var(--theme-text-muted)] resize-none outline-none focus:border-[#A855F7]/40 focus:ring-2 focus:ring-purple-50 transition-all"
-                                        rows={2}
-                                    />
-                                    <div className="flex items-center justify-between mt-3">
-                                        <div className="flex items-center gap-2">
-                                            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium text-[var(--theme-text-muted)] hover:text-[var(--theme-text-tertiary)] hover:bg-[var(--theme-bg-secondary)] transition-all bg-transparent border-none cursor-pointer">
-                                                <CodeIcon /> Code
-                                            </button>
-                                            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium text-[var(--theme-text-muted)] hover:text-[var(--theme-text-tertiary)] hover:bg-[var(--theme-bg-secondary)] transition-all bg-transparent border-none cursor-pointer">
-                                                <ImageIcon /> Image
-                                            </button>
-                                            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium text-purple-400 hover:text-[#A855F7] hover:bg-[#A855F7]/10 transition-all bg-transparent border-none cursor-pointer">
-                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>
-                                                Job Post
-                                            </button>
-                                        </div>
-                                        <button
-                                            className={`px-5 py-2 rounded-xl text-[12px] font-bold uppercase tracking-wider border-none cursor-pointer transition-all duration-200 ${composerText.trim()
-                                                ? "bg-purple-600 text-white hover:bg-purple-700 shadow-md shadow-purple-200"
-                                                : "bg-[var(--theme-input-bg)] text-[var(--theme-text-muted)] cursor-default"
-                                                }`}
-                                            disabled={!composerText.trim()}
-                                        >
-                                            Post <Sparkles className="inline-block w-3.5 h-3.5 ml-1 flex-shrink-0" />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
                         {/* ── Feed Tabs ── */}
                         <div className="flex items-center gap-1 px-1 overflow-x-auto">
@@ -296,17 +268,17 @@ export default function RecruiterFeed() {
                     </div>
 
                     {/* â•â•â•â•â•â•â•â• RIGHT SIDEBAR (hidden on mobile) â•â•â•â•â•â•â•â• */}
-                    <div className="hidden lg:block w-[300px] shrink-0 space-y-5">
+                    <div className="hidden lg:block w-[300px] shrink-0 space-y-5" style={{ position: "sticky", top: "1.25rem", alignSelf: "flex-start" }}>
 
                         {/* ── Company Card ── */}
                         <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
                             <div className="h-16 bg-gradient-to-r from-purple-500 to-indigo-600" />
                             <div className="px-4 pb-4 -mt-6">
                                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-400 to-violet-600 flex items-center justify-center text-white text-[13px] font-bold shadow-lg border-2 border-white">
-                                    RC
+                                    {initials}
                                 </div>
-                                <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mt-2">Company</h3>
-                                <p className="text-[11px] text-[var(--theme-text-muted)] mb-3">Talent Scout • SkillSpill</p>
+                                <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mt-2">{companyName}</h3>
+                                <p className="text-[11px] text-[var(--theme-text-muted)] mb-3">{jobTitle} • SkillSpill</p>
                                 <div className="grid grid-cols-3 gap-2 text-center">
                                     <div className="bg-[#A855F7]/10 rounded-lg py-2">
                                         <p className="text-[14px] font-bold text-[#A855F7]">3</p>
@@ -395,28 +367,6 @@ export default function RecruiterFeed() {
                             </div>
                         </div>
 
-                        {/* ── Skill Demand ── */}
-                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
-                            <div className="px-4 py-3 border-b border-[var(--theme-border-light)]">
-                                <h3 className="text-[11px] font-bold text-[var(--theme-text-muted)] uppercase tracking-[2px]"
-                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}><BarChart2 className="inline-block w-4 h-4 mr-1.5 align-text-bottom" />Skill Demand</h3>
-                            </div>
-                            <div className="p-4 space-y-3">
-                                {skillDemand.map((skill) => (
-                                    <div key={skill.name}>
-                                        <div className="flex items-center justify-between mb-1">
-                                            <span className="text-[11px] font-semibold text-[var(--theme-text-secondary)]">{skill.name}</span>
-                                            <span className="text-[10px] text-[var(--theme-text-muted)]"
-                                                style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{skill.demand}%</span>
-                                        </div>
-                                        <div className="w-full h-1.5 rounded-full bg-[var(--theme-input-bg)] overflow-hidden">
-                                            <div className="h-full rounded-full transition-all duration-700"
-                                                style={{ width: `${skill.demand}%`, background: skill.color }} />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
 
                         {/* ── Footer links ── */}
                         <div className="px-2 text-center">

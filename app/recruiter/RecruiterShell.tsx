@@ -147,6 +147,10 @@ export default function RecruiterShell({
 
     const navItems = recruiterNavItems;
 
+    const companyName = userData?.recruiterProfile?.companyName || "Company";
+    const jobTitle = userData?.recruiterProfile?.jobTitle || "Talent Scout";
+    const initials = companyName ? companyName.substring(0, 2).toUpperCase() : userId.slice(-2).toUpperCase();
+
     const handleLogout = async () => {
         try {
             await fetch("/api/auth/logout", { method: "POST" });
@@ -236,7 +240,7 @@ export default function RecruiterShell({
                 <div className="p-4 space-y-3" style={{ borderTop: '1px solid var(--theme-border-light)' }}>
                     <div className="flex items-center gap-3">
                         {userData?.avatarUrl ? (
-                            <img src={userData.avatarUrl} alt="Company" className="w-9 h-9 rounded-full object-cover shrink-0" style={{ border: `1px solid ${accent}40` }} />
+                            <img src={userData.avatarUrl} alt={companyName} className="w-9 h-9 rounded-full object-cover shrink-0" style={{ border: `1px solid ${accent}40` }} />
                         ) : (
                             <div
                                 className="w-9 h-9 rounded-full flex items-center justify-center text-[11px] font-bold"
@@ -246,12 +250,12 @@ export default function RecruiterShell({
                                     color: accent,
                                 }}
                             >
-                                {userId.slice(-2).toUpperCase()}
+                                {initials}
                             </div>
                         )}
                         <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold truncate" style={{ color: 'var(--theme-text-secondary)' }}>Company</p>
-                            <p className="text-[10px] font-mono text-[#A855F7]">Talent Scout</p>
+                            <p className="text-xs font-semibold truncate" style={{ color: 'var(--theme-text-secondary)' }}>{companyName}</p>
+                            <p className="text-[10px] font-mono text-[#A855F7]">{jobTitle}</p>
                         </div>
                     </div>
 
@@ -292,7 +296,7 @@ export default function RecruiterShell({
                     {/* Profile pic */}
                     <Link href="/recruiter/profile" className="shrink-0">
                         {userData?.avatarUrl ? (
-                            <img src={userData.avatarUrl} alt="Company" className="w-8 h-8 rounded-full object-cover shadow-sm border-2" style={{ borderColor: `${accent}40` }} />
+                            <img src={userData.avatarUrl} alt={companyName} className="w-8 h-8 rounded-full object-cover shadow-sm border-2" style={{ borderColor: `${accent}40` }} />
                         ) : (
                             <div
                                 className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm border-2"
@@ -302,7 +306,7 @@ export default function RecruiterShell({
                                     borderColor: `${accent}40`,
                                 }}
                             >
-                                {userId.slice(-2).toUpperCase()}
+                                {initials}
                             </div>
                         )}
                     </Link>
@@ -379,16 +383,16 @@ export default function RecruiterShell({
                                 className="flex items-center gap-2 p-1 rounded-xl transition-all cursor-pointer bg-transparent border-none"
                             >
                                 {userData?.avatarUrl ? (
-                                    <img src={userData.avatarUrl} alt="Company" className="w-8 h-8 rounded-full object-cover shadow-sm border border-black/10" />
+                                    <img src={userData.avatarUrl} alt={companyName} className="w-8 h-8 rounded-full object-cover shadow-sm border border-black/10" />
                                 ) : (
                                     <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm"
                                         style={{ background: `linear-gradient(135deg, #A855F7, #7C3AED)`, color: "#fff" }}>
-                                        {userId.slice(-2).toUpperCase()}
+                                        {initials}
                                     </div>
                                 )}
                                 <div className="text-left">
-                                    <p className="text-[11px] font-semibold leading-tight" style={{ color: 'var(--theme-text-secondary)' }}>Company</p>
-                                    <p className="text-[9px] leading-tight" style={{ color: 'var(--theme-text-muted)' }}>Talent Scout</p>
+                                    <p className="text-[11px] font-semibold leading-tight" style={{ color: 'var(--theme-text-secondary)' }}>{companyName}</p>
+                                    <p className="text-[9px] leading-tight" style={{ color: 'var(--theme-text-muted)' }}>{jobTitle}</p>
                                 </div>
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2">
                                     <polyline points="6 9 12 15 18 9" />
@@ -400,16 +404,16 @@ export default function RecruiterShell({
                                     <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
                                         <div className="flex items-center gap-3">
                                             {userData?.avatarUrl ? (
-                                                <img src={userData.avatarUrl} alt="Company" className="w-9 h-9 rounded-full object-cover border border-black/10" />
+                                                <img src={userData.avatarUrl} alt={companyName} className="w-9 h-9 rounded-full object-cover border border-black/10" />
                                             ) : (
                                                 <div className="w-9 h-9 rounded-full flex items-center justify-center text-[10px] font-bold"
                                                     style={{ background: `linear-gradient(135deg, #A855F7, #7C3AED)`, color: "#fff" }}>
-                                                    {userId.slice(-2).toUpperCase()}
+                                                    {initials}
                                                 </div>
                                             )}
                                             <div>
-                                                <p className="text-[12px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Company</p>
-                                                <p className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>Talent Scout</p>
+                                                <p className="text-[12px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>{companyName}</p>
+                                                <p className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>{jobTitle}</p>
                                             </div>
                                         </div>
                                     </div>
