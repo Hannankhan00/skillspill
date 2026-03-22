@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { ThemeToggle } from "../components/ThemeProvider";
 import Logo from "../components/Logo";
+import PostComposer from "../feed/components/PostComposer";
 
 /* ── SVG Icon Components ── */
 function HomeIcon() {
@@ -83,8 +84,6 @@ function SpillsIcon() {
 /* ── Nav Items ── */
 const recruiterNavItems = [
     { label: "Feed", icon: <HomeIcon />, href: "/recruiter" },
-    { label: "The Spill", icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" /><path d="M8 12l2 2 4-4" /></svg>, href: "/feed" },
-    { label: "My Spills", icon: <SpillsIcon />, href: "/recruiter/spills" },
     { label: "Search", icon: <SearchIcon />, href: "/recruiter/search" },
     { label: "Jobs", icon: <BriefcaseIcon />, href: "/recruiter/jobs" },
     { label: "Applications", icon: <UsersIcon />, href: "/recruiter/applications" },
@@ -129,6 +128,7 @@ export default function RecruiterShell({
 }) {
     const pathname = usePathname();
     const [profileDropdown, setProfileDropdown] = useState(false);
+    const [composerOpen, setComposerOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const accent = "#A855F7";
 
@@ -220,6 +220,30 @@ export default function RecruiterShell({
                     })}
                 </nav>
 
+                {/* Primary Action Buttons */}
+                <div className="px-4 mb-4 gap-2 flex flex-col mt-2">
+                    <button
+                        onClick={() => setComposerOpen(true)}
+                        className="w-full py-2.5 rounded-lg text-[12px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all duration-200 hover:scale-[1.02] cursor-pointer border-none"
+                        style={{
+                            background: `linear-gradient(135deg, ${accent}, #7C3AED)`,
+                            color: "#fff",
+                            boxShadow: `0 0 15px ${accent}40`,
+                        }}
+                    >
+                        <PlusIcon />
+                        CREATE SPILL
+                    </button>
+                    <Link
+                        href="/recruiter/bounties/create"
+                        className="w-full py-2.5 rounded-lg text-[12px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all duration-200 hover:scale-[1.02] cursor-pointer no-underline"
+                        style={{ border: `1px solid ${accent}`, color: accent, background: "transparent" }}
+                    >
+                        <BriefcaseIcon />
+                        CREATE JOB
+                    </Link>
+                </div>
+
                 <div className="px-4 mb-4 block">
                     <div className="p-3 rounded-xl border border-orange-500/30 bg-orange-500/5 flex flex-col gap-2 relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-12 h-12 bg-orange-500/10 rounded-bl-full pointer-events-none" />
@@ -258,19 +282,6 @@ export default function RecruiterShell({
                             <p className="text-[10px] font-mono text-[#A855F7]">{jobTitle}</p>
                         </div>
                     </div>
-
-                    <Link
-                        href="/recruiter/jobs"
-                        className="w-full py-2.5 rounded-lg text-[12px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all duration-200 hover:scale-[1.02] cursor-pointer border-none no-underline"
-                        style={{
-                            background: `linear-gradient(135deg, ${accent}, #7C3AED)`,
-                            color: "#fff",
-                            boxShadow: `0 0 15px ${accent}40`,
-                        }}
-                    >
-                        <PlusIcon />
-                        NEW JOB
-                    </Link>
 
                     <button
                         onClick={handleLogout}
@@ -461,8 +472,10 @@ export default function RecruiterShell({
                         // Special center Spill button
                         if (item.label === "Spill") {
                             return (
-                                <Link key="spill" href="/recruiter/spills"
-                                    className="flex flex-col items-center justify-center -mt-5 no-underline">
+                                <button key="spill"
+                                    onClick={() => setComposerOpen(true)}
+                                    className="flex flex-col items-center justify-center -mt-5 bg-transparent border-none cursor-pointer p-0"
+                                >
                                     <div className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
                                         style={{ background: `linear-gradient(135deg, ${accent}, #7C3AED)` }}>
                                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
@@ -470,7 +483,7 @@ export default function RecruiterShell({
                                         </svg>
                                     </div>
                                     <span className="text-[9px] font-semibold mt-0.5" style={{ color: accent }}>Spill</span>
-                                </Link>
+                                </button>
                             );
                         }
 
@@ -489,6 +502,15 @@ export default function RecruiterShell({
                     })}
                 </nav>
             </div>
+
+            {/* ── Post Composer Modal ── */}
+            {composerOpen && (
+                <PostComposer
+                    userData={{ ...userData, role: "RECRUITER" }}
+                    onClose={() => setComposerOpen(false)}
+                    onPostCreated={() => setComposerOpen(false)}
+                />
+            )}
         </div>
     );
 }

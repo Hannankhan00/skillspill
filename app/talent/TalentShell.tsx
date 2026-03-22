@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { ThemeToggle } from "../components/ThemeProvider";
 import Logo from "../components/Logo";
+import PostComposer from "../feed/components/PostComposer";
 
 /* -- SVG Icon Components -- */
 function FeedIcon() {
@@ -145,6 +146,7 @@ export default function TalentShell({
 }) {
     const pathname = usePathname();
     const [profileDropdown, setProfileDropdown] = useState(false);
+    const [composerOpen, setComposerOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const accent = "#3CF91A";
 
@@ -243,6 +245,30 @@ export default function TalentShell({
                     })}
                 </nav>
 
+                {/* Primary Action Buttons */}
+                <div className="px-4 mb-4 gap-2 flex flex-col mt-2">
+                    <button
+                        onClick={() => setComposerOpen(true)}
+                        className="w-full py-2.5 rounded-lg text-[12px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all duration-200 hover:scale-[1.02] cursor-pointer border-none"
+                        style={{
+                            background: accent,
+                            color: "#000",
+                            boxShadow: `0 0 15px ${accent}40`,
+                        }}
+                    >
+                        <PlusIcon />
+                        CREATE SPILL
+                    </button>
+                    <Link
+                        href="/talent/jobs"
+                        className="w-full py-2.5 rounded-lg text-[12px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all duration-200 hover:scale-[1.02] cursor-pointer no-underline"
+                        style={{ border: `1px solid ${accent}`, color: accent, background: "transparent" }}
+                    >
+                        <BriefcaseIcon />
+                        CREATE JOB
+                    </Link>
+                </div>
+
                 <div className="px-4 mb-4 block">
                     <div className="p-3 rounded-xl border border-orange-500/30 bg-orange-500/5 flex flex-col gap-2 relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-12 h-12 bg-orange-500/10 rounded-bl-full pointer-events-none" />
@@ -281,18 +307,6 @@ export default function TalentShell({
                             <p className="text-[10px] font-mono text-[#2edb13]">Lv.1 {roleLine}</p>
                         </div>
                     </div>
-
-                    <button
-                        className="w-full py-2.5 rounded-lg text-[12px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all duration-200 hover:scale-[1.02] cursor-pointer border-none"
-                        style={{
-                            background: accent,
-                            color: "#000",
-                            boxShadow: `0 0 15px ${accent}40`,
-                        }}
-                    >
-                        <PlusIcon />
-                        NEW SPILL
-                    </button>
 
                     <button
                         onClick={handleLogout}
@@ -480,8 +494,10 @@ export default function TalentShell({
                             // Special center Spill button
                             if (item.label === "Spill") {
                                 return (
-                                    <Link key="spill" href="/talent/spills"
-                                        className="flex flex-col items-center justify-center -mt-5 no-underline">
+                                    <button key="spill"
+                                        onClick={() => setComposerOpen(true)}
+                                        className="flex flex-col items-center justify-center -mt-5 bg-transparent border-none cursor-pointer p-0"
+                                    >
                                         <div className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
                                             style={{ background: `linear-gradient(135deg, ${accent}, #16A34A)` }}>
                                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
@@ -489,7 +505,7 @@ export default function TalentShell({
                                             </svg>
                                         </div>
                                         <span className="text-[9px] font-semibold mt-0.5" style={{ color: "#16A34A" }}>Spill</span>
-                                    </Link>
+                                    </button>
                                 );
                             }
 
@@ -506,8 +522,17 @@ export default function TalentShell({
                         })
                     }
                 </nav >
-            </div >
-        </div >
+            </div>
+
+            {/* ── Post Composer Modal ── */}
+            {composerOpen && (
+                <PostComposer
+                    userData={{ ...userData, role: "TALENT" }}
+                    onClose={() => setComposerOpen(false)}
+                    onPostCreated={() => setComposerOpen(false)}
+                />
+            )}
+        </div>
     );
 }
 

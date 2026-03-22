@@ -33,6 +33,7 @@ export async function GET() {
                 spillPosts: {
                     orderBy: { createdAt: "desc" },
                     take: 20,
+                    include: { media: true },
                 },
             }
         });

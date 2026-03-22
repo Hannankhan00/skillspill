@@ -388,3 +388,12 @@ body {
 .animate-shimmer {
   animation: shimmer 3s linear infinite;
 }
+
+/* ── Hide scrollbar but allow scroll (tab rows etc.) ── */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

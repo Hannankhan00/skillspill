@@ -5,11 +5,74 @@ import Link from "next/link";
 import {
     Sparkles, CheckCircle, Github, Linkedin, Briefcase, FileText,
     Loader2, Link as LinkIcon, Phone, Mail, Heart, MessageSquare,
-    Eye, Share2, Zap, ExternalLink, Star, Camera, Upload, Trash, X, Pencil, Shield
+    Eye, Share2, Zap, ExternalLink, Star, Camera, Upload, Trash, X, Pencil, Shield, Plus, Lock, HeartOff, Video, Code2, MessageSquareOff
 } from "lucide-react";
 import { compressImageClient } from "@/lib/client-compress";
+import PostComposer from "@/app/feed/components/PostComposer";
+import PostCard from "@/app/feed/components/PostCard";
 
 const accent = "#3CF91A";
+
+/* ─── Shared Spill Grid Tile (Instagram Style) ─── */
+function SpillGridTile({ spill, accent, avatarUrl, initials, username, onClick }: any) {
+    const mediaArray = spill.media || [];
+    const hasImage = mediaArray.length > 0;
+    const hasVideo = !hasImage && !!spill.videoUrl;
+    const hasCode = !hasImage && !hasVideo && !!spill.code;
+    const isText = !hasImage && !hasVideo && !hasCode;
+    
+    return (
+        <div 
+            onClick={() => onClick?.(spill)}
+            className="relative aspect-square bg-[#1a1a1a] overflow-hidden group cursor-pointer border border-[var(--theme-border)]">
+            {/* If it's an image */}
+            {hasImage && (
+                <img src={mediaArray[0].url} alt="Post preview" className="w-full h-full object-cover" />
+            )}
+            
+            {/* If it's a video */}
+            {hasVideo && (
+                <div className="w-full h-full bg-black flex items-center justify-center relative">
+                    <video src={spill.videoUrl} className="w-full h-full object-cover opacity-80" muted playsInline />
+                    <div className="absolute top-2 right-2 p-1 rounded-full bg-black/50 backdrop-blur-sm">
+                        <Video size={12} color="white" />
+                    </div>
+                </div>
+            )}
+
+            {/* If it's code */}
+            {hasCode && (
+                <div className="w-full h-full bg-[#0D1117] p-2 flex flex-col items-center justify-center text-center">
+                    <Code2 size={24} className="mb-2" style={{ color: "var(--theme-text-muted)" }} />
+                    <p className="text-[10px] font-mono text-[var(--theme-text-muted)] truncate max-w-full px-2">
+                        {spill.codeLang || "code"}
+                    </p>
+                </div>
+            )}
+
+            {/* If it's purely text or hashtags */}
+            {isText && (
+                <div className="w-full h-full p-3 flex flex-col justify-center bg-[var(--theme-card)] text-center">
+                    <p className="text-[11px] text-[var(--theme-text-primary)] line-clamp-3 leading-snug items-center justify-center break-words">
+                        {spill.caption || (spill.hashtags && spill.hashtags.length > 0 ? `#${spill.hashtags[0]}` : "Text post")}
+                    </p>
+                </div>
+            )}
+
+            {/* Hover Overlay with Likes & Comments */}
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 text-white">
+                <div className="flex items-center gap-1.5 font-bold text-[13px]">
+                    {spill.hideLikes ? <HeartOff size={16} fill="currentColor" /> : <Heart size={16} fill="currentColor" />}
+                    <span>{spill.hideLikes ? "-" : (spill.likes || 0)}</span>
+                </div>
+                <div className="flex items-center gap-1.5 font-bold text-[13px]">
+                    {spill.commentsOff ? <MessageSquareOff size={16} fill="currentColor" /> : <MessageSquare size={16} fill="currentColor" />}
+                    <span>{spill.commentsOff ? "-" : (spill.comments || 0)}</span>
+                </div>
+            </div>
+        </div>
+    );
+}
 
 /* ─── Styled input for the modal ─── */
 function Field({
@@ -83,6 +146,8 @@ export default function TalentProfilePage() {
     const [isLoadingGithub, setIsLoadingGithub] = useState(false);
     const [activeTab, setActiveTab] = useState("Spills");
     const tabs = ["Spills", "Experience", "Projects", "GitHub", "Skills"];
+    const [composerOpen, setComposerOpen] = useState(false);
+    const [selectedSpill, setSelectedSpill] = useState<any>(null);
     
     const [showAvatarMenu, setShowAvatarMenu] = useState(false);
     const [avatarUploading, setAvatarUploading] = useState(false);
@@ -113,10 +178,12 @@ export default function TalentProfilePage() {
             .then(r => r.json())
             .then(d => {
                 if (d.user) {
-                    setUserData(d.user);
-                    const tp = d.user.talentProfile || {};
+                    // API returns 'spillPosts', normalise to 'spills'
+                    const user = { ...d.user, spills: d.user.spillPosts ?? d.user.spills ?? [] };
+                    setUserData(user);
+                    const tp = user.talentProfile || {};
                     setForm({
-                        fullName: d.user.fullName || "",
+                        fullName: user.fullName || "",
                         bio: tp.bio || "",
                         experienceLevel: tp.experienceLevel || "",
                         contactEmail: tp.contactEmail || "",
@@ -1044,70 +1111,50 @@ export default function TalentProfilePage() {
 
                     {/* ── SPILLS TAB ── */}
                     {activeTab === "Spills" && (
-                        <div className="space-y-4">
+                        <div>
                             {spills && spills.length > 0 ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {spills.map((spill: any) => (
-                                        <div key={spill.id}
-                                            className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden flex flex-col transition-all"
-                                            onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}
-                                            onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border)")}>
-                                            <div className="p-4 sm:p-5 flex-1">
-                                                <div className="flex items-center gap-3 mb-3">
-                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-black text-[9px] font-bold shrink-0 overflow-hidden">
-                                                        {avatarUrl ? (
-                                                            <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
-                                                        ) : (
-                                                            initials
-                                                        )}
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-[12px] font-bold text-[var(--theme-text-primary)]">@{username}</p>
-                                                        <p className="text-[9px] text-[var(--theme-text-muted)]">{new Date(spill.createdAt).toLocaleDateString()}</p>
-                                                    </div>
-                                                </div>
-                                                <p className="text-[12px] text-[var(--theme-text-secondary)] leading-relaxed mb-3 line-clamp-4">{spill.content}</p>
-                                                {spill.code && (
-                                                    <div className="rounded-xl bg-[#0D1117] border border-[var(--theme-code-border)] overflow-hidden mb-3">
-                                                        <pre className="px-3 py-3 text-[10px] text-green-400 font-mono overflow-hidden h-20 relative" style={{ margin: 0 }}>
-                                                            <code>{spill.code}</code>
-                                                            <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-[#0D1117] to-transparent pointer-events-none" />
-                                                        </pre>
-                                                    </div>
-                                                )}
-                                                {spill.tags && (
-                                                    <div className="flex flex-wrap gap-1.5">
-                                                        {spill.tags.split(",").slice(0, 3).map((tag: string) => (
-                                                            <span key={tag} className="text-[9px] px-2 py-0.5 rounded-full font-medium"
-                                                                style={{ background: `${accent}15`, color: accent }}>
-                                                                #{tag.trim()}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="px-4 py-3 border-t border-[var(--theme-border-light)] flex flex-wrap items-center gap-4 text-[11px] text-[var(--theme-text-muted)]"
-                                                style={{ background: "var(--theme-bg-secondary)" }}>
-                                                <span className="flex items-center gap-1"><Heart className="w-3.5 h-3.5" /> {spill.likes}</span>
-                                                <span className="flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5" /> {spill.comments}</span>
-                                                <span className="flex items-center gap-1"><Share2 className="w-3.5 h-3.5" /> {spill.shares}</span>
-                                                <span className="flex items-center gap-1 ml-auto"><Eye className="w-3.5 h-3.5" /> {spill.views}</span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-8 text-center flex flex-col items-center">
-                                    <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3" style={{ background: `${accent}10` }}>
-                                        <MessageSquare className="w-5 h-5" style={{ color: accent }} />
+                                <>
+                                    {/* Header row */}
+                                    <div className="flex items-center justify-between mb-4">
+                                        <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--theme-text-muted)" }}>
+                                            {spills.length} Spill{spills.length !== 1 ? "s" : ""}
+                                        </p>
+                                        <button
+                                            onClick={() => setComposerOpen(true)}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105"
+                                            style={{ background: accent, boxShadow: `0 0 10px ${accent}40` }}>
+                                            <Plus className="w-3 h-3" /> New Spill
+                                        </button>
                                     </div>
-                                    <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-1">No Spills Yet</h3>
-                                    <p className="text-[12px] text-[var(--theme-text-muted)] mb-3">Share your thoughts, code snippets, or insights with the community.</p>
-                                    <Link href="/talent/spills"
-                                        className="px-4 py-2 rounded-xl text-[12px] font-bold text-black no-underline transition-all hover:scale-105"
-                                        style={{ background: accent }}>
-                                        Create a Spill
-                                    </Link>
+
+                                    {/* Instagram-style 3-col grid */}
+                                    <div className="grid grid-cols-3 gap-0.5">
+                                        {spills.map((spill: any, idx: number) => (
+                                            <SpillGridTile
+                                                key={spill.id ?? idx}
+                                                spill={spill}
+                                                accent={accent}
+                                                avatarUrl={avatarUrl}
+                                                initials={initials}
+                                                username={username}
+                                                onClick={setSelectedSpill}
+                                            />
+                                        ))}
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="rounded-2xl border border-dashed border-[var(--theme-border)] bg-[var(--theme-card)] p-12 text-center flex flex-col items-center">
+                                    <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: `${accent}10` }}>
+                                        <MessageSquare className="w-7 h-7" style={{ color: accent }} />
+                                    </div>
+                                    <h3 className="text-[15px] font-bold text-[var(--theme-text-primary)] mb-1">No Spills Yet</h3>
+                                    <p className="text-[12px] text-[var(--theme-text-muted)] mb-5 max-w-xs">Share your thoughts, code snippets, or insights with the community.</p>
+                                    <button
+                                        onClick={() => setComposerOpen(true)}
+                                        className="px-5 py-2.5 rounded-xl text-[12px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105"
+                                        style={{ background: accent, boxShadow: `0 0 15px ${accent}40` }}>
+                                        Create your first Spill
+                                    </button>
                                 </div>
                             )}
                         </div>
@@ -1115,6 +1162,40 @@ export default function TalentProfilePage() {
 
                 </div>
             </div>
+
+            {/* ── Post Composer Modal ── */}
+            {composerOpen && (
+                <PostComposer
+                    userData={{ ...userData, role: "TALENT" }}
+                    onClose={() => setComposerOpen(false)}
+                    onPostCreated={(newPost: any) => {
+                        setUserData((prev: any) => ({
+                            ...prev,
+                            spills: [newPost, ...(prev.spills || [])],
+                        }));
+                        setComposerOpen(false);
+                    }}
+                />
+            )}
+
+            {/* ── Post Preview Modal ── */}
+            {selectedSpill && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedSpill(null)} />
+                    <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl z-10 custom-scrollbar">
+                        <button 
+                            onClick={() => setSelectedSpill(null)} 
+                            className="absolute top-4 right-4 z-[70] w-8 h-8 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/80 text-white transition-colors border-none cursor-pointer shadow-md">
+                            <X size={16} />
+                        </button>
+                        <PostCard
+                            post={{ ...selectedSpill, user: { ...userData, role: "TALENT" } }}
+                            currentUserId={userData.id}
+                            currentUserRole="TALENT"
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
