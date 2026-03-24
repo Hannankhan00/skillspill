@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { Copy, Check } from "lucide-react";
 
 /* ═══════════════════════════════════════════════
    S K I L L S P I L L  —  T A L E N T  F E E D
@@ -21,77 +22,32 @@ const BookmarkIcon = ({ filled }: { filled?: boolean }) => filled
 const CodeIcon = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg>;
 const ImageIcon = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>;
 
-/* —— Mock Data —— */
-const feedPosts = [
-    {
-        id: 1, username: "Sarah_Codes", role: "Full-Stack Engineer",
-        initials: "SC", grad: "from-violet-500 to-purple-600",
-        time: "25m", verified: true,
-        content: "Just shipped a recursive search optimizer in Rust \u2014 24% latency reduction using zero-cost abstractions. Sometimes the compiler really is your best friend. \u26A1\n\nHere's the core function:",
-        code: `fn optimized_search<T: PartialEq>(data: &[T], query: &T) -> Option<usize> {
-    data.iter().position(|item| item == query)
+/* —— Helper Functions —— */
+function timeAgo(dateString: string) {
+    const diff = Date.now() - new Date(dateString).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return "Just now";
+    if (mins < 60) return `${mins}m`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h`;
+    const days = Math.floor(hrs / 24);
+    return `${days}d`;
 }
 
-// Benchmark: 0.8ms avg on 1M items
-// Previous: 1.05ms \u2014 24% improvement`,
-        codeLang: "rust",
-        tags: ["Rust", "Performance", "Algorithms"],
-        likes: 128, comments: 24, shares: 8, liked: false, saved: false,
-    },
-    {
-        id: 2, username: "Neon_Cipher", role: "Web3 Developer",
-        initials: "NC", grad: "from-amber-400 to-orange-500",
-        time: "2h", verified: true,
-        content: "New smart contract for the bounty system is live on testnet. Audits coming back clean! \uD83D\uDD12 Gas costs down 40% from the previous iteration.\n\nNo CV needed, just prove your skills on-chain. That's the future of hiring.",
-        code: null, codeLang: null,
-        tags: ["Web3", "Solidity", "Smart Contracts"],
-        likes: 87, comments: 15, shares: 12, liked: true, saved: true,
-    },
-    {
-        id: 3, username: "Zero_Day", role: "Systems Engineer",
-        initials: "ZD", grad: "from-cyan-400 to-blue-600",
-        time: "4h", verified: false,
-        content: "Built a real-time collaboration engine using WebSockets + CRDTs. Zero merge conflicts in live editing sessions. \uD83D\uDE80\n\nThe trick was using a last-writer-wins strategy with vector clocks for causal ordering:",
-        code: `const syncEngine = new CRDTEngine({
-  strategy: 'last-writer-wins',
-  vectorClock: true,
-  transport: new WSTransport(url),
-  onConflict: (local, remote) => {
-    return merge(local, remote, { preserveIntent: true });
-  }
-});`,
-        codeLang: "typescript",
-        tags: ["TypeScript", "WebSockets", "CRDTs"],
-        likes: 203, comments: 41, shares: 28, liked: false, saved: false,
-    },
-    {
-        id: 4, username: "Data_Witch", role: "ML Engineer",
-        initials: "DW", grad: "from-[#3CF91A] to-teal-500",
-        time: "6h", verified: true,
-        content: "Trained a transformer model that predicts skill compatibility between developers and projects. 94% accuracy after fine-tuning on SkillSpill data.\n\nThe model looks at code patterns, not CVs. Skills > Credentials every time. \uD83E\uDDE0",
-        code: `model = SkillTransformer(
-    n_heads=8, d_model=512,
-    skill_vocab=48203,
-    max_seq_len=128
-)
-# Fine-tuned on 12,847 dev profiles
-# Accuracy: 94.2% | F1: 0.91`,
-        codeLang: "python",
-        tags: ["Python", "ML", "Transformers"],
-        likes: 312, comments: 56, shares: 45, liked: false, saved: false,
-    },
-    {
-        id: 5, username: "Pixel_Punk", role: "Frontend Developer",
-        initials: "PP", grad: "from-pink-400 to-rose-500",
-        time: "8h", verified: false,
-        content: "Recreated the entire iOS lock screen in pure CSS. No JavaScript. No images. Just 847 lines of carefully crafted gradients and animations. \uD83C\uDFA8\n\nMy brain hurts but the dopamine is real.",
-        code: null, codeLang: null,
-        tags: ["CSS", "UI", "Creative Coding"],
-        likes: 456, comments: 78, shares: 92, liked: false, saved: false,
-    },
-];
-
-
+function getGrad(str: string) {
+    const grads = [
+        "from-violet-500 to-purple-600",
+        "from-amber-400 to-orange-500",
+        "from-cyan-400 to-blue-600",
+        "from-[#3CF91A] to-teal-500",
+        "from-pink-400 to-rose-500",
+        "from-red-400 to-rose-600",
+        "from-sky-400 to-indigo-500",
+    ];
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    return grads[Math.abs(hash) % grads.length];
+}
 const suggestedUsers = [
     { name: "Alex_Kernel", role: "Kernel Dev", initials: "AK", grad: "from-red-400 to-rose-600" },
     { name: "Cloud_Nine", role: "DevOps Lead", initials: "C9", grad: "from-sky-400 to-indigo-500" },
@@ -107,8 +63,13 @@ const jobSuggestions = [
 /* ═══════════════ MAIN FEED ═══════════════ */
 export default function TalentFeed() {
     const [feedTab, setFeedTab] = useState("For You");
-    const [likedPosts, setLikedPosts] = useState<Record<number, boolean>>({ 2: true });
-    const [savedPosts, setSavedPosts] = useState<Record<number, boolean>>({ 2: true });
+    const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
+    const [savedPosts, setSavedPosts] = useState<Record<string, boolean>>({});
+    const [copiedStatus, setCopiedStatus] = useState<Record<string, boolean>>({});
+    
+    // Real feed data
+    const [posts, setPosts] = useState<any[]>([]);
+    const [loadingPosts, setLoadingPosts] = useState(true);
 
     // Fetch live user data for the mini profile card
     const [userData, setUserData] = useState<any>(null);
@@ -123,8 +84,37 @@ export default function TalentFeed() {
             .catch(console.error);
     }, []);
 
-    const toggleLike = (id: number) => setLikedPosts(p => ({ ...p, [id]: !p[id] }));
-    const toggleSave = (id: number) => setSavedPosts(p => ({ ...p, [id]: !p[id] }));
+    // Fetch the Feed Posts
+    useEffect(() => {
+        setLoadingPosts(true);
+        let filter = "all";
+        if (feedTab === "Following") filter = "following";
+        if (feedTab === "Trending") filter = "trending";
+        fetch(`/api/spill/posts?limit=20&filter=${filter}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.posts) setPosts(data.posts);
+                setLoadingPosts(false);
+            })
+            .catch(() => setLoadingPosts(false));
+    }, [feedTab]);
+
+    const toggleLike = async (id: string, currentlyLiked: boolean) => {
+        setLikedPosts(p => ({ ...p, [id]: !currentlyLiked }));
+        try { await fetch(`/api/spill/posts/${id}/like`, { method: "POST" }); } catch {}
+    };
+    const toggleSave = async (id: string, currentlySaved: boolean) => {
+        setSavedPosts(p => ({ ...p, [id]: !currentlySaved }));
+        try { await fetch(`/api/spill/posts/${id}/save`, { method: "POST" }); } catch {}
+    };
+
+    const handleCopyCode = (id: string, code: string) => {
+        navigator.clipboard.writeText(code);
+        setCopiedStatus(p => ({ ...p, [id]: true }));
+        setTimeout(() => {
+            setCopiedStatus(p => ({ ...p, [id]: false }));
+        }, 2000);
+    };
 
     const tabs = ["For You", "Following", "Trending", "Code", "Jobs"];
 
@@ -170,26 +160,42 @@ export default function TalentFeed() {
                         </div>
 
                         {/* —— Posts —— */}
-                        {feedPosts.map((post) => {
-                            const isLiked = likedPosts[post.id] ?? post.liked;
-                            const isSaved = savedPosts[post.id] ?? post.saved;
+                        {loadingPosts ? (
+                            <div className="py-10 text-center text-[var(--theme-text-muted)] animate-pulse">Loading spill activity...</div>
+                        ) : posts.map((post) => {
+                            const isLiked = likedPosts[post.id] !== undefined ? likedPosts[post.id] : post.isLiked;
+                            const isSaved = savedPosts[post.id] !== undefined ? savedPosts[post.id] : post.isSaved;
+                            
+                            const pFullName = post.user?.fullName || "User";
+                            const pUsername = post.user?.username || pFullName.split(" ")[0] || "user";
+                            const pInitials = pFullName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
+                            const pRole = post.user?.role === "TALENT" ? "Developer" : post.user?.recruiterProfile?.companyName ? `Recruiter @ ${post.user.recruiterProfile.companyName}` : "Recruiter";
+                            const pVerified = post.user?.talentProfile?.githubConnected;
+                            const pTime = timeAgo(post.createdAt);
+                            const pGrad = getGrad(pFullName);
+                            const pTags = Array.isArray(post.hashtags) ? post.hashtags : [];
+
                             return (
                                 <article key={post.id} className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
                                     {/* Header */}
                                     <div className="flex items-center justify-between px-5 pt-4 pb-2">
                                         <div className="flex items-center gap-3">
-                                            <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${post.grad} flex items-center justify-center text-white text-[11px] font-bold shadow-md`}>
-                                                {post.initials}
-                                            </div>
+                                            {post.user?.avatarUrl ? (
+                                                <img src={post.user.avatarUrl} alt={pFullName} className="w-10 h-10 rounded-full object-cover shadow-md" />
+                                            ) : (
+                                                <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${pGrad} flex items-center justify-center text-white text-[11px] font-bold shadow-md`}>
+                                                    {pInitials}
+                                                </div>
+                                            )}
                                             <div>
                                                 <div className="flex items-center gap-1.5">
-                                                    <span className="text-[13px] font-bold text-[var(--theme-text-primary)]">{post.username}</span>
-                                                    {post.verified && (
+                                                    <span className="text-[13px] font-bold text-[var(--theme-text-primary)]">{pUsername}</span>
+                                                    {pVerified && (
                                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="#8B5CF6"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#fff" strokeWidth="2" /></svg>
                                                     )}
                                                 </div>
                                                 <p className="text-[11px] text-[var(--theme-text-muted)]">
-                                                    {post.role} &bull; <span style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{post.time} ago</span>
+                                                    {pRole} &bull; <span style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{pTime} ago</span>
                                                 </p>
                                             </div>
                                         </div>
@@ -198,10 +204,32 @@ export default function TalentFeed() {
                                         </button>
                                     </div>
 
-                                    {/* Content */}
-                                    <div className="px-5 py-3">
-                                        <p className="text-[13px] text-[var(--theme-text-secondary)] leading-relaxed whitespace-pre-line">{post.content}</p>
-                                    </div>
+                                    {/* Content (Caption) */}
+                                    {post.caption && (
+                                        <div className="px-5 py-3">
+                                            <p className="text-[13px] text-[var(--theme-text-secondary)] leading-relaxed whitespace-pre-line">{post.caption}</p>
+                                        </div>
+                                    )}
+
+                                    {/* Media */}
+                                    {post.media && post.media.length > 0 && (
+                                        <div className="px-5 mb-3">
+                                            <div className={`grid gap-1 rounded-xl overflow-hidden ${post.media.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+                                                {post.media.map((m: any, i: number) => (
+                                                    <img key={i} src={m.url} alt="Post media" className="w-full h-auto object-cover max-h-[400px] border border-[var(--theme-border-light)]" />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Video */}
+                                    {post.videoUrl && (
+                                        <div className="px-5 mb-3">
+                                            <video controls className="w-full rounded-xl max-h-[500px] object-cover border border-[var(--theme-border-light)]" poster={post.thumbnailUrl || undefined} preload="metadata">
+                                                <source src={post.videoUrl} />
+                                            </video>
+                                        </div>
+                                    )}
 
                                     {/* Code Snippet */}
                                     {post.code && (
@@ -212,8 +240,17 @@ export default function TalentFeed() {
                                                     <div className="w-2.5 h-2.5 rounded-full bg-[#FFBD2E]" />
                                                     <div className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
                                                 </div>
-                                                <span className="text-[9px] text-[var(--theme-text-muted)] uppercase tracking-wider font-bold"
-                                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{post.codeLang}</span>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-[9px] text-[var(--theme-text-muted)] uppercase tracking-wider font-bold"
+                                                        style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{post.codeLang}</span>
+                                                    <button 
+                                                        onClick={() => handleCopyCode(post.id, post.code)}
+                                                        className="flex items-center justify-center bg-transparent border-none cursor-pointer text-[var(--theme-text-muted)] hover:text-[#3CF91A] transition-colors"
+                                                        title="Copy Code"
+                                                    >
+                                                        {copiedStatus[post.id] ? <Check size={14} className="text-[#3CF91A]" /> : <Copy size={14} />}
+                                                    </button>
+                                                </div>
                                             </div>
                                             <pre className="px-4 py-3 text-[11px] leading-relaxed overflow-x-auto bg-[#1E1E2E] text-[#3CF91A] m-0"
                                                 style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }}>
@@ -224,7 +261,7 @@ export default function TalentFeed() {
 
                                     {/* Tags */}
                                     <div className="flex flex-wrap gap-1.5 px-5 pb-3">
-                                        {post.tags.map((tag) => (
+                                        {pTags.map((tag: string) => (
                                             <span key={tag} className="text-[10px] px-2 py-0.5 rounded-md bg-[var(--theme-bg-secondary)] border border-[var(--theme-border)] text-[var(--theme-text-muted)] font-medium cursor-pointer hover:border-[#3CF91A] hover:text-[#2edb13] hover:bg-[#3CF91A]/10 transition-all"
                                                 style={{ fontFamily: "var(--font-jetbrains-mono)" }}>
                                                 #{tag}
@@ -235,19 +272,19 @@ export default function TalentFeed() {
                                     {/* Actions */}
                                     <div className="flex items-center justify-between px-5 py-3 border-t border-[var(--theme-border-light)]">
                                         <div className="flex items-center gap-5">
-                                            <button onClick={() => toggleLike(post.id)}
+                                            <button onClick={() => toggleLike(post.id, isLiked)}
                                                 className={`flex items-center gap-1.5 text-[12px] font-medium transition-all bg-transparent border-none cursor-pointer ${isLiked ? "text-red-500" : "text-[var(--theme-text-muted)] hover:text-red-500"}`}>
                                                 <HeartIcon filled={isLiked} />
-                                                <span>{post.likes + (isLiked && !post.liked ? 1 : 0)}</span>
+                                                <span>{post.likesCount + (isLiked && !post.liked ? 1 : 0)}</span>
                                             </button>
                                             <button className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--theme-text-muted)] hover:text-blue-500 transition-all bg-transparent border-none cursor-pointer">
-                                                <CommentIcon /> {post.comments}
+                                                <CommentIcon /> {post.commentsCount || 0}
                                             </button>
                                             <button className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--theme-text-muted)] hover:text-[#3CF91A] transition-all bg-transparent border-none cursor-pointer">
-                                                <ShareIcon /> {post.shares}
+                                                <ShareIcon /> {post.repostsCount || 0}
                                             </button>
                                         </div>
-                                        <button onClick={() => toggleSave(post.id)}
+                                        <button onClick={() => toggleSave(post.id, isSaved)}
                                             className={`transition-all bg-transparent border-none cursor-pointer ${isSaved ? "text-[#A855F7]" : "text-[var(--theme-text-muted)] hover:text-[#A855F7]"}`}>
                                             <BookmarkIcon filled={isSaved} />
                                         </button>
