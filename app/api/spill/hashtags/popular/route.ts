@@ -22,7 +22,9 @@ export async function GET(req: NextRequest) {
             take: 15,
         });
 
-        return NextResponse.json({ hashtags });
+        const response = NextResponse.json({ hashtags });
+        response.headers.set("Cache-Control", "s-maxage=30, stale-while-revalidate=60");
+        return response;
     } catch (error) {
         console.error("Hashtags error:", error);
         return NextResponse.json({ error: "Failed to fetch hashtags" }, { status: 500 });

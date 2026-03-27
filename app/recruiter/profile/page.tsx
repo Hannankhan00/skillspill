@@ -11,6 +11,7 @@ import {
 import { compressImageClient } from "@/lib/client-compress";
 import PostComposer from "@/app/feed/components/PostComposer";
 import PostCard from "@/app/feed/components/PostCard";
+import { CoverBanner, CoverBannerSelector } from "@/app/components/CoverBanners";
 
 const accent = "#A855F7";
 
@@ -141,6 +142,11 @@ export default function RecruiterProfilePage() {
     const [avatarUploading, setAvatarUploading] = useState(false);
     const [toastMessage, setToastMessage] = useState<{ type: "success" | "error", text: string } | null>(null);
 
+    /* ── Cover edit ── */
+    const [showCoverMenu, setShowCoverMenu] = useState(false);
+    const [selectedCoverId, setSelectedCoverId] = useState("2");
+    const [coverSaving, setCoverSaving] = useState(false);
+
     const showToast = (type: "success" | "error", text: string) => {
         setToastMessage({ type, text });
         setTimeout(() => setToastMessage(null), 4000);
@@ -155,6 +161,7 @@ export default function RecruiterProfilePage() {
                     // API returns 'spillPosts', normalise to 'spills'
                     const user = { ...d.user, spills: d.user.spillPosts ?? d.user.spills ?? [] };
                     setUserData(user);
+                    setSelectedCoverId(user.coverUrl || "2");
                     const rp = user.recruiterProfile || {};
                     setForm({
                         companyName: rp.companyName || "",
@@ -546,17 +553,60 @@ export default function RecruiterProfilePage() {
             )}
 
             {/* ── COVER BANNER ── */}
-            <div className="relative">
-                <div className="h-32 sm:h-44 lg:h-52 w-full bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 relative overflow-hidden">
-                    <div className="absolute inset-0 opacity-10"
-                        style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23fff' fill-opacity='0.3'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }}
-                    />
-                    <div className="absolute right-4 sm:right-8 top-4 sm:top-6 text-white/20 font-mono text-[10px] sm:text-xs hidden sm:block text-right">
-                        <p>{"// company.profile"}</p>
-                        <p>{`const company = "${companyName || "SkillSpill"}";`}</p>
-                        <p>{`const hiring = true;`}</p>
-                    </div>
+            <div className="relative group/cover">
+                <div className="h-32 sm:h-44 lg:h-52 w-full relative overflow-hidden">
+                    <CoverBanner coverId={showCoverMenu ? selectedCoverId : (userData?.coverUrl || "2")}>
+                        <div className="absolute right-4 sm:right-8 top-4 sm:top-6 text-white/20 font-mono text-[10px] sm:text-xs hidden sm:block text-right">
+                            <p>{"// company.profile"}</p>
+                            <p>{`const company = "${companyName || "SkillSpill"}";`}</p>
+                            <p>{`const hiring = true;`}</p>
+                        </div>
+                        {/* Edit Cover Button */}
+                        <button 
+                            onClick={() => setShowCoverMenu(true)} 
+                            className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 bg-black/50 hover:bg-black/70 backdrop-blur text-white px-3 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-2 opacity-0 group-hover/cover:opacity-100 transition-opacity z-10"
+                        >
+                            <Pencil className="w-3.5 h-3.5" /> Edit Cover
+                        </button>
+                    </CoverBanner>
                 </div>
+
+                {coverSaving && (
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20">
+                        <Loader2 className="w-6 h-6 animate-spin text-[#A855F7]" />
+                    </div>
+                )}
+
+                {/* Cover Selector Drawer/Modal */}
+                {showCoverMenu && (
+                    <CoverBannerSelector
+                        selectedId={selectedCoverId}
+                        onSelect={setSelectedCoverId}
+                        onSave={async () => {
+                            setCoverSaving(true);
+                            setShowCoverMenu(false);
+                            try {
+                                const res = await fetch("/api/user/profile", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ coverUrl: selectedCoverId })
+                                });
+                                if (res.ok) {
+                                    setUserData((prev: any) => ({...prev, coverUrl: selectedCoverId}));
+                                    showToast("success", "Cover banner updated!");
+                                }
+                            } catch (e) {
+                                showToast("error", "Failed to update cover.");
+                            }
+                            setCoverSaving(false);
+                        }}
+                        onCancel={() => {
+                            setShowCoverMenu(false);
+                            setSelectedCoverId(userData?.coverUrl || "2");
+                        }}
+                        accent={accent}
+                    />
+                )}
 
                 {/* Avatar */}
                 <div className="max-w-[900px] mx-auto px-4 sm:px-6">

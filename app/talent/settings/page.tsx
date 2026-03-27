@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { compressImageClient } from "@/lib/client-compress";
@@ -131,6 +131,7 @@ export default function SettingsPage() {
     const [savingProfile, setSavingProfile] = useState(false);
     const [profileMsg, setProfileMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
     const [avatarUrl, setAvatarUrl] = useState("");
+    const [coverUrl, setCoverUrl] = useState("bg-slate-900");
     const [avatarUploading, setAvatarUploading] = useState(false);
 
     // Privacy state — populated from the same profile fetch
@@ -153,6 +154,7 @@ export default function SettingsPage() {
                 const u = d.user;
                 const tp = u.talentProfile || {};
                 setAvatarUrl(u.avatarUrl || "");
+                setCoverUrl(u.coverUrl || "bg-slate-900");
                 setProfileForm({
                     fullName: u.fullName || "",
                     bio: tp.bio || "",
@@ -243,6 +245,7 @@ export default function SettingsPage() {
             body: JSON.stringify({
                 fullName: profileForm.fullName,
                 avatarUrl: avatarUrl || null,
+                coverUrl: coverUrl || null,
                 talentProfile: {
                     bio: profileForm.bio,
                     experienceLevel: profileForm.experienceLevel || null,
@@ -542,8 +545,10 @@ export default function SettingsPage() {
                                                     </div>
                                                 )}
 
+
+
                                                 {/* Profile Picture */}
-                                                <div className="flex items-center gap-5 pb-5" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
+                                                <div className="flex items-center gap-5 pb-5 mt-4" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
                                                     <div className="relative group">
                                                         <input
                                                             type="file"

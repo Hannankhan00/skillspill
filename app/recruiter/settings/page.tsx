@@ -118,6 +118,7 @@ export default function RecruiterSettingsPage() {
     const [savingCompany, setSavingCompany] = useState(false);
     const [companyMsg, setCompanyMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
     const [avatarUrl, setAvatarUrl] = useState("");
+    const [coverUrl, setCoverUrl] = useState("bg-slate-900");
     const [avatarUploading, setAvatarUploading] = useState(false);
 
     useEffect(() => {
@@ -128,6 +129,7 @@ export default function RecruiterSettingsPage() {
                 const u = d.user;
                 const rp = u.recruiterProfile || {};
                 setAvatarUrl(u.avatarUrl || "");
+                setCoverUrl(u.coverUrl || "bg-slate-900");
                 setCompanyForm({
                     fullName: u.fullName || "",
                     jobTitle: rp.jobTitle || "",
@@ -193,6 +195,7 @@ export default function RecruiterSettingsPage() {
             body: JSON.stringify({
                 fullName: companyForm.fullName,
                 avatarUrl: avatarUrl || null,
+                coverUrl: coverUrl || null,
                 recruiterProfile: {
                     jobTitle: companyForm.jobTitle || null,
                     companyName: companyForm.companyName || "Unknown",
@@ -299,8 +302,10 @@ export default function RecruiterSettingsPage() {
                                                     </div>
                                                 )}
 
+
+
                                                 {/* Profile Picture */}
-                                                <div className="flex items-center gap-5 pb-5" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
+                                                <div className="flex items-center gap-5 pb-5 mt-4" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
                                                     <div className="relative group">
                                                         <input
                                                             type="file"

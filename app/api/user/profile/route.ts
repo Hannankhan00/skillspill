@@ -74,6 +74,7 @@ export async function POST(req: Request) {
                     email: data.email,
                     githubId: data.githubId !== undefined ? data.githubId : undefined,
                     avatarUrl: data.avatarUrl !== undefined ? data.avatarUrl : undefined,
+                    coverUrl: data.coverUrl !== undefined ? data.coverUrl : undefined,
                 }
             });
 

@@ -96,11 +96,13 @@ export async function GET(req: NextRequest) {
             ? posts[posts.length - 1].createdAt.toISOString()
             : null;
 
-        return NextResponse.json({
+        const response = NextResponse.json({
             posts: formatted,
             nextCursor,
             hasMore: posts.length === limit,
         });
+        response.headers.set("Cache-Control", "s-maxage=30, stale-while-revalidate=60");
+        return response;
     } catch (error) {
         console.error("Feed error:", error);
         return NextResponse.json({ error: "Failed to fetch feed" }, { status: 500 });

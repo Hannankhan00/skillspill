@@ -49,7 +49,7 @@ export default function RecruiterProfileViewPage() {
         );
     }
 
-    const { fullName, username, recruiterProfile, spills } = recruiterData;
+    const { fullName, username, recruiterProfile, spills, avatarUrl, coverUrl } = recruiterData;
     const { bio, jobTitle, companyName, companyWebsite, location, country, industries, bounties } = recruiterProfile || {};
 
     const initials = fullName
@@ -65,7 +65,7 @@ export default function RecruiterProfileViewPage() {
 
             {/* ── COVER BANNER ── */}
             <div className="relative">
-                <div className="h-32 sm:h-44 lg:h-52 w-full bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 relative overflow-hidden">
+                <div className={`h-32 sm:h-44 lg:h-52 w-full relative overflow-hidden ${coverUrl || "bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600"}`}>
                     <div className="absolute inset-0 opacity-10"
                         style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23fff' fill-opacity='0.3'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }}
                     />
@@ -79,8 +79,12 @@ export default function RecruiterProfileViewPage() {
                 {/* Avatar */}
                 <div className="max-w-[900px] mx-auto px-4 sm:px-6">
                     <div className="relative -mt-12 sm:-mt-16 flex items-end gap-4">
-                        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold border-4 border-[var(--theme-bg)] shadow-xl shrink-0">
-                            {initials}
+                        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold border-4 border-[var(--theme-bg)] shadow-xl shrink-0">
+                            {avatarUrl ? (
+                                <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
+                            ) : (
+                                initials
+                            )}
                         </div>
                         <div className="pb-1 sm:pb-2 min-w-0 hidden sm:block">
                             <div className="flex items-center gap-2 flex-wrap">
