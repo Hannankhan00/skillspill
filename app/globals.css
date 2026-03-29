@@ -17,7 +17,10 @@
    T H E M E   S Y S T E M
    Light & Dark mode CSS custom properties
    ═══════════════════════════════════════════════ */
+/* ── Mobile keyboard offset — set by JS visualViewport listener in MessagesUI ── */
 :root {
+  --keyboard-h: 0px;
+
   --theme-bg: #F5F5F7;
   --theme-bg-secondary: #EFEFEF;
   --theme-surface: #FFFFFF;
