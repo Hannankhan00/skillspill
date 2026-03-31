@@ -29,11 +29,16 @@ function UserIcon() {
     return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>;
 }
 
+function BookmarkIcon() {
+    return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>;
+}
+
 const settingsTabs = [
     { key: "profile", label: "Profile", icon: <UserIcon />, desc: "Edit your info" },
     { key: "security", label: "Security", icon: <ShieldIcon />, desc: "Account safety" },
     { key: "privacy", label: "Privacy", icon: <EyeIcon />, desc: "Profile visibility" },
     { key: "experience", label: "Experience", icon: <BriefcaseIconSm />, desc: "Work history" },
+    { key: "saved", label: "Saved Items", icon: <BookmarkIcon />, desc: "Your bookmarked posts", href: "/feed/saved" },
     { key: "notifications", label: "Notifications", icon: <BellIcon />, desc: "Alert preferences" },
     { key: "connections", label: "Connections", icon: <LinkIcon />, desc: "Linked accounts" },
 ];
@@ -493,7 +498,13 @@ export default function SettingsPage() {
                                 {settingsTabs.map((tab) => (
                                     <button
                                         key={tab.key}
-                                        onClick={() => setActiveTab(tab.key)}
+                                        onClick={() => {
+                                            if (tab.href) {
+                                                window.location.href = tab.href;
+                                            } else {
+                                                setActiveTab(tab.key);
+                                            }
+                                        }}
                                         className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[12px] font-medium transition-all duration-200 border-none cursor-pointer whitespace-nowrap text-left w-full"
                                         style={
                                             activeTab === tab.key

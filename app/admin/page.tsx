@@ -118,7 +118,7 @@ function ProgressBar({ value, color, label, metric }: { value: number; color: st
    ═══════════════════════════════════════════ */
 export default function AdminPage() {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<"dashboard" | "users" | "appeals">("dashboard");
+    const [activeTab, setActiveTab] = useState<"dashboard" | "users" | "appeals" | "reports">("dashboard");
     const [users, setUsers] = useState<User[]>([]);
     const [pagination, setPagination] = useState<Pagination>({ total: 0, page: 1, limit: 20, totalPages: 0 });
     const [usersLoading, setUsersLoading] = useState(false);
@@ -134,6 +134,10 @@ export default function AdminPage() {
     const [selectedAppeal, setSelectedAppeal] = useState<Appeal | null>(null);
     const [adminResponse, setAdminResponse] = useState("");
     const [appealActionLoading, setAppealActionLoading] = useState(false);
+
+    // Reports state
+    const [reports, setReports] = useState<any[]>([]);
+    const [reportsLoading, setReportsLoading] = useState(false);
 
     // Suspension modal state
     const [suspendUserId, setSuspendUserId] = useState<string | null>(null);
@@ -171,8 +175,19 @@ export default function AdminPage() {
         finally { setAppealsLoading(false); }
     }, [appealStatusFilter, appealSearch]);
 
+    const fetchReports = useCallback(async () => {
+        setReportsLoading(true);
+        try {
+            const res = await fetch("/api/admin/reports");
+            const data = await res.json();
+            if (res.ok) setReports(data.reports);
+        } catch { console.error("Failed to fetch reports"); }
+        finally { setReportsLoading(false); }
+    }, []);
+
     useEffect(() => { if (activeTab === "users" || activeTab === "dashboard") fetchUsers(); }, [activeTab, fetchUsers]);
     useEffect(() => { if (activeTab === "appeals") fetchAppeals(); }, [activeTab, fetchAppeals]);
+    useEffect(() => { if (activeTab === "reports") fetchReports(); }, [activeTab, fetchReports]);
     useEffect(() => {
         fetch("/api/user/profile").then(r => r.json()).then(d => {
             if (d.user) setAdminProfile({ fullName: d.user.fullName, avatarUrl: d.user.avatarUrl || "" });
@@ -287,6 +302,7 @@ export default function AdminPage() {
         { key: "dashboard" as const, icon: I.grid(), label: "Overview" },
         { key: "users" as const, icon: I.users(), label: "User Management" },
         { key: "appeals" as const, icon: I.gavel(), label: "Appeals" },
+        { key: "reports" as const, icon: I.shield(), label: "Reports" },
     ];
 
     const timeLabels = ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00", "23:59"];
@@ -374,10 +390,10 @@ export default function AdminPage() {
                 <div className="flex items-center justify-between px-6 md:px-8 py-5 border-b" style={{ borderColor: T.cardBorder }}>
                     <div>
                         <h1 className="text-xl font-bold" style={{ color: T.textPrimary, ...sans }}>
-                            {activeTab === "dashboard" ? "Executive Dashboard" : activeTab === "users" ? "User Management" : "Appeal Management"}
+                            {activeTab === "dashboard" ? "Executive Dashboard" : activeTab === "users" ? "User Management" : activeTab === "appeals" ? "Appeal Management" : "Network Reports"}
                         </h1>
                         <p className="text-[12px] mt-0.5" style={{ color: T.textSecondary, ...sans }}>
-                            {activeTab === "dashboard" ? "Real-time platform vitality and administrative control." : activeTab === "users" ? "Browse, search, and manage user accounts." : "Review and manage user account appeals."}
+                            {activeTab === "dashboard" ? "Real-time platform vitality and administrative control." : activeTab === "users" ? "Browse, search, and manage user accounts." : activeTab === "appeals" ? "Review and manage user account appeals." : "View incoming reports of posts and users."}
                         </p>
                     </div>
                     <div className="hidden sm:flex items-center gap-2">
@@ -822,6 +838,50 @@ export default function AdminPage() {
                                         </div>
                                     )}
                                 </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ══════════ REPORTS TAB ══════════ */}
+                    {activeTab === "reports" && (
+                        <div className="flex flex-col gap-5">
+                            <div className="rounded-xl overflow-hidden" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
+                                <table className="w-full text-left">
+                                    <thead><tr style={{ borderBottom: `1px solid ${T.cardBorder}` }}>
+                                        {["Target", "Type", "Reporter", "Reason", "Date"].map((h) => (
+                                            <th key={h} className="text-[10px] uppercase tracking-[1.5px] font-bold py-3.5 px-5" style={{ color: T.textSecondary, ...mono }}>{h}</th>
+                                        ))}
+                                    </tr></thead>
+                                    <tbody>
+                                        {reports.map((r) => (
+                                            <tr key={r.id} className="group transition-all" style={{ borderBottom: `1px solid ${T.cardBorder}20` }}>
+                                                <td className="py-3.5 px-5 group-hover:bg-white/[0.02]">
+                                                    <span className="text-[12px] font-medium" style={{ color: T.textPrimary, ...sans }}>{r.targetId}</span>
+                                                </td>
+                                                <td className="py-3.5 px-5 group-hover:bg-white/[0.02]">
+                                                    <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-[1.5px] inline-flex items-center gap-1.5"
+                                                          style={{ background: `${T.danger}15`, color: T.danger, border: `1px solid ${T.danger}25`, ...mono }}>
+                                                        {r.targetType}
+                                                    </span>
+                                                </td>
+                                                <td className="py-3.5 px-5 group-hover:bg-white/[0.02]">
+                                                    <div className="text-[12px]" style={{ color: T.textPrimary, ...sans }}>{r.reporter.fullName}</div>
+                                                    <div className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>{r.reporter.email}</div>
+                                                </td>
+                                                <td className="py-3.5 px-5 group-hover:bg-white/[0.02]">
+                                                    <div className="text-[12px] max-w-[250px] truncate" style={{ color: T.textPrimary, ...sans }}>{r.reason}</div>
+                                                </td>
+                                                <td className="py-3.5 px-5 group-hover:bg-white/[0.02]">
+                                                    <span className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>{new Date(r.createdAt).toLocaleDateString()}</span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {reports.length === 0 && !reportsLoading && <tr><td colSpan={5} className="text-center py-12 text-sm" style={{ color: T.textSecondary }}>No reports found</td></tr>}
+                                        {reportsLoading && <tr><td colSpan={5} className="text-center py-12 text-sm" style={{ color: T.textSecondary }}>
+                                            <span className="inline-block w-4 h-4 border-2 rounded-full animate-spin mr-2 align-middle" style={{ borderColor: `${T.admin}30`, borderTopColor: T.admin }} />Loading...
+                                        </td></tr>}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     )}

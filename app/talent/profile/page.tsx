@@ -187,7 +187,7 @@ export default function TalentProfilePage() {
                     // API returns 'spillPosts', normalise to 'spills'
                     const user = { ...d.user, spills: d.user.spillPosts ?? d.user.spills ?? [] };
                     setUserData(user);
-                    setSelectedCoverId(user.coverUrl || "2");
+                    setSelectedCoverId(user.coverUrl || "1");
                     const tp = user.talentProfile || {};
                     setForm({
                         fullName: user.fullName || "",
@@ -620,7 +620,7 @@ export default function TalentProfilePage() {
             {/* ── COVER BANNER ── */}
             <div className="relative group/cover">
                 <div className="h-32 sm:h-44 lg:h-52 w-full relative overflow-hidden">
-                    <CoverBanner coverId={showCoverMenu ? selectedCoverId : (userData?.coverUrl || "2")}>
+                    <CoverBanner coverId={showCoverMenu ? selectedCoverId : (userData?.coverUrl || "1")}>
                         <div className="absolute right-4 sm:right-8 top-4 sm:top-6 text-white/20 font-mono text-[10px] sm:text-xs hidden sm:block text-right">
                             <p>{"// talent.profile"}</p>
                             <p>{`const username = "${username}";`}</p>
@@ -667,7 +667,7 @@ export default function TalentProfilePage() {
                         }}
                         onCancel={() => {
                             setShowCoverMenu(false);
-                            setSelectedCoverId(userData?.coverUrl || "2");
+                            setSelectedCoverId(userData?.coverUrl || "1");
                         }}
                         accent={accent}
                     />
@@ -811,12 +811,12 @@ export default function TalentProfilePage() {
                 {/* Stats / Actions row */}
                 <div className="flex items-center gap-3 sm:gap-6 mt-4 sm:mt-5 pb-4 border-b border-[var(--theme-border)]">
                     <div className="text-center">
-                        <p className="text-sm sm:text-lg font-bold text-[var(--theme-text-primary)]">{skills?.length || 0}</p>
-                        <p className="text-[9px] sm:text-[10px] text-[var(--theme-text-muted)] uppercase tracking-wider">Skills</p>
+                        <p className="text-sm sm:text-lg font-bold text-[var(--theme-text-primary)]">{userData?._count?.following || 0}</p>
+                        <p className="text-[9px] sm:text-[10px] text-[var(--theme-text-muted)] uppercase tracking-wider">Following</p>
                     </div>
                     <div className="text-center">
-                        <p className="text-sm sm:text-lg font-bold text-[var(--theme-text-primary)]">{workExperience?.length || 0}</p>
-                        <p className="text-[9px] sm:text-[10px] text-[var(--theme-text-muted)] uppercase tracking-wider">Jobs</p>
+                        <p className="text-sm sm:text-lg font-bold text-[var(--theme-text-primary)]">{userData?._count?.followers || 0}</p>
+                        <p className="text-[9px] sm:text-[10px] text-[var(--theme-text-muted)] uppercase tracking-wider">Followers</p>
                     </div>
                     {githubConnected && (
                         <div className="text-center">

@@ -48,18 +48,7 @@ function ProfileIcon() {
     );
 }
 
-function SkillTreeIcon() {
-    return (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="5" r="3" />
-            <line x1="12" y1="8" x2="12" y2="14" />
-            <circle cx="6" cy="18" r="3" />
-            <circle cx="18" cy="18" r="3" />
-            <line x1="12" y1="14" x2="6" y2="15" />
-            <line x1="12" y1="14" x2="18" y2="15" />
-        </svg>
-    );
-}
+
 
 function SettingsIcon() {
     return (
@@ -101,7 +90,7 @@ const talentNavItems = [
     { label: "Discover Jobs", icon: <BriefcaseIcon />, href: "/talent/jobs" },
     { label: "Messages", icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>, href: "/talent/messages" },
     { label: "Profile", icon: <ProfileIcon />, href: "/talent/profile" },
-    { label: "Skill Tree", icon: <SkillTreeIcon />, href: "/talent/skill-tree" },
+
     { label: "Settings", icon: <SettingsIcon />, href: "/talent/settings" },
 ];
 
@@ -259,14 +248,6 @@ export default function TalentShell({
                         <PlusIcon />
                         CREATE SPILL
                     </button>
-                    <Link
-                        href="/talent/jobs"
-                        className="w-full py-2.5 rounded-lg text-[12px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all duration-200 hover:scale-[1.02] cursor-pointer no-underline"
-                        style={{ border: `1px solid ${accent}`, color: accent, background: "transparent" }}
-                    >
-                        <BriefcaseIcon />
-                        CREATE JOB
-                    </Link>
                 </div>
 
                 <div className="px-4 mb-4 block">

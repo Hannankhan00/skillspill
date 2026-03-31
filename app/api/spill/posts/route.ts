@@ -101,7 +101,6 @@ export async function GET(req: NextRequest) {
             nextCursor,
             hasMore: posts.length === limit,
         });
-        response.headers.set("Cache-Control", "s-maxage=30, stale-while-revalidate=60");
         return response;
     } catch (error) {
         console.error("Feed error:", error);

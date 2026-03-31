@@ -13,6 +13,7 @@ export async function GET() {
         const user = await prisma.user.findUnique({
             where: { id: session.userId },
             include: {
+                _count: { select: { followers: true, following: true } },
                 talentProfile: {
                     include: {
                         skills: true,

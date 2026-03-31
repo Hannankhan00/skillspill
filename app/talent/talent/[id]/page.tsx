@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Sparkles, Trophy, Target, Zap, Gem, CheckCircle, Github, Linkedin, Briefcase, FileText, Loader2, Link as LinkIcon, Phone, Mail, MessageSquare, Heart, Eye, Share2 } from "lucide-react";
 import FollowButton from "@/app/components/FollowButton";
+import { CoverBanner } from "@/app/components/CoverBanners";
 
 const accent = "#3CF91A"; // Talent primary accent
 
@@ -65,17 +66,15 @@ export default function TalentProfileViewPage() {
 
             {/* ── COVER / BANNER ── */}
             <div className="relative">
-                <div className={`h-32 sm:h-44 lg:h-52 w-full relative overflow-hidden ${coverUrl || "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600"}`}>
-                    {/* Pattern overlay */}
-                    <div className="absolute inset-0 opacity-10"
-                        style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23fff' fill-opacity='0.3'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }}
-                    />
-                    {/* Decoration */}
-                    <div className="absolute right-4 sm:right-8 top-4 sm:top-6 text-white/20 font-mono text-[10px] sm:text-xs hidden sm:block text-right">
-                        <p>{"// talent.profile"}</p>
-                        <p>{`const username = "${username}";`}</p>
-                        <p>{`const isAvailable = ${isAvailable || true};`}</p>
-                    </div>
+                <div className="h-32 sm:h-44 lg:h-52 w-full relative overflow-hidden">
+                    <CoverBanner coverId={coverUrl || "1"}>
+                        {/* Decoration */}
+                        <div className="absolute right-4 sm:right-8 top-4 sm:top-6 text-white/20 font-mono text-[10px] sm:text-xs hidden sm:block text-right">
+                            <p>{"// talent.profile"}</p>
+                            <p>{`const username = "${username}";`}</p>
+                            <p>{`const isAvailable = ${isAvailable ?? true};`}</p>
+                        </div>
+                    </CoverBanner>
                 </div>
 
                 {/* Avatar */}

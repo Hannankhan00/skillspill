@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Copy, Check } from "lucide-react";
+import CommentThread from "@/app/feed/components/CommentThread";
 
 /* ═══════════════════════════════════════════════
    S K I L L S P I L L  —  T A L E N T  F E E D
@@ -66,7 +67,10 @@ export default function TalentFeed() {
     const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
     const [savedPosts, setSavedPosts] = useState<Record<string, boolean>>({});
     const [copiedStatus, setCopiedStatus] = useState<Record<string, boolean>>({});
-    
+    const [openComments, setOpenComments] = useState<Record<string, boolean>>({});
+    const [overrideCommentsCount, setOverrideCommentsCount] = useState<Record<string, number>>({});
+    const [openMenu, setOpenMenu] = useState<string | null>(null);
+
     // Real feed data
     const [posts, setPosts] = useState<any[]>([]);
     const [loadingPosts, setLoadingPosts] = useState(true);
@@ -114,6 +118,21 @@ export default function TalentFeed() {
         setTimeout(() => {
             setCopiedStatus(p => ({ ...p, [id]: false }));
         }, 2000);
+    };
+
+    const handleReport = async (targetType: "POST" | "USER", targetId: string) => {
+        try {
+            const res = await fetch("/api/report", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ targetType, targetId, reason: "Inappropriate content" })
+            });
+            if (res.ok) alert("Report submitted to admin successfully.");
+            else alert("Failed to submit report.");
+        } catch (e) {
+            console.error(e);
+        }
+        setOpenMenu(null);
     };
 
     const tabs = ["For You", "Following", "Trending", "Code", "Jobs"];
@@ -199,9 +218,21 @@ export default function TalentFeed() {
                                                 </p>
                                             </div>
                                         </div>
-                                        <button className="text-[var(--theme-text-muted)] hover:text-[var(--theme-text-tertiary)] transition-colors bg-transparent border-none cursor-pointer p-1">
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" /></svg>
-                                        </button>
+                                        <div className="relative">
+                                            <button onClick={() => setOpenMenu(openMenu === post.id ? null : post.id)} className="text-[var(--theme-text-muted)] hover:text-[var(--theme-text-tertiary)] transition-colors bg-transparent border-none cursor-pointer p-1">
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" /></svg>
+                                            </button>
+                                            {openMenu === post.id && (
+                                                <div className="absolute right-0 top-8 w-40 bg-[var(--theme-bg-secondary)] border border-[var(--theme-border)] rounded-xl shadow-lg z-20 py-1 flex flex-col overflow-hidden">
+                                                    <button onClick={() => handleReport("POST", post.id)} className="px-4 py-2.5 text-left text-[12px] font-medium text-red-400 hover:bg-black/20 hover:text-red-300 border-none bg-transparent cursor-pointer transition-colors">
+                                                        Report Post
+                                                    </button>
+                                                    <button onClick={() => handleReport("USER", post.user?.id)} className="px-4 py-2.5 text-left text-[12px] font-medium text-red-400 hover:bg-black/20 hover:text-red-300 border-none bg-transparent cursor-pointer transition-colors">
+                                                        Report Account
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
 
                                     {/* Content (Caption) */}
@@ -277,8 +308,8 @@ export default function TalentFeed() {
                                                 <HeartIcon filled={isLiked} />
                                                 <span>{post.likesCount + (isLiked && !post.liked ? 1 : 0)}</span>
                                             </button>
-                                            <button className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--theme-text-muted)] hover:text-blue-500 transition-all bg-transparent border-none cursor-pointer">
-                                                <CommentIcon /> {post.commentsCount || 0}
+                                            <button onClick={() => setOpenComments(p => ({ ...p, [post.id]: !p[post.id] }))} className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--theme-text-muted)] hover:text-blue-500 transition-all bg-transparent border-none cursor-pointer">
+                                                <CommentIcon /> {(overrideCommentsCount[post.id] !== undefined ? overrideCommentsCount[post.id] : post.commentsCount) || 0}
                                             </button>
                                             <button className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--theme-text-muted)] hover:text-[#3CF91A] transition-all bg-transparent border-none cursor-pointer">
                                                 <ShareIcon /> {post.repostsCount || 0}
@@ -289,6 +320,17 @@ export default function TalentFeed() {
                                             <BookmarkIcon filled={isSaved} />
                                         </button>
                                     </div>
+
+                                    {/* Comments Thread */}
+                                    {openComments[post.id] && (
+                                        <div className="px-5 pb-4">
+                                            <CommentThread
+                                                postId={post.id}
+                                                commentsCount={overrideCommentsCount[post.id] !== undefined ? overrideCommentsCount[post.id] : post.commentsCount}
+                                                onCountChange={(n: number) => setOverrideCommentsCount(p => ({ ...p, [post.id]: n }))}
+                                            />
+                                        </div>
+                                    )}
                                 </article>
                             );
                         })}
