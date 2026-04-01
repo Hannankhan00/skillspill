@@ -32,7 +32,11 @@ export default function SpillFeedPage() {
             const res = await fetch(`/api/spill/posts?${params}`);
             const data = await res.json();
             if (data.posts) {
-                setPosts(prev => reset ? data.posts : [...prev, ...data.posts]);
+                setPosts(prev => {
+                    if (reset) return data.posts;
+                    const newPosts = data.posts.filter((p: any) => !prev.some(existing => existing.id === p.id));
+                    return [...prev, ...newPosts];
+                });
                 setCursor(data.nextCursor);
                 setHasMore(data.hasMore);
             }

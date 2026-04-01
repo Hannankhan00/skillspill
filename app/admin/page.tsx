@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { ThemeToggle } from "@/app/components/ThemeProvider";
 import { compressImageClient } from "@/lib/client-compress";
+import PostCard from "@/app/feed/components/PostCard";
 
 /* ═══════════════════════════════════════════
    DESIGN TOKENS
@@ -138,6 +139,9 @@ export default function AdminPage() {
     // Reports state
     const [reports, setReports] = useState<any[]>([]);
     const [reportsLoading, setReportsLoading] = useState(false);
+    const [previewReportId, setPreviewReportId] = useState<string | null>(null);
+    const [previewPost, setPreviewPost] = useState<any | null>(null);
+    const [previewLoading, setPreviewLoading] = useState(false);
 
     // Suspension modal state
     const [suspendUserId, setSuspendUserId] = useState<string | null>(null);
@@ -184,6 +188,51 @@ export default function AdminPage() {
         } catch { console.error("Failed to fetch reports"); }
         finally { setReportsLoading(false); }
     }, []);
+
+    const handlePreviewPost = async (reportId: string, postId: string) => {
+        setPreviewReportId(reportId);
+        setPreviewLoading(true);
+        setPreviewPost(null);
+        try {
+            const res = await fetch(`/api/spill/posts/${postId}`);
+            const data = await res.json();
+            if (res.ok && data.post) setPreviewPost(data.post);
+            else alert(data.error || "Failed to fetch post");
+        } catch { alert("Network error fetching post"); }
+        finally { setPreviewLoading(false); }
+    };
+
+    const handleDismissReport = async (reportId: string | null) => {
+        if (!reportId) return;
+        try {
+            const res = await fetch(`/api/admin/reports/${reportId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: "DISMISSED" })
+            });
+            if (res.ok) {
+                setPreviewReportId(null);
+                fetchReports();
+            } else alert("Failed to dismiss report");
+        } catch { alert("Network error"); }
+    };
+
+    const handleDeleteReportedPost = async (reportId: string | null, postId: string | undefined) => {
+        if (!reportId || !postId) return;
+        if (!confirm("Are you sure you want to delete this post?")) return;
+        try {
+            const res = await fetch(`/api/spill/posts/${postId}`, { method: "DELETE" });
+            if (res.ok) {
+                await fetch(`/api/admin/reports/${reportId}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ status: "RESOLVED" }) 
+                });
+                setPreviewReportId(null);
+                fetchReports();
+            } else alert("Failed to delete post");
+        } catch { alert("Network error"); }
+    };
 
     useEffect(() => { if (activeTab === "users" || activeTab === "dashboard") fetchUsers(); }, [activeTab, fetchUsers]);
     useEffect(() => { if (activeTab === "appeals") fetchAppeals(); }, [activeTab, fetchAppeals]);
@@ -309,7 +358,7 @@ export default function AdminPage() {
     const logLines = [
         { type: "OK", color: T.talent, text: "Node-04 synced with global cluster." },
         { type: "INFO", color: T.admin, text: "Session refresh executed for admin." },
-        { type: "WARN", color: "#F59E0B", text: `Unauthorized API attempt from 192.168.${Math.floor(Math.random() * 255)}.x` },
+        { type: "WARN", color: "#F59E0B", text: `Unauthorized API attempt from 192.168.42.x` },
     ];
 
     return (
@@ -848,7 +897,7 @@ export default function AdminPage() {
                             <div className="rounded-xl overflow-hidden" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
                                 <table className="w-full text-left">
                                     <thead><tr style={{ borderBottom: `1px solid ${T.cardBorder}` }}>
-                                        {["Target", "Type", "Reporter", "Reason", "Date"].map((h) => (
+                                        {["Target", "Type", "Reporter", "Reason", "Date", "Actions"].map((h) => (
                                             <th key={h} className="text-[10px] uppercase tracking-[1.5px] font-bold py-3.5 px-5" style={{ color: T.textSecondary, ...mono }}>{h}</th>
                                         ))}
                                     </tr></thead>
@@ -874,10 +923,23 @@ export default function AdminPage() {
                                                 <td className="py-3.5 px-5 group-hover:bg-white/[0.02]">
                                                     <span className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>{new Date(r.createdAt).toLocaleDateString()}</span>
                                                 </td>
+                                                <td className="py-3.5 px-5 group-hover:bg-white/[0.02]">
+                                                    {r.targetType === "POST" && r.status === "PENDING" && (
+                                                        <button 
+                                                            onClick={() => handlePreviewPost(r.id, r.targetId)}
+                                                            className="px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider border cursor-pointer transition-all"
+                                                            style={{ background: `${T.admin}15`, borderColor: `${T.admin}30`, color: T.admin, ...mono }}>
+                                                            Preview
+                                                        </button>
+                                                    )}
+                                                    {r.status !== "PENDING" && (
+                                                        <span className="text-[10px] font-bold uppercase" style={{ color: T.textSecondary }}>{r.status}</span>
+                                                    )}
+                                                </td>
                                             </tr>
                                         ))}
-                                        {reports.length === 0 && !reportsLoading && <tr><td colSpan={5} className="text-center py-12 text-sm" style={{ color: T.textSecondary }}>No reports found</td></tr>}
-                                        {reportsLoading && <tr><td colSpan={5} className="text-center py-12 text-sm" style={{ color: T.textSecondary }}>
+                                        {reports.length === 0 && !reportsLoading && <tr><td colSpan={6} className="text-center py-12 text-sm" style={{ color: T.textSecondary }}>No reports found</td></tr>}
+                                        {reportsLoading && <tr><td colSpan={6} className="text-center py-12 text-sm" style={{ color: T.textSecondary }}>
                                             <span className="inline-block w-4 h-4 border-2 rounded-full animate-spin mr-2 align-middle" style={{ borderColor: `${T.admin}30`, borderTopColor: T.admin }} />Loading...
                                         </td></tr>}
                                     </tbody>
@@ -885,6 +947,57 @@ export default function AdminPage() {
                             </div>
                         </div>
                     )}
+
+                    {/* ══════════ POST PREVIEW MODAL ══════════ */}
+                    {previewReportId && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
+                            <div className="w-full max-w-2xl rounded-2xl overflow-hidden max-h-[90vh] flex flex-col" style={{ background: T.card, border: `1px solid ${T.cardBorder}`, boxShadow: `0 0 60px ${T.admin}15` }}>
+                                {/* Modal Header */}
+                                <div className="flex items-center justify-between px-6 py-4 border-b shrink-0" style={{ borderColor: T.cardBorder }}>
+                                    <div className="flex items-center gap-3">
+                                        {I.eye()}
+                                        <h2 className="text-base font-bold" style={{ color: T.textPrimary, ...sans }}>Post Preview</h2>
+                                    </div>
+                                    <button onClick={() => setPreviewReportId(null)}
+                                        className="w-8 h-8 rounded-lg flex items-center justify-center border-none cursor-pointer transition-all hover:bg-white/10"
+                                        style={{ color: T.textSecondary, background: "transparent" }}>{I.x()}</button>
+                                </div>
+                                {/* Modal Body */}
+                                <div className="p-6 overflow-y-auto flex-1">
+                                    {previewLoading ? (
+                                        <div className="flex flex-col items-center justify-center py-12">
+                                            <span className="inline-block w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: `${T.admin}30`, borderTopColor: T.admin }} />
+                                            <span className="mt-4 text-[12px] font-semibold" style={{ color: T.textSecondary, ...mono }}>Loading post data...</span>
+                                        </div>
+                                    ) : previewPost ? (
+                                        <div className="pointer-events-none">
+                                            {/* We use pointer-events-none so admin doesn't interact playfully with the preview, they should just look at it */}
+                                            <PostCard post={previewPost} currentUserId={null as any} />
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-12 text-[13px]" style={{ color: T.danger }}>
+                                            Failed to load post. It may have been already deleted.
+                                        </div>
+                                    )}
+                                </div>
+                                {/* Modal Actions */}
+                                <div className="p-4 border-t shrink-0 flex gap-3" style={{ borderColor: T.cardBorder, background: T.bg }}>
+                                    <button onClick={() => handleDismissReport(previewReportId)}
+                                        className="flex-1 py-3 rounded-xl text-[12px] font-bold border-none cursor-pointer transition-all hover:brightness-110"
+                                        style={{ background: T.sidebar, color: T.textPrimary, ...mono, border: `1px solid ${T.cardBorder}` }}>
+                                        Deny Report
+                                    </button>
+                                    <button onClick={() => handleDeleteReportedPost(previewReportId, previewPost?.id)}
+                                        disabled={!previewPost}
+                                        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[12px] font-bold border-none cursor-pointer transition-all hover:brightness-110 disabled:opacity-50"
+                                        style={{ background: T.danger, color: "#fff", ...mono }}>
+                                        {I.x()} Delete Post
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
 
                     {/* ══════════ SUSPENSION REASON MODAL ══════════ */}
                     {suspendUserId && (

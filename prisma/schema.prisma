@@ -304,15 +304,19 @@ model SpillComment {
   id        String   @id @default(cuid())
   postId    String
   userId    String
+  parentId  String?
   content   String   @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  post SpillPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post    SpillPost     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent  SpillComment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies SpillComment[] @relation("CommentReplies")
 
   @@index([postId, createdAt])
   @@index([userId])
+  @@index([parentId])
   @@map("spill_comments")
 }
 

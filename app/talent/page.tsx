@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { Copy, Check } from "lucide-react";
 import CommentThread from "@/app/feed/components/CommentThread";
+import ReportModal from "@/app/components/ReportModal";
+import { CoverBanner } from "@/app/components/CoverBanners";
 
 /* ═══════════════════════════════════════════════
    S K I L L S P I L L  —  T A L E N T  F E E D
@@ -70,6 +72,11 @@ export default function TalentFeed() {
     const [openComments, setOpenComments] = useState<Record<string, boolean>>({});
     const [overrideCommentsCount, setOverrideCommentsCount] = useState<Record<string, number>>({});
     const [openMenu, setOpenMenu] = useState<string | null>(null);
+    const [reportModalData, setReportModalData] = useState<{isOpen: boolean, targetType: "POST" | "USER", targetId: string}>({ isOpen: false, targetType: "POST", targetId: "" });
+
+    // In-flight guards — keyed by post ID to prevent double-tap race conditions
+    const likeInFlight = useRef<Record<string, boolean>>({});
+    const saveInFlight = useRef<Record<string, boolean>>({});
 
     // Real feed data
     const [posts, setPosts] = useState<any[]>([]);
@@ -103,14 +110,42 @@ export default function TalentFeed() {
             .catch(() => setLoadingPosts(false));
     }, [feedTab]);
 
-    const toggleLike = async (id: string, currentlyLiked: boolean) => {
+    const toggleLike = useCallback(async (id: string, currentlyLiked: boolean) => {
+        if (likeInFlight.current[id]) return;
+        likeInFlight.current[id] = true;
+
         setLikedPosts(p => ({ ...p, [id]: !currentlyLiked }));
-        try { await fetch(`/api/spill/posts/${id}/like`, { method: "POST" }); } catch {}
-    };
-    const toggleSave = async (id: string, currentlySaved: boolean) => {
+        try {
+            const res = await fetch(`/api/spill/posts/${id}/like`, { method: "POST" });
+            if (res.ok) {
+                const data = await res.json();
+                setLikedPosts(p => ({ ...p, [id]: data.liked }));
+                // Update the post's likesCount in the posts array
+                setPosts(prev => prev.map(p => p.id === id ? { ...p, likesCount: Math.max(0, data.likesCount) } : p));
+            } else {
+                setLikedPosts(p => ({ ...p, [id]: currentlyLiked }));
+            }
+        } catch {
+            setLikedPosts(p => ({ ...p, [id]: currentlyLiked }));
+        } finally {
+            likeInFlight.current[id] = false;
+        }
+    }, []);
+
+    const toggleSave = useCallback(async (id: string, currentlySaved: boolean) => {
+        if (saveInFlight.current[id]) return;
+        saveInFlight.current[id] = true;
+
         setSavedPosts(p => ({ ...p, [id]: !currentlySaved }));
-        try { await fetch(`/api/spill/posts/${id}/save`, { method: "POST" }); } catch {}
-    };
+        try {
+            const res = await fetch(`/api/spill/posts/${id}/save`, { method: "POST" });
+            if (!res.ok) setSavedPosts(p => ({ ...p, [id]: currentlySaved }));
+        } catch {
+            setSavedPosts(p => ({ ...p, [id]: currentlySaved }));
+        } finally {
+            saveInFlight.current[id] = false;
+        }
+    }, []);
 
     const handleCopyCode = (id: string, code: string) => {
         navigator.clipboard.writeText(code);
@@ -120,18 +155,9 @@ export default function TalentFeed() {
         }, 2000);
     };
 
-    const handleReport = async (targetType: "POST" | "USER", targetId: string) => {
-        try {
-            const res = await fetch("/api/report", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ targetType, targetId, reason: "Inappropriate content" })
-            });
-            if (res.ok) alert("Report submitted to admin successfully.");
-            else alert("Failed to submit report.");
-        } catch (e) {
-            console.error(e);
-        }
+    const handleReport = (targetType: "POST" | "USER", targetId: string) => {
+        if (!targetId) return;
+        setReportModalData({ isOpen: true, targetType, targetId });
         setOpenMenu(null);
     };
 
@@ -140,16 +166,27 @@ export default function TalentFeed() {
     // Compute user data or fallbacks
     const username = userData?.username || "Guest";
     const fullName = userData?.fullName || "Hacker";
+    const avatarUrl = userData?.avatarUrl || "";
+    const coverUrl = userData?.coverUrl || "2";
     const initials = fullName
         ? fullName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
         : "??";
-    const spillsCount = userData?.spills?.length || 0;
+    const spillsCount = userData?.spillPosts?.length ?? userData?.spills?.length ?? 0;
+    const followersCount = userData?._count?.followers ?? 0;
+    const followingCount = userData?._count?.following ?? 0;
     const currentJob = userData?.talentProfile?.workExperience?.find((w: any) => w.isCurrent);
     const roleLine = currentJob
         ? `${currentJob.role}`
         : userData?.talentProfile?.experienceLevel
             ? `${userData.talentProfile.experienceLevel.charAt(0) + userData.talentProfile.experienceLevel.slice(1).toLowerCase()} Developer`
             : "Developer";
+
+    // Format large numbers nicely (1234 -> 1.2k)
+    const fmtCount = (n: number) => {
+        if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'm';
+        if (n >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, '') + 'k';
+        return String(n);
+    };
 
     return (
         <div style={{ background: "var(--theme-bg)" }} className="min-h-full">
@@ -199,6 +236,7 @@ export default function TalentFeed() {
                                     {/* Header */}
                                     <div className="flex items-center justify-between px-5 pt-4 pb-2">
                                         <div className="flex items-center gap-3">
+                                            <Link href={userData?.id === post.userId ? "/talent/profile" : (post.user?.role === "TALENT" ? `/talent/talent/${post.user?.id}` : `/talent/recruiter/${post.user?.id}`)}>
                                             {post.user?.avatarUrl ? (
                                                 <img src={post.user.avatarUrl} alt={pFullName} className="w-10 h-10 rounded-full object-cover shadow-md" />
                                             ) : (
@@ -206,9 +244,11 @@ export default function TalentFeed() {
                                                     {pInitials}
                                                 </div>
                                             )}
+                                            </Link>
                                             <div>
                                                 <div className="flex items-center gap-1.5">
-                                                    <span className="text-[13px] font-bold text-[var(--theme-text-primary)]">{pUsername}</span>
+                                                    <Link href={userData?.id === post.userId ? "/talent/profile" : (post.user?.role === "TALENT" ? `/talent/talent/${post.user?.id}` : `/talent/recruiter/${post.user?.id}`)}
+                                                        className="text-[13px] font-bold text-[var(--theme-text-primary)] no-underline hover:underline">{pUsername}</Link>
                                                     {pVerified && (
                                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="#8B5CF6"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#fff" strokeWidth="2" /></svg>
                                                     )}
@@ -328,6 +368,8 @@ export default function TalentFeed() {
                                                 postId={post.id}
                                                 commentsCount={overrideCommentsCount[post.id] !== undefined ? overrideCommentsCount[post.id] : post.commentsCount}
                                                 onCountChange={(n: number) => setOverrideCommentsCount(p => ({ ...p, [post.id]: n }))}
+                                                currentUserRole="TALENT"
+                                                currentUserId={userData?.id}
                                             />
                                         </div>
                                     )}
@@ -341,28 +383,40 @@ export default function TalentFeed() {
 
                         {/* —— Profile Card Mini —— */}
                         <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
-                            <div className="h-16 bg-gradient-to-r from-[#3CF91A] to-cyan-500" />
+                            {/* Cover Banner */}
+                            <div className="h-16 relative overflow-hidden">
+                                <CoverBanner coverId={coverUrl} />
+                            </div>
                             <div className="px-4 pb-4 -mt-6">
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-[#2edb13] flex items-center justify-center text-white text-[14px] font-bold shadow-lg border-2 border-[var(--theme-card)] relative z-10">
-                                    {initials}
-                                </div>
+                                {/* Avatar */}
+                                {avatarUrl ? (
+                                    <img
+                                        src={avatarUrl}
+                                        alt={fullName}
+                                        className="w-12 h-12 rounded-full object-cover shadow-lg border-2 border-[var(--theme-card)] relative z-10"
+                                    />
+                                ) : (
+                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-[#2edb13] flex items-center justify-center text-white text-[14px] font-bold shadow-lg border-2 border-[var(--theme-card)] relative z-10">
+                                        {initials}
+                                    </div>
+                                )}
                                 <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mt-2">
                                     <Link href="/talent/profile" className="text-[var(--theme-text-primary)] hover:text-[#3CF91A] no-underline transition-colors">{username}</Link>
                                 </h3>
                                 <p className="text-[11px] text-[var(--theme-text-muted)] mb-3">{roleLine} &bull; Lv.1</p>
                                 <div className="flex items-center gap-4 text-center">
                                     <div>
-                                        <p className="text-[14px] font-bold text-[var(--theme-text-secondary)]">{spillsCount}</p>
+                                        <p className="text-[14px] font-bold text-[var(--theme-text-secondary)]">{fmtCount(spillsCount)}</p>
                                         <p className="text-[9px] text-[var(--theme-text-muted)] uppercase tracking-wider">Spills</p>
                                     </div>
                                     <div className="w-px h-6" style={{ background: "var(--theme-border)" }} />
                                     <div>
-                                        <p className="text-[14px] font-bold text-[var(--theme-text-secondary)]">1.2k</p>
+                                        <p className="text-[14px] font-bold text-[var(--theme-text-secondary)]">{fmtCount(followersCount)}</p>
                                         <p className="text-[9px] text-[var(--theme-text-muted)] uppercase tracking-wider">Followers</p>
                                     </div>
                                     <div className="w-px h-6" style={{ background: "var(--theme-border)" }} />
                                     <div>
-                                        <p className="text-[14px] font-bold text-[var(--theme-text-secondary)]">847</p>
+                                        <p className="text-[14px] font-bold text-[var(--theme-text-secondary)]">{fmtCount(followingCount)}</p>
                                         <p className="text-[9px] text-[var(--theme-text-muted)] uppercase tracking-wider">Following</p>
                                     </div>
                                 </div>
@@ -433,6 +487,14 @@ export default function TalentFeed() {
                     </div>
                 </div>
             </div>
+            
+            {/* Report Modal */}
+            <ReportModal 
+                isOpen={reportModalData.isOpen}
+                onClose={() => setReportModalData(prev => ({ ...prev, isOpen: false }))}
+                targetId={reportModalData.targetId}
+                targetType={reportModalData.targetType}
+            />
         </div>
     );
 }

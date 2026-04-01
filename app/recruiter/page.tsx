@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { Sparkles, Briefcase, Target, BarChart2, Copy, Check } from "lucide-react";
+import { CoverBanner } from "@/app/components/CoverBanners";
+import CommentThread from "@/app/feed/components/CommentThread";
 
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    S K I L L S P I L L  —  R E C R U I T E R  F E E D
@@ -69,6 +71,12 @@ export default function RecruiterFeed() {
     const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
     const [savedPosts, setSavedPosts] = useState<Record<string, boolean>>({});
     const [copiedStatus, setCopiedStatus] = useState<Record<string, boolean>>({});
+    const [openComments, setOpenComments] = useState<Record<string, boolean>>({});
+    const [overrideCommentsCount, setOverrideCommentsCount] = useState<Record<string, number>>({});
+    
+    // In-flight guards keyed by post ID
+    const likeInFlight = useRef<Record<string, boolean>>({});
+    const saveInFlight = useRef<Record<string, boolean>>({});
     
     // Real feed data
     const [posts, setPosts] = useState<any[]>([]);
@@ -102,14 +110,41 @@ export default function RecruiterFeed() {
             .catch(() => setLoadingPosts(false));
     }, [feedTab]);
 
-    const toggleLike = async (id: string, currentlyLiked: boolean) => {
+    const toggleLike = useCallback(async (id: string, currentlyLiked: boolean) => {
+        if (likeInFlight.current[id]) return;
+        likeInFlight.current[id] = true;
+
         setLikedPosts(p => ({ ...p, [id]: !currentlyLiked }));
-        try { await fetch(`/api/spill/posts/${id}/like`, { method: "POST" }); } catch {}
-    };
-    const toggleSave = async (id: string, currentlySaved: boolean) => {
+        try {
+            const res = await fetch(`/api/spill/posts/${id}/like`, { method: "POST" });
+            if (res.ok) {
+                const data = await res.json();
+                setLikedPosts(p => ({ ...p, [id]: data.liked }));
+                setPosts(prev => prev.map(p => p.id === id ? { ...p, likesCount: Math.max(0, data.likesCount) } : p));
+            } else {
+                setLikedPosts(p => ({ ...p, [id]: currentlyLiked }));
+            }
+        } catch {
+            setLikedPosts(p => ({ ...p, [id]: currentlyLiked }));
+        } finally {
+            likeInFlight.current[id] = false;
+        }
+    }, []);
+
+    const toggleSave = useCallback(async (id: string, currentlySaved: boolean) => {
+        if (saveInFlight.current[id]) return;
+        saveInFlight.current[id] = true;
+
         setSavedPosts(p => ({ ...p, [id]: !currentlySaved }));
-        try { await fetch(`/api/spill/posts/${id}/save`, { method: "POST" }); } catch {}
-    };
+        try {
+            const res = await fetch(`/api/spill/posts/${id}/save`, { method: "POST" });
+            if (!res.ok) setSavedPosts(p => ({ ...p, [id]: currentlySaved }));
+        } catch {
+            setSavedPosts(p => ({ ...p, [id]: currentlySaved }));
+        } finally {
+            saveInFlight.current[id] = false;
+        }
+    }, []);
 
     const handleCopyCode = (id: string, code: string) => {
         navigator.clipboard.writeText(code);
@@ -124,6 +159,17 @@ export default function RecruiterFeed() {
     const companyName = userData?.recruiterProfile?.companyName || "Company";
     const jobTitle = userData?.recruiterProfile?.jobTitle || "Talent Scout";
     const initials = companyName ? companyName.substring(0, 2).toUpperCase() : "RC";
+    const avatarUrl = userData?.avatarUrl || "";
+    const coverUrl = userData?.coverUrl || "1";
+    const followersCount = userData?._count?.followers ?? 0;
+    const followingCount = userData?._count?.following ?? 0;
+    const spillsCount = userData?.spillPosts?.length ?? 0;
+
+    const fmtCount = (n: number) => {
+        if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'm';
+        if (n >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, '') + 'k';
+        return String(n);
+    };
 
 
     return (
@@ -177,6 +223,7 @@ export default function RecruiterFeed() {
                                     {/* Header */}
                                     <div className="flex items-center justify-between px-5 pt-4 pb-2">
                                         <div className="flex items-center gap-3">
+                                            <Link href={userData?.id === post.userId ? "/recruiter/profile" : (post.user?.role === "TALENT" ? `/recruiter/talent/${post.user?.id}` : `/recruiter/recruiter/${post.user?.id}`)}>
                                             {post.user?.avatarUrl ? (
                                                 <img src={post.user.avatarUrl} alt={pFullName} className="w-10 h-10 rounded-full object-cover shadow-md" />
                                             ) : (
@@ -184,9 +231,11 @@ export default function RecruiterFeed() {
                                                     {pInitials}
                                                 </div>
                                             )}
+                                            </Link>
                                             <div>
                                                 <div className="flex items-center gap-1.5">
-                                                    <span className="text-[13px] font-bold text-[var(--theme-text-primary)]">{pUsername}</span>
+                                                    <Link href={userData?.id === post.userId ? "/recruiter/profile" : (post.user?.role === "TALENT" ? `/recruiter/talent/${post.user?.id}` : `/recruiter/recruiter/${post.user?.id}`)}
+                                                        className="text-[13px] font-bold text-[var(--theme-text-primary)] no-underline hover:underline">{pUsername}</Link>
                                                     {pVerified && (
                                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="#8B5CF6"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#fff" strokeWidth="2" /></svg>
                                                     )}
@@ -287,8 +336,8 @@ export default function RecruiterFeed() {
                                                 <HeartIcon filled={isLiked} />
                                                 <span>{post.likesCount + (isLiked && !post.liked ? 1 : 0)}</span>
                                             </button>
-                                            <button className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--theme-text-muted)] hover:text-blue-500 transition-all bg-transparent border-none cursor-pointer">
-                                                <CommentIcon /> {post.commentsCount || 0}
+                                            <button onClick={() => setOpenComments(p => ({ ...p, [post.id]: !p[post.id] }))} className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--theme-text-muted)] hover:text-blue-500 transition-all bg-transparent border-none cursor-pointer">
+                                                <CommentIcon /> {(overrideCommentsCount[post.id] !== undefined ? overrideCommentsCount[post.id] : post.commentsCount) || 0}
                                             </button>
                                             <button className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--theme-text-muted)] hover:text-[#A855F7] transition-all bg-transparent border-none cursor-pointer">
                                                 <ShareIcon /> {post.repostsCount || 0}
@@ -299,6 +348,19 @@ export default function RecruiterFeed() {
                                             <BookmarkIcon filled={isSaved} />
                                         </button>
                                     </div>
+
+                                    {/* Comments Thread */}
+                                    {openComments[post.id] && (
+                                        <div className="px-5 pb-4">
+                                            <CommentThread
+                                                postId={post.id}
+                                                commentsCount={overrideCommentsCount[post.id] !== undefined ? overrideCommentsCount[post.id] : post.commentsCount}
+                                                onCountChange={(n: number) => setOverrideCommentsCount(p => ({ ...p, [post.id]: n }))}
+                                                currentUserRole="RECRUITER"
+                                                currentUserId={userData?.id}
+                                            />
+                                        </div>
+                                    )}
                                 </article>
                             );
                         })}
@@ -309,25 +371,31 @@ export default function RecruiterFeed() {
 
                         {/* ── Company Card ── */}
                         <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
-                            <div className="h-16 bg-gradient-to-r from-purple-500 to-indigo-600" />
+                            <div className="h-16 relative overflow-hidden">
+                                <CoverBanner coverId={coverUrl} />
+                            </div>
                             <div className="px-4 pb-4 -mt-6">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-400 to-violet-600 flex items-center justify-center text-white text-[13px] font-bold shadow-lg border-2 border-white">
-                                    {initials}
-                                </div>
+                                {avatarUrl ? (
+                                    <img src={avatarUrl} alt={companyName} className="w-12 h-12 rounded-xl object-cover shadow-lg border-2 border-white relative z-10" />
+                                ) : (
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-400 to-violet-600 flex items-center justify-center text-white text-[13px] font-bold shadow-lg border-2 border-white relative z-10">
+                                        {initials}
+                                    </div>
+                                )}
                                 <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mt-2">{companyName}</h3>
                                 <p className="text-[11px] text-[var(--theme-text-muted)] mb-3">{jobTitle} • SkillSpill</p>
                                 <div className="grid grid-cols-3 gap-2 text-center">
                                     <div className="bg-[#A855F7]/10 rounded-lg py-2">
-                                        <p className="text-[14px] font-bold text-[#A855F7]">3</p>
-                                        <p className="text-[8px] text-[var(--theme-text-muted)] uppercase tracking-wider font-semibold">Jobs</p>
+                                        <p className="text-[14px] font-bold text-[#A855F7]">{fmtCount(spillsCount)}</p>
+                                        <p className="text-[8px] text-[var(--theme-text-muted)] uppercase tracking-wider font-semibold">Spills</p>
                                     </div>
                                     <div className="bg-indigo-500/10 rounded-lg py-2">
-                                        <p className="text-[14px] font-bold text-indigo-500">38</p>
-                                        <p className="text-[8px] text-[var(--theme-text-muted)] uppercase tracking-wider font-semibold">Applicants</p>
+                                        <p className="text-[14px] font-bold text-indigo-500">{fmtCount(followersCount)}</p>
+                                        <p className="text-[8px] text-[var(--theme-text-muted)] uppercase tracking-wider font-semibold">Followers</p>
                                     </div>
                                     <div className="bg-emerald-500/10 rounded-lg py-2">
-                                        <p className="text-[14px] font-bold text-emerald-500">2</p>
-                                        <p className="text-[8px] text-[var(--theme-text-muted)] uppercase tracking-wider font-semibold">Hires</p>
+                                        <p className="text-[14px] font-bold text-emerald-500">{fmtCount(followingCount)}</p>
+                                        <p className="text-[8px] text-[var(--theme-text-muted)] uppercase tracking-wider font-semibold">Following</p>
                                     </div>
                                 </div>
                             </div>

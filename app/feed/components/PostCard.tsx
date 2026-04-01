@@ -1,8 +1,9 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import CommentThread from "./CommentThread";
 import FollowButton from "@/app/components/FollowButton";
+import ReportModal from "@/app/components/ReportModal";
 
 function timeAgo(dateStr: string) {
     const diff = Date.now() - new Date(dateStr).getTime();
@@ -122,26 +123,105 @@ export default function PostCard({ post, currentUserId, currentUserRole, onDelet
     const [showMenu, setShowMenu] = useState(false);
     const [expanded, setExpanded] = useState(false);
     const [toast, setToast] = useState("");
+    const [reportModalData, setReportModalData] = useState<{isOpen: boolean, targetType: "POST" | "USER", targetId: string}>({ isOpen: false, targetType: "POST", targetId: "" });
+
+    // In-flight guards prevent double-tap race conditions
+    const likeInFlight = useRef(false);
+    const repostInFlight = useRef(false);
+    const saveInFlight = useRef(false);
 
     const isOwn = currentUserId === post.userId;
     const user = post.user;
     const hashtags: string[] = Array.isArray(post.hashtags) ? post.hashtags : [];
     const captionLong = post.caption && post.caption.length > 150;
 
-    const toggleLike = async () => {
-        setLiked(!liked); setLikesCount((c: number) => liked ? c - 1 : c + 1);
-        try { await fetch(`/api/spill/posts/${post.id}/like`, { method: "POST" }); } catch { setLiked(liked); setLikesCount(likesCount); }
+    // Build the correct profile link
+    const getProfileHref = () => {
+        if (isOwn) {
+            return currentUserRole === "RECRUITER" ? "/recruiter/profile" : "/talent/profile";
+        }
+        // Viewing someone else's profile
+        if (currentUserRole === "RECRUITER") {
+            return user.role === "TALENT" ? `/recruiter/talent/${user.id}` : `/recruiter/recruiter/${user.id}`;
+        }
+        return user.role === "TALENT" ? `/talent/talent/${user.id}` : `/talent/recruiter/${user.id}`;
     };
+    const profileHref = getProfileHref();
 
-    const toggleSave = async () => {
-        setSaved(!saved);
-        try { await fetch(`/api/spill/posts/${post.id}/save`, { method: "POST" }); } catch { setSaved(saved); }
-    };
+    const toggleLike = useCallback(async () => {
+        if (likeInFlight.current) return; // block rapid double-clicks
+        likeInFlight.current = true;
 
-    const toggleRepost = async () => {
-        setReposted(!reposted); setRepostsCount((c: number) => reposted ? c - 1 : c + 1);
-        try { await fetch(`/api/spill/posts/${post.id}/repost`, { method: "POST" }); } catch { setReposted(reposted); setRepostsCount(repostsCount); }
-    };
+        const prevLiked = liked;
+        const prevCount = likesCount;
+
+        // Optimistic update (floor at 0)
+        setLiked(!prevLiked);
+        setLikesCount(prevLiked ? Math.max(0, prevCount - 1) : prevCount + 1);
+
+        try {
+            const res = await fetch(`/api/spill/posts/${post.id}/like`, { method: "POST" });
+            if (res.ok) {
+                const data = await res.json();
+                // Reconcile with server truth
+                setLiked(data.liked);
+                setLikesCount(Math.max(0, data.likesCount));
+            } else {
+                // Revert on server error
+                setLiked(prevLiked);
+                setLikesCount(prevCount);
+            }
+        } catch {
+            // Revert on network failure
+            setLiked(prevLiked);
+            setLikesCount(prevCount);
+        } finally {
+            likeInFlight.current = false;
+        }
+    }, [liked, likesCount, post.id]);
+
+    const toggleSave = useCallback(async () => {
+        if (saveInFlight.current) return;
+        saveInFlight.current = true;
+        const prev = saved;
+        setSaved(!prev);
+        try {
+            const res = await fetch(`/api/spill/posts/${post.id}/save`, { method: "POST" });
+            if (!res.ok) setSaved(prev);
+        } catch {
+            setSaved(prev);
+        } finally {
+            saveInFlight.current = false;
+        }
+    }, [saved, post.id]);
+
+    const toggleRepost = useCallback(async () => {
+        if (repostInFlight.current) return;
+        repostInFlight.current = true;
+
+        const prevReposted = reposted;
+        const prevCount = repostsCount;
+
+        setReposted(!prevReposted);
+        setRepostsCount(prevReposted ? Math.max(0, prevCount - 1) : prevCount + 1);
+
+        try {
+            const res = await fetch(`/api/spill/posts/${post.id}/repost`, { method: "POST" });
+            if (res.ok) {
+                const data = await res.json();
+                setReposted(data.reposted);
+                if (typeof data.repostsCount === 'number') setRepostsCount(Math.max(0, data.repostsCount));
+            } else {
+                setReposted(prevReposted);
+                setRepostsCount(prevCount);
+            }
+        } catch {
+            setReposted(prevReposted);
+            setRepostsCount(prevCount);
+        } finally {
+            repostInFlight.current = false;
+        }
+    }, [reposted, repostsCount, post.id]);
 
     const handleShare = () => {
         navigator.clipboard.writeText(`${window.location.origin}/feed?post=${post.id}`);
@@ -151,6 +231,12 @@ export default function PostCard({ post, currentUserId, currentUserRole, onDelet
     const handleDelete = async () => {
         if (!confirm("Delete this post?")) return;
         try { await fetch(`/api/spill/posts/${post.id}`, { method: "DELETE" }); onDeleted?.(post.id); } catch { alert("Failed to delete"); }
+    };
+
+    const handleReport = (targetType: "POST" | "USER", targetId: string) => {
+        if (!targetId) return;
+        setReportModalData({ isOpen: true, targetType, targetId });
+        setShowMenu(false);
     };
 
     return (
@@ -166,12 +252,12 @@ export default function PostCard({ post, currentUserId, currentUserRole, onDelet
                 {/* Header */}
                 <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
-                        <Link href={user.role === "TALENT" ? "/talent/profile" : "/recruiter/profile"}>
+                        <Link href={profileHref}>
                             <Avatar user={user} size={40} />
                         </Link>
                         <div>
                             <div className="flex items-center gap-2">
-                                <Link href={user.role === "TALENT" ? "/talent/profile" : "/recruiter/profile"} className="text-[13px] font-bold no-underline" style={{ color: "var(--theme-text-primary)" }}>{user.fullName}</Link>
+                                <Link href={profileHref} className="text-[13px] font-bold no-underline hover:underline" style={{ color: "var(--theme-text-primary)" }}>{user.fullName}</Link>
                                 <span className={`text-[9px] px-2 py-0.5 rounded-full font-semibold ${user.role === "TALENT" ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400" : "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400"}`}>
                                     {user.role === "TALENT" ? "Talent" : "Recruiter"}
                                 </span>
@@ -202,7 +288,8 @@ export default function PostCard({ post, currentUserId, currentUserRole, onDelet
                                     </>
                                 ) : (
                                     <>
-                                        <button className="w-full px-4 py-2 text-left text-[12px] hover:bg-[var(--theme-input-bg)] bg-transparent border-none cursor-pointer" style={{ color: "var(--theme-text-tertiary)" }}>Report post</button>
+                                        <button onClick={() => handleReport("POST", post.id)} className="w-full px-4 py-2 text-left text-[12px] hover:bg-[var(--theme-input-bg)] bg-transparent border-none cursor-pointer" style={{ color: "var(--theme-text-tertiary)" }}>Report post</button>
+                                        <button onClick={() => handleReport("USER", user.id)} className="w-full px-4 py-2 text-left text-[12px] hover:bg-[var(--theme-input-bg)] bg-transparent border-none cursor-pointer" style={{ color: "var(--theme-text-tertiary)" }}>Report account</button>
                                         <button className="w-full px-4 py-2 text-left text-[12px] hover:bg-[var(--theme-input-bg)] bg-transparent border-none cursor-pointer" style={{ color: "var(--theme-text-tertiary)" }}>Not interested</button>
                                     </>
                                 )}
@@ -273,7 +360,7 @@ export default function PostCard({ post, currentUserId, currentUserRole, onDelet
 
                 {/* Comment thread */}
                 {showComments && (
-                    <CommentThread postId={post.id} commentsCount={commentsCount} onCountChange={setCommentsCount} />
+                    <CommentThread postId={post.id} commentsCount={commentsCount} onCountChange={setCommentsCount} currentUserRole={currentUserRole} currentUserId={currentUserId} />
                 )}
             </div>
 
@@ -283,6 +370,13 @@ export default function PostCard({ post, currentUserId, currentUserRole, onDelet
                     {toast}
                 </div>
             )}
+
+            <ReportModal 
+                isOpen={reportModalData.isOpen}
+                onClose={() => setReportModalData(prev => ({ ...prev, isOpen: false }))}
+                targetId={reportModalData.targetId}
+                targetType={reportModalData.targetType}
+            />
         </article>
     );
 }
