@@ -148,23 +148,23 @@ function LoginPageInner() {
                             {tab === "login" && (
                                 <form onSubmit={submit} className="flex flex-col gap-5">
                                     {/* Email */}
-                                    <div className="flex flex-col gap-1.5">
+                                    <div className="flex flex-col gap-2">
                                         <label className="text-[0.82rem] font-bold text-white tracking-wide">Quantum Address (Email)</label>
-                                        <div className={`flex items-center bg-[#111118] border rounded-lg transition-all duration-200 focus-within:border-[#A855F7]/50 focus-within:shadow-[0_0_0_2px_rgba(168,85,247,0.08)] ${error && !email ? "border-[#FF003C]/40" : "border-white/[0.06]"}`}>
-                                            <input type="email" className="flex-1 bg-transparent border-none text-white py-3 px-4 text-[0.85rem] outline-none placeholder:text-[#3a3a48]" style={mono} placeholder="name@domain.future" value={email} onChange={(e) => { setEmail(e.target.value); setError(""); }} id="login-email" autoComplete="email" />
-                                            <span className="pr-3.5 text-[#3a3a48]"><IconAt /></span>
+                                        <div className={`flex items-center bg-white border rounded-xl overflow-hidden transition-all duration-200 focus-within:border-[#A855F7] focus-within:shadow-[0_0_0_3px_rgba(168,85,247,0.15)] ${error && !email ? "border-[#FF003C]/70" : "border-white/10"}`}>
+                                            <input type="email" className="flex-1 min-w-0 bg-transparent border-none text-[#0c0c10] py-3.5 px-4 text-[0.88rem] sm:text-[0.85rem] outline-none placeholder:text-[#aaa]" style={mono} placeholder="name@domain.future" value={email} onChange={(e) => { setEmail(e.target.value); setError(""); }} id="login-email" autoComplete="email" />
+                                            <span className="flex items-center justify-center w-11 h-full text-[#666] shrink-0"><IconAt /></span>
                                         </div>
                                     </div>
 
                                     {/* Password */}
-                                    <div className="flex flex-col gap-1.5">
+                                    <div className="flex flex-col gap-2">
                                         <div className="flex items-center justify-between">
                                             <label className="text-[0.82rem] font-bold text-white tracking-wide">Access Key</label>
-                                            <a href="/forgot-password" className="text-[0.7rem] text-[#A855F7] no-underline hover:text-[#c084fc] transition-colors font-semibold tracking-wide" id="login-forgot">Lost Key?</a>
+                                            <a href="/forgot-password" className="text-[0.72rem] text-[#A855F7] no-underline hover:text-[#c084fc] transition-colors font-semibold tracking-wide" id="login-forgot">Lost Key?</a>
                                         </div>
-                                        <div className={`flex items-center bg-[#111118] border rounded-lg transition-all duration-200 focus-within:border-[#A855F7]/50 focus-within:shadow-[0_0_0_2px_rgba(168,85,247,0.08)] ${error && !password ? "border-[#FF003C]/40" : "border-white/[0.06]"}`}>
-                                            <input type={showPw ? "text" : "password"} className="flex-1 bg-transparent border-none text-white py-3 px-4 text-[0.85rem] outline-none placeholder:text-[#3a3a48]" style={mono} placeholder="••••••••••••" value={password} onChange={(e) => { setPassword(e.target.value); setError(""); }} id="login-password" autoComplete="current-password" />
-                                            <button type="button" onClick={() => setShowPw(!showPw)} className="bg-transparent border-none text-[#3a3a48] pr-3.5 cursor-pointer hover:text-[#A855F7] transition-colors flex items-center" id="login-toggle-pw">
+                                        <div className={`flex items-center bg-white border rounded-xl overflow-hidden transition-all duration-200 focus-within:border-[#A855F7] focus-within:shadow-[0_0_0_3px_rgba(168,85,247,0.15)] ${error && !password ? "border-[#FF003C]/70" : "border-white/10"}`}>
+                                            <input type={showPw ? "text" : "password"} className="flex-1 min-w-0 bg-transparent border-none text-[#0c0c10] py-3.5 px-4 text-[0.88rem] sm:text-[0.85rem] outline-none placeholder:text-[#aaa]" style={mono} placeholder="••••••••••••" value={password} onChange={(e) => { setPassword(e.target.value); setError(""); }} id="login-password" autoComplete="current-password" />
+                                            <button type="button" onClick={() => setShowPw(!showPw)} className="flex items-center justify-center w-11 h-full bg-transparent border-none text-[#666] cursor-pointer hover:text-[#A855F7] transition-colors shrink-0" id="login-toggle-pw">
                                                 {showPw ? <IconLockOpen /> : <IconLockClosed />}
                                             </button>
                                         </div>

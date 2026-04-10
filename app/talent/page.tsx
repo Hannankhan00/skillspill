@@ -199,12 +199,12 @@ export default function TalentFeed() {
 
 
                         {/* —— Feed Tabs —— */}
-                        <div className="flex items-center gap-1 px-1 overflow-x-auto">
+                        <div className="flex items-center w-full">
                             {tabs.map((tab) => (
                                 <button
                                     key={tab}
                                     onClick={() => setFeedTab(tab)}
-                                    className={`px-4 py-2 rounded-xl text-[12px] font-semibold transition-all duration-200 border-none cursor-pointer whitespace-nowrap
+                                    className={`flex-1 py-2 rounded-xl text-[11px] sm:text-[12px] font-semibold transition-all duration-200 border-none cursor-pointer text-center
                                         ${feedTab === tab
                                             ? "bg-[var(--theme-card)] text-[var(--theme-text-primary)] shadow-sm border border-[var(--theme-border)]"
                                             : "bg-transparent text-[var(--theme-text-muted)] hover:text-[var(--theme-text-tertiary)] hover:bg-[var(--theme-card)]/50"
