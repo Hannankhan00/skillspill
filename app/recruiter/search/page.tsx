@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
-import { Sparkles, Loader2, Users, Briefcase, Search, MapPin, ChevronRight } from "lucide-react";
+import { Sparkles, Loader2, Users, Briefcase, Search, MapPin, ChevronRight, ExternalLink, Hash, UserCheck } from "lucide-react";
 
 const accent = "#A855F7";
 
@@ -45,6 +45,19 @@ interface UserResult {
     };
 }
 
+// Loose UUID / cuid / nanoid detection
+function looksLikeId(val: string): boolean {
+    if (/^c[a-z0-9]{20,}$/i.test(val)) return true;
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val)) return true;
+    if (/^[A-Za-z0-9_-]{21}$/.test(val)) return true;
+    return false;
+}
+
+interface IdLookupResult {
+    status: "idle" | "loading" | "found" | "notfound";
+    user: UserResult | null;
+}
+
 const ROLE_FILTERS: { label: string; value: RoleFilter; icon: React.ReactNode }[] = [
     { label: "Everyone", value: "ALL", icon: <Users className="w-3.5 h-3.5" /> },
     { label: "Talents", value: "TALENT", icon: <Sparkles className="w-3.5 h-3.5" /> },
@@ -56,6 +69,7 @@ export default function SearchPage() {
     const [roleFilter, setRoleFilter] = useState<RoleFilter>("ALL");
     const [users, setUsers] = useState<UserResult[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [idLookup, setIdLookup] = useState<IdLookupResult>({ status: "idle", user: null });
 
     // Fetch once on mount (server-side filtering for roles, client-side text search)
     useEffect(() => {
@@ -67,6 +81,28 @@ export default function SearchPage() {
             .catch(console.error)
             .finally(() => setIsLoading(false));
     }, [roleFilter]);
+
+    // --- Direct ID lookup ---
+    const lookupById = useCallback((id: string) => {
+        setIdLookup({ status: "loading", user: null });
+        fetch(`/api/search/by-id?id=${encodeURIComponent(id)}`)
+            .then(r => r.json())
+            .then(d => {
+                if (d.user) setIdLookup({ status: "found", user: d.user });
+                else setIdLookup({ status: "notfound", user: null });
+            })
+            .catch(() => setIdLookup({ status: "notfound", user: null }));
+    }, []);
+
+    useEffect(() => {
+        const trimmed = searchTerm.trim();
+        if (!looksLikeId(trimmed)) {
+            setIdLookup({ status: "idle", user: null });
+            return;
+        }
+        const t = setTimeout(() => lookupById(trimmed), 300);
+        return () => clearTimeout(t);
+    }, [searchTerm, lookupById]);
 
     // Client-side text search on top
     const results = useMemo(() => {
@@ -150,6 +186,27 @@ export default function SearchPage() {
                         )}
                     </div>
                 </div>
+
+                {/* ── DIRECT ID MATCH BANNER ── */}
+                {idLookup.status === "loading" && (
+                    <div className="flex items-center gap-3 rounded-2xl border p-4 mb-3"
+                        style={{ borderColor: `${accent}40`, background: `${accent}08` }}>
+                        <Loader2 className="w-4 h-4 animate-spin shrink-0" style={{ color: accent }} />
+                        <span className="text-[13px] font-medium" style={{ color: accent }}>Looking up profile ID…</span>
+                    </div>
+                )}
+
+                {idLookup.status === "notfound" && (
+                    <div className="flex items-center gap-3 rounded-2xl border p-4 mb-3"
+                        style={{ borderColor: "#ef444440", background: "#ef444408" }}>
+                        <Hash className="w-4 h-4 shrink-0 text-red-400" />
+                        <span className="text-[13px] font-medium text-red-400">No user found with that ID.</span>
+                    </div>
+                )}
+
+                {idLookup.status === "found" && idLookup.user && (
+                    <DirectIdCard user={idLookup.user} accent={accent} />
+                )}
 
                 {/* RESULTS */}
                 {isLoading ? (
@@ -343,6 +400,102 @@ function RecruiterCard({ user, index, accent }: { user: UserResult; index: numbe
                             {website.replace(/^https?:\/\//, "")}
                         </a>
                     )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ── Direct ID match card ───────────────────────────────────────────
+function DirectIdCard({ user, accent }: { user: UserResult; accent: string }) {
+    const isTalent = user.role === "TALENT";
+    const profileHref = isTalent
+        ? `/recruiter/talent/${user.id}`
+        : `/recruiter/recruiter/${user.id}`;
+
+    const subtitle = isTalent
+        ? user.talentProfile?.experienceLevel
+            ? `${user.talentProfile.experienceLevel.charAt(0) + user.talentProfile.experienceLevel.slice(1).toLowerCase()} Developer`
+            : "Talent"
+        : user.recruiterProfile?.companyName
+            ? `Recruiter at ${user.recruiterProfile.companyName}`
+            : "Recruiter";
+
+    const bio = isTalent ? user.talentProfile?.bio : user.recruiterProfile?.bio;
+    const skills = user.talentProfile?.skills?.map(s => s.skillName) ?? [];
+
+    return (
+        <div
+            className="rounded-2xl border p-4 sm:p-5 mb-3 transition-all"
+            style={{
+                background: `${accent}06`,
+                borderColor: `${accent}50`,
+                boxShadow: `0 0 0 1px ${accent}20, 0 4px 24px ${accent}10`,
+            }}
+        >
+            <div className="flex items-center gap-2 mb-3">
+                <UserCheck className="w-3.5 h-3.5" style={{ color: accent }} />
+                <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: accent }}>
+                    Direct ID Match
+                </span>
+            </div>
+
+            <div className="flex gap-3 sm:gap-4 items-center">
+                <div
+                    className="w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-white text-[15px] sm:text-[18px] font-bold shrink-0"
+                    style={{ background: `linear-gradient(135deg, ${accent}, #7C3AED)` }}
+                >
+                    {getInitials(user.fullName)}
+                </div>
+
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <h2 className="text-[15px] sm:text-[16px] font-bold text-[var(--theme-text-primary)]">
+                                    {user.fullName}
+                                </h2>
+                                <span className="text-[11px] text-[var(--theme-text-muted)]">@{user.username}</span>
+                                <span
+                                    className="text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest"
+                                    style={{ background: `${accent}15`, color: accent, border: `1px solid ${accent}30` }}
+                                >
+                                    {isTalent ? "Talent" : "Recruiter"}
+                                </span>
+                            </div>
+                            <p className="text-[12px] text-[var(--theme-text-secondary)] mt-0.5">{subtitle}</p>
+                            {bio && (
+                                <p className="text-[12px] text-[var(--theme-text-muted)] mt-1.5 leading-relaxed line-clamp-2 hidden sm:block">
+                                    {bio}
+                                </p>
+                            )}
+                            {skills.length > 0 && (
+                                <div className="flex flex-wrap gap-1.5 mt-2">
+                                    {skills.slice(0, 5).map(s => (
+                                        <span key={s} className="px-2 py-0.5 rounded-md text-[10px] font-medium"
+                                            style={{ background: "var(--theme-input-bg)", border: "1px solid var(--theme-border-light)", color: "var(--theme-text-secondary)" }}>
+                                            {s}
+                                        </span>
+                                    ))}
+                                    {skills.length > 5 && (
+                                        <span className="px-2 py-0.5 rounded-md text-[10px] font-medium"
+                                            style={{ background: "var(--theme-input-bg)", border: "1px solid var(--theme-border-light)", color: "var(--theme-text-muted)" }}>
+                                            +{skills.length - 5} more
+                                        </span>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        <Link
+                            href={profileHref}
+                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-[12px] font-bold text-white no-underline transition-all hover:scale-105 shrink-0"
+                            style={{ background: `linear-gradient(135deg, ${accent}, #7C3AED)` }}
+                        >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            View Profile
+                        </Link>
+                    </div>
                 </div>
             </div>
         </div>

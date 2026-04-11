@@ -3,10 +3,8 @@ import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 // ─── POST /api/spill/posts/[id]/like — Toggle like ───
-// Uses an interactive transaction to avoid race conditions.
-// The unique constraint on (postId, userId) prevents duplicate likes,
-// and the count is always derived from the atomic increment/decrement
-// result rather than a stale read.
+// Always recomputes likesCount from the actual SpillLike row count
+// so the counter can never drift, regardless of prior inconsistencies.
 export async function POST(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -17,11 +15,9 @@ export async function POST(
 
         const { id } = await params;
 
-        // Use an interactive transaction so the check + write + count update
-        // are serialized per-row, preventing double-likes and negative counts.
         const result = await prisma.$transaction(async (tx) => {
-            // Lock the post row first (the subsequent update will hold the lock)
-            const post = await tx.spillPost.findUnique({ where: { id } });
+            // Verify post exists
+            const post = await tx.spillPost.findUnique({ where: { id }, select: { id: true } });
             if (!post) throw new Error("NOT_FOUND");
 
             const existing = await tx.spillLike.findUnique({
@@ -29,35 +25,25 @@ export async function POST(
             });
 
             if (existing) {
-                // Unlike — delete the like row, then decrement (floored at 0)
+                // Unlike — remove the row
                 await tx.spillLike.delete({ where: { id: existing.id } });
-                const updated = await tx.spillPost.update({
-                    where: { id },
-                    data: { likesCount: { decrement: 1 } },
-                    select: { likesCount: true },
-                });
-                // Floor at 0 — if something drifted negative, correct it
-                if (updated.likesCount < 0) {
-                    const corrected = await tx.spillPost.update({
-                        where: { id },
-                        data: { likesCount: 0 },
-                        select: { likesCount: true },
-                    });
-                    return { liked: false, likesCount: corrected.likesCount };
-                }
-                return { liked: false, likesCount: updated.likesCount };
             } else {
-                // Like — create the like row, then increment
+                // Like — add the row
                 await tx.spillLike.create({
                     data: { postId: id, userId: session.userId },
                 });
-                const updated = await tx.spillPost.update({
-                    where: { id },
-                    data: { likesCount: { increment: 1 } },
-                    select: { likesCount: true },
-                });
-                return { liked: true, likesCount: updated.likesCount };
             }
+
+            // Always recount from actual rows — self-heals any prior drift
+            const realCount = await tx.spillLike.count({ where: { postId: id } });
+
+            // Sync the denormalized counter to the real count
+            await tx.spillPost.update({
+                where: { id },
+                data: { likesCount: realCount },
+            });
+
+            return { liked: !existing, likesCount: realCount };
         });
 
         return NextResponse.json(result);

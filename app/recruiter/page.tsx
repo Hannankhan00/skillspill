@@ -114,18 +114,33 @@ export default function RecruiterFeed() {
         if (likeInFlight.current[id]) return;
         likeInFlight.current[id] = true;
 
+        // Optimistic update
         setLikedPosts(p => ({ ...p, [id]: !currentlyLiked }));
+        setPosts(prev => prev.map(p => p.id === id
+            ? { ...p, likesCount: Math.max(0, p.likesCount + (currentlyLiked ? -1 : 1)) }
+            : p
+        ));
         try {
             const res = await fetch(`/api/spill/posts/${id}/like`, { method: "POST" });
             if (res.ok) {
                 const data = await res.json();
+                // Reconcile with server truth
                 setLikedPosts(p => ({ ...p, [id]: data.liked }));
-                setPosts(prev => prev.map(p => p.id === id ? { ...p, likesCount: Math.max(0, data.likesCount) } : p));
+                setPosts(prev => prev.map(p => p.id === id ? { ...p, likesCount: data.likesCount } : p));
             } else {
+                // Revert
                 setLikedPosts(p => ({ ...p, [id]: currentlyLiked }));
+                setPosts(prev => prev.map(p => p.id === id
+                    ? { ...p, likesCount: Math.max(0, p.likesCount + (currentlyLiked ? 1 : -1)) }
+                    : p
+                ));
             }
         } catch {
             setLikedPosts(p => ({ ...p, [id]: currentlyLiked }));
+            setPosts(prev => prev.map(p => p.id === id
+                ? { ...p, likesCount: Math.max(0, p.likesCount + (currentlyLiked ? 1 : -1)) }
+                : p
+            ));
         } finally {
             likeInFlight.current[id] = false;
         }
@@ -334,7 +349,7 @@ export default function RecruiterFeed() {
                                             <button onClick={() => toggleLike(post.id, isLiked)}
                                                 className={`flex items-center gap-1.5 text-[12px] font-medium transition-all bg-transparent border-none cursor-pointer ${isLiked ? "text-red-500" : "text-[var(--theme-text-muted)] hover:text-red-500"}`}>
                                                 <HeartIcon filled={isLiked} />
-                                                <span>{post.likesCount + (isLiked && !post.liked ? 1 : 0)}</span>
+                                                <span>{post.likesCount}</span>
                                             </button>
                                             <button onClick={() => setOpenComments(p => ({ ...p, [post.id]: !p[post.id] }))} className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--theme-text-muted)] hover:text-blue-500 transition-all bg-transparent border-none cursor-pointer">
                                                 <CommentIcon /> {(overrideCommentsCount[post.id] !== undefined ? overrideCommentsCount[post.id] : post.commentsCount) || 0}

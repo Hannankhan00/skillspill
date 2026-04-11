@@ -113,11 +113,12 @@ function HiringCard({ post }: { post: any }) {
 }
 
 export default function PostCard({ post, currentUserId, currentUserRole, onDeleted }: { post: any; currentUserId?: string; currentUserRole?: string; onDeleted?: (id: string) => void }) {
-    const [liked, setLiked] = useState(post.isLiked);
-    const [likesCount, setLikesCount] = useState(post.likesCount);
-    const [saved, setSaved] = useState(post.isSaved);
-    const [reposted, setReposted] = useState(post.isReposted);
-    const [repostsCount, setRepostsCount] = useState(post.repostsCount);
+    // Coerce to stable primitives — avoids undefined sneaking in from the API shape
+    const [liked, setLiked] = useState<boolean>(!!post.isLiked);
+    const [likesCount, setLikesCount] = useState<number>(Number(post.likesCount) || 0);
+    const [saved, setSaved] = useState<boolean>(!!post.isSaved);
+    const [reposted, setReposted] = useState<boolean>(!!post.isReposted);
+    const [repostsCount, setRepostsCount] = useState<number>(Number(post.repostsCount) || 0);
     const [showComments, setShowComments] = useState(false);
     const [commentsCount, setCommentsCount] = useState(post.commentsCount);
     const [showMenu, setShowMenu] = useState(false);
