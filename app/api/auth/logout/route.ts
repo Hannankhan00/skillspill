@@ -3,7 +3,7 @@ import { destroySession } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(req: NextRequest) {
+export async function POST(_req: NextRequest) {
     await destroySession();
     return NextResponse.json({ success: true, redirectTo: "/login" });
 }

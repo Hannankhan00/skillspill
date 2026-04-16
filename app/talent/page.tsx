@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, Loader2 } from "lucide-react";
 import CommentThread from "@/app/feed/components/CommentThread";
 import ReportModal from "@/app/components/ReportModal";
 import ShareModal from "@/app/components/ShareModal";
@@ -64,6 +64,31 @@ const jobSuggestions = [
     { title: "Full-Stack Lead", company: "SkillDAO", budget: "$10k", match: "87%" },
 ];
 
+/* ═══════════════ SKELETON ═══════════════ */
+function PostSkeleton() {
+    return (
+        <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) overflow-hidden animate-pulse">
+            <div className="flex items-center gap-3 px-5 pt-4 pb-2">
+                <div className="w-10 h-10 rounded-full bg-(--theme-border)" />
+                <div className="flex-1 space-y-1.5">
+                    <div className="h-3 bg-(--theme-border) rounded w-28" />
+                    <div className="h-2.5 bg-(--theme-border) rounded w-20" />
+                </div>
+            </div>
+            <div className="px-5 py-3 space-y-2">
+                <div className="h-3 bg-(--theme-border) rounded w-full" />
+                <div className="h-3 bg-(--theme-border) rounded w-4/5" />
+                <div className="h-3 bg-(--theme-border) rounded w-3/5" />
+            </div>
+            <div className="flex items-center gap-5 px-5 py-3 border-t border-(--theme-border-light)">
+                <div className="h-3 bg-(--theme-border) rounded w-10" />
+                <div className="h-3 bg-(--theme-border) rounded w-10" />
+                <div className="h-3 bg-(--theme-border) rounded w-10" />
+            </div>
+        </div>
+    );
+}
+
 /* ═══════════════ MAIN FEED ═══════════════ */
 export default function TalentFeed() {
     const [feedTab, setFeedTab] = useState("For You");
@@ -83,6 +108,10 @@ export default function TalentFeed() {
     // Real feed data
     const [posts, setPosts] = useState<any[]>([]);
     const [loadingPosts, setLoadingPosts] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [hasMore, setHasMore] = useState(false);
+    const cursorRef = useRef<string | null>(null);
+    const sentinelRef = useRef<HTMLDivElement>(null);
 
     // Fetch live user data for the mini profile card
     const [userData, setUserData] = useState<any>(null);
@@ -97,20 +126,56 @@ export default function TalentFeed() {
             .catch(console.error);
     }, []);
 
-    // Fetch the Feed Posts
+    // Fetch the Feed Posts (initial / tab change)
     useEffect(() => {
         setLoadingPosts(true);
+        setPosts([]);
+        cursorRef.current = null;
+        setHasMore(false);
         let filter = "all";
         if (feedTab === "Following") filter = "following";
         if (feedTab === "Trending") filter = "trending";
-        fetch(`/api/spill/posts?limit=20&filter=${filter}`)
+        fetch(`/api/spill/posts?limit=10&filter=${filter}`)
             .then(res => res.json())
             .then(data => {
                 if (data.posts) setPosts(data.posts);
+                cursorRef.current = data.nextCursor ?? null;
+                setHasMore(data.hasMore ?? false);
                 setLoadingPosts(false);
             })
             .catch(() => setLoadingPosts(false));
     }, [feedTab]);
+
+    // Fetch next page
+    const fetchMore = useCallback(async () => {
+        if (!cursorRef.current || loadingMore) return;
+        setLoadingMore(true);
+        let filter = "all";
+        if (feedTab === "Following") filter = "following";
+        if (feedTab === "Trending") filter = "trending";
+        try {
+            const res = await fetch(`/api/spill/posts?limit=10&filter=${filter}&cursor=${cursorRef.current}`);
+            const data = await res.json();
+            if (data.posts) {
+                setPosts(prev => [...prev, ...data.posts]);
+                cursorRef.current = data.nextCursor ?? null;
+                setHasMore(data.hasMore ?? false);
+            }
+        } catch { /* noop */ }
+        setLoadingMore(false);
+    }, [loadingMore, feedTab]);
+
+    // IntersectionObserver sentinel for infinite scroll
+    useEffect(() => {
+        const el = sentinelRef.current;
+        if (!el) return;
+        const observer = new IntersectionObserver(
+            (entries) => { if (entries[0].isIntersecting) fetchMore(); },
+            { rootMargin: "400px" }
+        );
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, [fetchMore]);
 
     const toggleLike = useCallback(async (id: string, currentlyLiked: boolean) => {
         if (likeInFlight.current[id]) return;
@@ -206,7 +271,7 @@ export default function TalentFeed() {
 
     return (
         <div style={{ background: "var(--theme-bg)" }} className="min-h-full">
-            <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-5">
+            <div className="max-w-275 mx-auto px-4 sm:px-6 py-5">
                 <div className="flex flex-col lg:flex-row gap-6">
 
                     {/* ════════ MAIN FEED ════════ */}
@@ -222,8 +287,8 @@ export default function TalentFeed() {
                                     onClick={() => setFeedTab(tab)}
                                     className={`flex-1 py-2 rounded-xl text-[11px] sm:text-[12px] font-semibold transition-all duration-200 border-none cursor-pointer text-center
                                         ${feedTab === tab
-                                            ? "bg-[var(--theme-card)] text-[var(--theme-text-primary)] shadow-sm border border-[var(--theme-border)]"
-                                            : "bg-transparent text-[var(--theme-text-muted)] hover:text-[var(--theme-text-tertiary)] hover:bg-[var(--theme-card)]/50"
+                                            ? "bg-(--theme-card) text-(--theme-text-primary) shadow-sm border border-(--theme-border)"
+                                            : "bg-transparent text-(--theme-text-muted) hover:text-(--theme-text-tertiary) hover:bg-(--theme-card)/50"
                                         }`}
                                 >
                                     {tab}
@@ -233,7 +298,7 @@ export default function TalentFeed() {
 
                         {/* —— Posts —— */}
                         {loadingPosts ? (
-                            <div className="py-10 text-center text-[var(--theme-text-muted)] animate-pulse">Loading spill activity...</div>
+                            <>{[0, 1, 2].map(i => <PostSkeleton key={i} />)}</>
                         ) : posts.map((post) => {
                             const isLiked = likedPosts[post.id] !== undefined ? likedPosts[post.id] : post.isLiked;
                             const isSaved = savedPosts[post.id] !== undefined ? savedPosts[post.id] : post.isSaved;
@@ -248,15 +313,15 @@ export default function TalentFeed() {
                             const pTags = Array.isArray(post.hashtags) ? post.hashtags : [];
 
                             return (
-                                <article key={post.id} className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+                                <article key={post.id} className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
                                     {/* Header */}
                                     <div className="flex items-center justify-between px-5 pt-4 pb-2">
                                         <div className="flex items-center gap-3">
                                             <Link href={userData?.id === post.userId ? "/talent/profile" : (post.user?.role === "TALENT" ? `/talent/talent/${post.user?.id}` : `/talent/recruiter/${post.user?.id}`)}>
                                             {post.user?.avatarUrl ? (
-                                                <img src={post.user.avatarUrl} alt={pFullName} className="w-10 h-10 rounded-full object-cover shadow-md" />
+                                                <img src={post.user.avatarUrl} alt={pFullName} loading="lazy" className="w-10 h-10 rounded-full object-cover shadow-md" />
                                             ) : (
-                                                <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${pGrad} flex items-center justify-center text-white text-[11px] font-bold shadow-md`}>
+                                                <div className={`w-10 h-10 rounded-full bg-linear-to-br ${pGrad} flex items-center justify-center text-white text-[11px] font-bold shadow-md`}>
                                                     {pInitials}
                                                 </div>
                                             )}
@@ -264,22 +329,22 @@ export default function TalentFeed() {
                                             <div>
                                                 <div className="flex items-center gap-1.5">
                                                     <Link href={userData?.id === post.userId ? "/talent/profile" : (post.user?.role === "TALENT" ? `/talent/talent/${post.user?.id}` : `/talent/recruiter/${post.user?.id}`)}
-                                                        className="text-[13px] font-bold text-[var(--theme-text-primary)] no-underline hover:underline">{pUsername}</Link>
+                                                        className="text-[13px] font-bold text-(--theme-text-primary) no-underline hover:underline">{pUsername}</Link>
                                                     {pVerified && (
                                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="#8B5CF6"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#fff" strokeWidth="2" /></svg>
                                                     )}
                                                 </div>
-                                                <p className="text-[11px] text-[var(--theme-text-muted)]">
+                                                <p className="text-[11px] text-(--theme-text-muted)">
                                                     {pRole} &bull; <span style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{pTime} ago</span>
                                                 </p>
                                             </div>
                                         </div>
                                         <div className="relative">
-                                            <button onClick={() => setOpenMenu(openMenu === post.id ? null : post.id)} className="text-[var(--theme-text-muted)] hover:text-[var(--theme-text-tertiary)] transition-colors bg-transparent border-none cursor-pointer p-1">
+                                            <button onClick={() => setOpenMenu(openMenu === post.id ? null : post.id)} className="text-(--theme-text-muted) hover:text-(--theme-text-tertiary) transition-colors bg-transparent border-none cursor-pointer p-1">
                                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" /></svg>
                                             </button>
                                             {openMenu === post.id && (
-                                                <div className="absolute right-0 top-8 w-40 bg-[var(--theme-bg-secondary)] border border-[var(--theme-border)] rounded-xl shadow-lg z-20 py-1 flex flex-col overflow-hidden">
+                                                <div className="absolute right-0 top-8 w-40 bg-(--theme-bg-secondary) border border-(--theme-border) rounded-xl shadow-lg z-20 py-1 flex flex-col overflow-hidden">
                                                     <button onClick={() => handleReport("POST", post.id)} className="px-4 py-2.5 text-left text-[12px] font-medium text-red-400 hover:bg-black/20 hover:text-red-300 border-none bg-transparent cursor-pointer transition-colors">
                                                         Report Post
                                                     </button>
@@ -294,7 +359,7 @@ export default function TalentFeed() {
                                     {/* Content (Caption) */}
                                     {post.caption && (
                                         <div className="px-5 py-3">
-                                            <p className="text-[13px] text-[var(--theme-text-secondary)] leading-relaxed whitespace-pre-line">{post.caption}</p>
+                                            <p className="text-[13px] text-(--theme-text-secondary) leading-relaxed whitespace-pre-line">{post.caption}</p>
                                         </div>
                                     )}
 
@@ -303,7 +368,7 @@ export default function TalentFeed() {
                                         <div className="px-5 mb-3">
                                             <div className={`grid gap-1 rounded-xl overflow-hidden ${post.media.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
                                                 {post.media.map((m: any, i: number) => (
-                                                    <img key={i} src={m.url} alt="Post media" className="w-full h-auto object-cover max-h-[400px] border border-[var(--theme-border-light)]" />
+                                                    <img key={i} src={m.url} alt="Post media" loading="lazy" className="w-full h-auto object-cover max-h-[400px] border border-(--theme-border-light)" />
                                                 ))}
                                             </div>
                                         </div>
@@ -312,7 +377,7 @@ export default function TalentFeed() {
                                     {/* Video */}
                                     {post.videoUrl && (
                                         <div className="px-5 mb-3">
-                                            <video controls className="w-full rounded-xl max-h-[500px] object-cover border border-[var(--theme-border-light)]" poster={post.thumbnailUrl || undefined} preload="metadata">
+                                            <video controls className="w-full rounded-xl max-h-125 object-cover border border-(--theme-border-light)" poster={post.thumbnailUrl || undefined} preload="metadata">
                                                 <source src={post.videoUrl} />
                                             </video>
                                         </div>
@@ -320,26 +385,26 @@ export default function TalentFeed() {
 
                                     {/* Code Snippet */}
                                     {post.code && (
-                                        <div className="mx-5 mb-3 rounded-xl overflow-hidden border border-[var(--theme-border)]">
-                                            <div className="flex items-center justify-between px-3.5 py-2 bg-[var(--theme-bg-secondary)] border-b border-[var(--theme-border-light)]">
+                                        <div className="mx-5 mb-3 rounded-xl overflow-hidden border border-(--theme-border)">
+                                            <div className="flex items-center justify-between px-3.5 py-2 bg-(--theme-bg-secondary) border-b border-(--theme-border-light)">
                                                 <div className="flex items-center gap-1.5">
                                                     <div className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" />
                                                     <div className="w-2.5 h-2.5 rounded-full bg-[#FFBD2E]" />
                                                     <div className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
                                                 </div>
                                                 <div className="flex items-center gap-3">
-                                                    <span className="text-[9px] text-[var(--theme-text-muted)] uppercase tracking-wider font-bold"
+                                                    <span className="text-[9px] text-(--theme-text-muted) uppercase tracking-wider font-bold"
                                                         style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{post.codeLang}</span>
                                                     <button 
                                                         onClick={() => handleCopyCode(post.id, post.code)}
-                                                        className="flex items-center justify-center bg-transparent border-none cursor-pointer text-[var(--theme-text-muted)] hover:text-[#3CF91A] transition-colors"
+                                                        className="flex items-center justify-center bg-transparent border-none cursor-pointer text-(--theme-text-muted) hover:text-primary transition-colors"
                                                         title="Copy Code"
                                                     >
-                                                        {copiedStatus[post.id] ? <Check size={14} className="text-[#3CF91A]" /> : <Copy size={14} />}
+                                                        {copiedStatus[post.id] ? <Check size={14} className="text-primary" /> : <Copy size={14} />}
                                                     </button>
                                                 </div>
                                             </div>
-                                            <pre className="px-4 py-3 text-[11px] leading-relaxed overflow-x-auto bg-[#1E1E2E] text-[#3CF91A] m-0"
+                                            <pre className="px-4 py-3 text-[11px] leading-relaxed overflow-x-auto bg-[#1E1E2E] text-primary m-0"
                                                 style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }}>
                                                 <code>{post.code}</code>
                                             </pre>
@@ -349,7 +414,7 @@ export default function TalentFeed() {
                                     {/* Tags */}
                                     <div className="flex flex-wrap gap-1.5 px-5 pb-3">
                                         {pTags.map((tag: string) => (
-                                            <span key={tag} className="text-[10px] px-2 py-0.5 rounded-md bg-[var(--theme-bg-secondary)] border border-[var(--theme-border)] text-[var(--theme-text-muted)] font-medium cursor-pointer hover:border-[#3CF91A] hover:text-[#2edb13] hover:bg-[#3CF91A]/10 transition-all"
+                                            <span key={tag} className="text-[10px] px-2 py-0.5 rounded-md bg-(--theme-bg-secondary) border border-(--theme-border) text-(--theme-text-muted) font-medium cursor-pointer hover:border-primary hover:text-[#2edb13] hover:bg-primary/10 transition-all"
                                                 style={{ fontFamily: "var(--font-jetbrains-mono)" }}>
                                                 #{tag}
                                             </span>
@@ -357,24 +422,24 @@ export default function TalentFeed() {
                                     </div>
 
                                     {/* Actions */}
-                                    <div className="flex items-center justify-between px-5 py-3 border-t border-[var(--theme-border-light)]">
+                                    <div className="flex items-center justify-between px-5 py-3 border-t border-(--theme-border-light)">
                                         <div className="flex items-center gap-5">
                                             <button onClick={() => toggleLike(post.id, isLiked)}
-                                                className={`flex items-center gap-1.5 text-[12px] font-medium transition-all bg-transparent border-none cursor-pointer ${isLiked ? "text-red-500" : "text-[var(--theme-text-muted)] hover:text-red-500"}`}>
+                                                className={`flex items-center gap-1.5 text-[12px] font-medium transition-all bg-transparent border-none cursor-pointer ${isLiked ? "text-red-500" : "text-(--theme-text-muted) hover:text-red-500"}`}>
                                                 <HeartIcon filled={isLiked} />
                                                 <span>{post.likesCount}</span>
                                             </button>
-                                            <button onClick={() => setOpenComments(p => ({ ...p, [post.id]: !p[post.id] }))} className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--theme-text-muted)] hover:text-blue-500 transition-all bg-transparent border-none cursor-pointer">
+                                            <button onClick={() => setOpenComments(p => ({ ...p, [post.id]: !p[post.id] }))} className="flex items-center gap-1.5 text-[12px] font-medium text-(--theme-text-muted) hover:text-blue-500 transition-all bg-transparent border-none cursor-pointer">
                                                 <CommentIcon /> {(overrideCommentsCount[post.id] !== undefined ? overrideCommentsCount[post.id] : post.commentsCount) || 0}
                                             </button>
                                             <button
                                                 onClick={() => setOpenShare({ id: post.id, caption: post.caption })}
-                                                className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--theme-text-muted)] hover:text-[#3CF91A] transition-all bg-transparent border-none cursor-pointer">
+                                                className="flex items-center gap-1.5 text-[12px] font-medium text-(--theme-text-muted) hover:text-primary transition-all bg-transparent border-none cursor-pointer">
                                                 <ShareIcon /> {post.repostsCount || 0}
                                             </button>
                                         </div>
                                         <button onClick={() => toggleSave(post.id, isSaved)}
-                                            className={`transition-all bg-transparent border-none cursor-pointer ${isSaved ? "text-[#A855F7]" : "text-[var(--theme-text-muted)] hover:text-[#A855F7]"}`}>
+                                            className={`transition-all bg-transparent border-none cursor-pointer ${isSaved ? "text-secondary" : "text-(--theme-text-muted) hover:text-secondary"}`}>
                                             <BookmarkIcon filled={isSaved} />
                                         </button>
                                     </div>
@@ -394,13 +459,25 @@ export default function TalentFeed() {
                                 </article>
                             );
                         })}
+
+                        {/* Infinite scroll sentinel */}
+                        <div ref={sentinelRef} className="h-1" />
+                        {loadingMore && (
+                            <div className="py-6 flex items-center justify-center gap-2 text-(--theme-text-muted)">
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <span className="text-[12px]">Loading more…</span>
+                            </div>
+                        )}
+                        {!loadingPosts && !hasMore && posts.length > 0 && (
+                            <p className="py-6 text-center text-[11px] text-(--theme-text-muted)">You&apos;re all caught up</p>
+                        )}
                     </div>
 
                     {/* ════════ RIGHT SIDEBAR (hidden on mobile) ════════ */}
-                    <div className="hidden lg:block w-[300px] shrink-0 space-y-5" style={{ position: "sticky", top: "1.25rem", alignSelf: "flex-start" }}>
+                    <div className="hidden lg:block w-75 shrink-0 space-y-5" style={{ position: "sticky", top: "1.25rem", alignSelf: "flex-start" }}>
 
                         {/* —— Profile Card Mini —— */}
-                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
+                        <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm overflow-hidden">
                             {/* Cover Banner */}
                             <div className="h-16 relative overflow-hidden">
                                 <CoverBanner coverId={coverUrl} />
@@ -411,31 +488,31 @@ export default function TalentFeed() {
                                     <img
                                         src={avatarUrl}
                                         alt={fullName}
-                                        className="w-12 h-12 rounded-full object-cover shadow-lg border-2 border-[var(--theme-card)] relative z-10"
+                                        className="w-12 h-12 rounded-full object-cover shadow-lg border-2 border-(--theme-card) relative z-10"
                                     />
                                 ) : (
-                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-[#2edb13] flex items-center justify-center text-white text-[14px] font-bold shadow-lg border-2 border-[var(--theme-card)] relative z-10">
+                                    <div className="w-12 h-12 rounded-full bg-linear-to-br from-green-400 to-[#2edb13] flex items-center justify-center text-white text-[14px] font-bold shadow-lg border-2 border-(--theme-card) relative z-10">
                                         {initials}
                                     </div>
                                 )}
-                                <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mt-2">
-                                    <Link href="/talent/profile" className="text-[var(--theme-text-primary)] hover:text-[#3CF91A] no-underline transition-colors">{username}</Link>
+                                <h3 className="text-[14px] font-bold text-(--theme-text-primary) mt-2">
+                                    <Link href="/talent/profile" className="text-(--theme-text-primary) hover:text-primary no-underline transition-colors">{username}</Link>
                                 </h3>
-                                <p className="text-[11px] text-[var(--theme-text-muted)] mb-3">{roleLine} &bull; Lv.1</p>
+                                <p className="text-[11px] text-(--theme-text-muted) mb-3">{roleLine} &bull; Lv.1</p>
                                 <div className="flex items-center gap-4 text-center">
                                     <div>
-                                        <p className="text-[14px] font-bold text-[var(--theme-text-secondary)]">{fmtCount(spillsCount)}</p>
-                                        <p className="text-[9px] text-[var(--theme-text-muted)] uppercase tracking-wider">Spills</p>
+                                        <p className="text-[14px] font-bold text-(--theme-text-secondary)">{fmtCount(spillsCount)}</p>
+                                        <p className="text-[9px] text-(--theme-text-muted) uppercase tracking-wider">Spills</p>
                                     </div>
                                     <div className="w-px h-6" style={{ background: "var(--theme-border)" }} />
                                     <div>
-                                        <p className="text-[14px] font-bold text-[var(--theme-text-secondary)]">{fmtCount(followersCount)}</p>
-                                        <p className="text-[9px] text-[var(--theme-text-muted)] uppercase tracking-wider">Followers</p>
+                                        <p className="text-[14px] font-bold text-(--theme-text-secondary)">{fmtCount(followersCount)}</p>
+                                        <p className="text-[9px] text-(--theme-text-muted) uppercase tracking-wider">Followers</p>
                                     </div>
                                     <div className="w-px h-6" style={{ background: "var(--theme-border)" }} />
                                     <div>
-                                        <p className="text-[14px] font-bold text-[var(--theme-text-secondary)]">{fmtCount(followingCount)}</p>
-                                        <p className="text-[9px] text-[var(--theme-text-muted)] uppercase tracking-wider">Following</p>
+                                        <p className="text-[14px] font-bold text-(--theme-text-secondary)">{fmtCount(followingCount)}</p>
+                                        <p className="text-[9px] text-(--theme-text-muted) uppercase tracking-wider">Following</p>
                                     </div>
                                 </div>
                             </div>
@@ -444,24 +521,24 @@ export default function TalentFeed() {
 
 
                         {/* —— Job Suggestions —— */}
-                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
-                            <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--theme-border-light)]">
-                                <h3 className="text-[11px] font-bold text-[var(--theme-text-muted)] uppercase tracking-[2px]"
+                        <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm overflow-hidden">
+                            <div className="flex items-center justify-between px-4 py-3 border-b border-(--theme-border-light)">
+                                <h3 className="text-[11px] font-bold text-(--theme-text-muted) uppercase tracking-[2px]"
                                     style={{ fontFamily: "var(--font-jetbrains-mono)" }}>💼 Jobs For You</h3>
                                 <Link href="/talent/jobs"
-                                    className="text-[9px] text-[#3CF91A] hover:text-[#2edb13] font-bold no-underline transition-colors">
+                                    className="text-[9px] text-primary hover:text-[#2edb13] font-bold no-underline transition-colors">
                                     ALL →
                                 </Link>
                             </div>
-                            <div className="divide-y divide-[var(--theme-border-light)]">
+                            <div className="divide-y divide-(--theme-border-light)">
                                 {jobSuggestions.map((job) => (
-                                    <div key={job.title} className="px-4 py-3 hover:bg-[#3CF91A]/10 transition-colors cursor-pointer group" style={{ borderColor: "var(--theme-border-light)" }}>
+                                    <div key={job.title} className="px-4 py-3 hover:bg-primary/10 transition-colors cursor-pointer group" style={{ borderColor: "var(--theme-border-light)" }}>
                                         <div className="flex items-start justify-between">
                                             <div>
-                                                <p className="text-[12px] font-semibold text-[var(--theme-text-secondary)] group-hover:text-[var(--theme-text-primary)] transition-colors">{job.title}</p>
-                                                <p className="text-[10px] text-[var(--theme-text-muted)]">{job.company} &bull; {job.budget}</p>
+                                                <p className="text-[12px] font-semibold text-(--theme-text-secondary) group-hover:text-(--theme-text-primary) transition-colors">{job.title}</p>
+                                                <p className="text-[10px] text-(--theme-text-muted)">{job.company} &bull; {job.budget}</p>
                                             </div>
-                                            <span className="text-[10px] font-bold text-[#3CF91A] px-2 py-0.5 rounded-full bg-[#3CF91A]/10 border border-[#3CF91A]/20"
+                                            <span className="text-[10px] font-bold text-primary px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20"
                                                 style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{job.match}</span>
                                         </div>
                                     </div>
@@ -470,24 +547,24 @@ export default function TalentFeed() {
                         </div>
 
                         {/* —— Suggested Connections —— */}
-                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
-                            <div className="px-4 py-3 border-b border-[var(--theme-border-light)]">
-                                <h3 className="text-[11px] font-bold text-[var(--theme-text-muted)] uppercase tracking-[2px]"
+                        <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm overflow-hidden">
+                            <div className="px-4 py-3 border-b border-(--theme-border-light)">
+                                <h3 className="text-[11px] font-bold text-(--theme-text-muted) uppercase tracking-[2px]"
                                     style={{ fontFamily: "var(--font-jetbrains-mono)" }}>👥 People to Follow</h3>
                             </div>
-                            <div className="divide-y divide-[var(--theme-border-light)]">
+                            <div className="divide-y divide-(--theme-border-light)">
                                 {suggestedUsers.map((user) => (
                                     <div key={user.name} className="flex items-center justify-between px-4 py-3" style={{ borderColor: "var(--theme-border-light)" }}>
                                         <div className="flex items-center gap-2.5">
-                                            <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${user.grad} flex items-center justify-center text-white text-[9px] font-bold shadow-sm`}>
+                                            <div className={`w-8 h-8 rounded-full bg-linear-to-br ${user.grad} flex items-center justify-center text-white text-[9px] font-bold shadow-sm`}>
                                                 {user.initials}
                                             </div>
                                             <div>
-                                                <p className="text-[12px] font-semibold text-[var(--theme-text-secondary)]">{user.name}</p>
-                                                <p className="text-[10px] text-[var(--theme-text-muted)]">{user.role}</p>
+                                                <p className="text-[12px] font-semibold text-(--theme-text-secondary)">{user.name}</p>
+                                                <p className="text-[10px] text-(--theme-text-muted)">{user.role}</p>
                                             </div>
                                         </div>
-                                        <button className="px-3 py-1 rounded-lg text-[10px] font-bold text-[#2edb13] border border-[#3CF91A]/20 bg-[#3CF91A]/10 cursor-pointer hover:bg-[#2edb13] hover:text-white hover:border-[#2edb13] transition-all">
+                                        <button className="px-3 py-1 rounded-lg text-[10px] font-bold text-[#2edb13] border border-primary/20 bg-primary/10 cursor-pointer hover:bg-[#2edb13] hover:text-white hover:border-[#2edb13] transition-all">
                                             Follow
                                         </button>
                                     </div>
@@ -497,10 +574,10 @@ export default function TalentFeed() {
 
                         {/* —— Footer links —— */}
                         <div className="px-2 text-center">
-                            <p className="text-[10px] text-[var(--theme-text-muted)] leading-relaxed">
+                            <p className="text-[10px] text-(--theme-text-muted) leading-relaxed">
                                 About &bull; Help &bull; Terms &bull; Privacy
                             </p>
-                            <p className="text-[10px] text-[var(--theme-text-muted)] mt-1">&copy; 2026 SkillSpill</p>
+                            <p className="text-[10px] text-(--theme-text-muted) mt-1">&copy; 2026 SkillSpill</p>
                         </div>
                     </div>
                 </div>

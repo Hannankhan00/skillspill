@@ -27,6 +27,14 @@ export async function GET(req: NextRequest) {
             where.hashtags = { contains: hashtag.toLowerCase() };
         }
 
+        if (filter === "following") {
+            const followed = await prisma.follow.findMany({
+                where: { followerId: session.userId },
+                select: { followingId: true },
+            });
+            where.userId = { in: followed.map(f => f.followingId) };
+        }
+
         let orderBy: any = { createdAt: "desc" as const };
 
         if (filter === "trending") {

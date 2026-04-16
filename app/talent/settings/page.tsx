@@ -294,7 +294,7 @@ export default function SettingsPage() {
         const top = window.screenY + (window.outerHeight - height) / 2;
         const features = `width=${width},height=${height},left=${left},top=${top},status=no,menubar=no,toolbar=no,scrollbars=yes`;
 
-        const popup = window.open(`/api/auth/github?action=connect&sharePrivate=${sharePrivateRepos}`, "github_oauth", features);
+        window.open(`/api/auth/github?action=connect&sharePrivate=${sharePrivateRepos}`, "github_oauth", features);
 
         const messageListener = async (event: MessageEvent) => {
             if (event.origin !== window.location.origin) return;
@@ -795,7 +795,7 @@ export default function SettingsPage() {
                                                         </button>
                                                     </div>
                                                     {projects.length === 0 ? (
-                                                        <p className="text-[11px]" style={{ color: 'var(--theme-text-muted)' }}>No projects added. Click "Add Project" to showcase your work.</p>
+                                                        <p className="text-[11px]" style={{ color: 'var(--theme-text-muted)' }}>No projects added. Click &quot;Add Project&quot; to showcase your work.</p>
                                                     ) : (
                                                         <div className="space-y-3">
                                                             {projects.map((p, i) => (
@@ -829,7 +829,7 @@ export default function SettingsPage() {
                                                 </div>
 
                                                 {/* Save button */}
-                                                <div className="pt-4 border-t border-[var(--theme-border-light)] flex justify-end">
+                                                <div className="pt-4 border-t border-(--theme-border-light) flex justify-end">
                                                     <button onClick={saveProfile} disabled={savingProfile}
                                                         className="px-6 py-2.5 rounded-xl text-[12px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105 disabled:opacity-60"
                                                         style={{ background: '#3CF91A', boxShadow: savingProfile ? 'none' : '0 4px 15px rgba(60,249,26,0.3)' }}>
@@ -900,7 +900,7 @@ export default function SettingsPage() {
                                             <ToggleRow label="Show Social & Project Links" desc="Display links like GitHub, LinkedIn, and Portfolio on your profile" enabled={showSocials} onToggle={() => setShowSocials(!showSocials)} />
                                         </div>
 
-                                        <div className="pt-4 mt-6 border-t border-[var(--theme-border-light)] flex justify-end">
+                                        <div className="pt-4 mt-6 border-t border-(--theme-border-light) flex justify-end">
                                             <button
                                                 onClick={savePrivacySettings}
                                                 disabled={isSavingPrivacy}
@@ -993,7 +993,7 @@ export default function SettingsPage() {
                                         ) : experiences.length === 0 ? (
                                             <div className="rounded-2xl border border-dashed p-8 text-center" style={{ borderColor: 'var(--theme-border)' }}>
                                                 <p className="text-[13px] font-medium" style={{ color: 'var(--theme-text-muted)' }}>No work experience added yet.</p>
-                                                <p className="text-[11px] mt-1" style={{ color: 'var(--theme-text-muted)' }}>Add your current and past roles — they'll appear on your profile.</p>
+                                                <p className="text-[11px] mt-1" style={{ color: 'var(--theme-text-muted)' }}>Add your current and past roles — they&apos;ll appear on your profile.</p>
                                             </div>
                                         ) : (
                                             <div className="space-y-3">
@@ -1003,7 +1003,7 @@ export default function SettingsPage() {
                                                         onMouseEnter={e => (e.currentTarget.style.borderColor = '#3CF91A33')}
                                                         onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--theme-border)')}>
                                                         {/* Company initial badge */}
-                                                        <div className="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center text-[13px] font-bold text-white bg-gradient-to-br from-[#3CF91A] to-[#00C853]" style={{ color: '#000' }}>
+                                                        <div className="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center text-[13px] font-bold text-white bg-linear-to-br from-[#3CF91A] to-[#00C853]" style={{ color: '#000' }}>
                                                             {exp.companyName[0].toUpperCase()}
                                                         </div>
                                                         <div className="flex-1 min-w-0">
@@ -1101,9 +1101,9 @@ export default function SettingsPage() {
                                                         id="sharePrivate"
                                                         checked={sharePrivateRepos}
                                                         onChange={(e) => setSharePrivateRepos(e.target.checked)}
-                                                        className="w-4 h-4 rounded border-[var(--theme-border)] bg-[var(--theme-input-bg)] text-[#3CF91A] focus:ring-[#3CF91A]/20 cursor-pointer"
+                                                        className="w-4 h-4 rounded border-(--theme-border) bg-(--theme-input-bg) text-[#3CF91A] focus:ring-[#3CF91A]/20 cursor-pointer"
                                                     />
-                                                    <label htmlFor="sharePrivate" className="text-[12px] text-[var(--theme-text-secondary)] cursor-pointer select-none">
+                                                    <label htmlFor="sharePrivate" className="text-[12px] text-(--theme-text-secondary) cursor-pointer select-none">
                                                         Share private repositories for evaluation
                                                     </label>
                                                 </div>
@@ -1170,7 +1170,7 @@ export default function SettingsPage() {
             {showDeleteModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !isDeletingAccount && setShowDeleteModal(false)}></div>
-                    <div className="relative bg-[var(--theme-card)] border border-[var(--theme-border)] rounded-2xl p-6 max-w-sm w-full shadow-2xl min-h-[50px] animate-in fade-in zoom-in-95 duration-200">
+                    <div className="relative bg-(--theme-card) border border-(--theme-border) rounded-2xl p-6 max-w-sm w-full shadow-2xl min-h-[50px] animate-in fade-in zoom-in-95 duration-200">
                         <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 mx-auto" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444' }}>
                             <TrashIcon />
                         </div>

@@ -55,7 +55,7 @@ export default function ReportModal({ isOpen, onClose, targetId, targetType }: R
                 const data = await res.json();
                 alert(data.error || "Failed to submit report.");
             }
-        } catch (error) {
+        } catch {
             alert("Network error, please try again.");
         } finally {
             setIsSubmitting(false);
@@ -63,29 +63,29 @@ export default function ReportModal({ isOpen, onClose, targetId, targetType }: R
     };
 
     return (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="w-full max-w-md rounded-2xl overflow-hidden bg-[var(--theme-card)] border border-[var(--theme-border)] shadow-xl animate-fade-in-up">
+        <div className="fixed inset-0 z-150 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="w-full max-w-md rounded-2xl overflow-hidden bg-(--theme-card) border border-(--theme-border) shadow-xl animate-fade-in-up">
                 
-                <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--theme-border)]">
-                    <h2 className="text-[16px] font-bold text-[var(--theme-text-primary)]">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-(--theme-border)">
+                    <h2 className="text-[16px] font-bold text-(--theme-text-primary)">
                         Report {targetType === "POST" ? "Post" : "Account"}
                     </h2>
                     <button 
                         onClick={onClose}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center bg-transparent border-none text-[var(--theme-text-secondary)] hover:bg-[var(--theme-input-bg)] cursor-pointer transition-colors"
+                        className="w-8 h-8 rounded-lg flex items-center justify-center bg-transparent border-none text-(--theme-text-secondary) hover:bg-(--theme-input-bg) cursor-pointer transition-colors"
                     >
                         ✕
                     </button>
                 </div>
 
                 <div className="p-5 flex flex-col gap-4 max-h-[70vh] overflow-y-auto">
-                    <p className="text-[13px] text-[var(--theme-text-secondary)]">
+                    <p className="text-[13px] text-(--theme-text-secondary)">
                         Please help us understand why you are reporting this {targetType.toLowerCase()}. Your report will be kept anonymous.
                     </p>
 
                     <div className="flex flex-col gap-2">
                         {PRESET_REASONS.map((reason) => (
-                            <label key={reason} className="flex items-center gap-3 p-3 rounded-xl border border-[var(--theme-border)] cursor-pointer transition-colors hover:bg-[var(--theme-input-bg)]">
+                            <label key={reason} className="flex items-center gap-3 p-3 rounded-xl border border-(--theme-border) cursor-pointer transition-colors hover:bg-(--theme-input-bg)">
                                 <input 
                                     type="radio" 
                                     name="reportReason" 
@@ -93,14 +93,14 @@ export default function ReportModal({ isOpen, onClose, targetId, targetType }: R
                                     checked={selectedReason === reason}
                                     onChange={() => setSelectedReason(reason)}
                                 />
-                                <span className="text-[14px] text-[var(--theme-text-primary)] font-medium">{reason}</span>
+                                <span className="text-[14px] text-(--theme-text-primary) font-medium">{reason}</span>
                             </label>
                         ))}
                     </div>
 
                     {(selectedReason === "Other" || selectedReason) && (
                         <div className="mt-2 animate-fade-in">
-                            <label className="block text-[12px] font-bold mb-2 text-[var(--theme-text-secondary)]">
+                            <label className="block text-[12px] font-bold mb-2 text-(--theme-text-secondary)">
                                 {selectedReason === "Other" ? "Please specify your reason" : "Additional comments (optional)"}
                             </label>
                             <textarea 
@@ -108,16 +108,16 @@ export default function ReportModal({ isOpen, onClose, targetId, targetType }: R
                                 onChange={(e) => setCustomReason(e.target.value)}
                                 placeholder="Write more details here..."
                                 rows={3}
-                                className="w-full p-3 rounded-xl bg-[var(--theme-input-bg)] text-[14px] text-[var(--theme-text-primary)] border border-[var(--theme-border)] resize-none"
+                                className="w-full p-3 rounded-xl bg-(--theme-input-bg) text-[14px] text-(--theme-text-primary) border border-(--theme-border) resize-none"
                             />
                         </div>
                     )}
                 </div>
 
-                <div className="p-4 border-t border-[var(--theme-border)] flex gap-3">
+                <div className="p-4 border-t border-(--theme-border) flex gap-3">
                     <button 
                         onClick={onClose}
-                        className="flex-1 py-2.5 rounded-xl font-bold text-[13px] bg-transparent border border-[var(--theme-border)] text-[var(--theme-text-primary)] cursor-pointer hover:bg-[var(--theme-input-bg)] transition-colors"
+                        className="flex-1 py-2.5 rounded-xl font-bold text-[13px] bg-transparent border border-(--theme-border) text-(--theme-text-primary) cursor-pointer hover:bg-(--theme-input-bg) transition-colors"
                     >
                         Cancel
                     </button>

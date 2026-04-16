@@ -65,6 +65,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
                 followers: {
                     where: { followerId: session.userId },
                     select: { id: true }
+                },
+                _count: {
+                    select: { followers: true, following: true }
                 }
             },
         });

@@ -20,10 +20,8 @@ export function useTheme() {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const [theme, setTheme] = useState<Theme>("light");
-    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        setMounted(true);
         // The blocking script in layout.tsx already applied the correct class.
         // Just sync React state with what's already on the DOM.
         const isDarkAlready = document.documentElement.classList.contains("dark");
@@ -63,6 +61,7 @@ export function ThemeToggle({ size = "md" }: { size?: "sm" | "md" }) {
     const [mounted, setMounted] = useState(false);
     const isDark = theme === "dark";
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => { setMounted(true); }, []);
 
     // sm: bar=44×24, knob=18  →  padding=3 each side  →  light=3, dark=44-18-3=23

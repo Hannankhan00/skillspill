@@ -118,7 +118,7 @@ function ProgressBar({ value, color, label, metric }: { value: number; color: st
    MAIN ADMIN PAGE
    ═══════════════════════════════════════════ */
 export default function AdminPage() {
-    const router = useRouter();
+    const _router = useRouter();
     const [activeTab, setActiveTab] = useState<"dashboard" | "users" | "appeals" | "reports">("dashboard");
     const [users, setUsers] = useState<User[]>([]);
     const [pagination, setPagination] = useState<Pagination>({ total: 0, page: 1, limit: 20, totalPages: 0 });
@@ -345,7 +345,7 @@ export default function AdminPage() {
     const recruiterCount = users.filter((u) => u.role === "RECRUITER").length;
     const roleColor = (r: string) => r === "ADMIN" ? T.admin : r === "TALENT" ? T.talent : T.recruiter;
 
-    const pendingAppealsCount = appeals.filter((a) => a.status === "PENDING").length;
+    const _pendingAppealsCount = appeals.filter((a) => a.status === "PENDING").length;
 
     const navItems = [
         { key: "dashboard" as const, icon: I.grid(), label: "Overview" },
@@ -362,7 +362,7 @@ export default function AdminPage() {
     ];
 
     return (
-        <div className="h-screen w-screen flex bg-[var(--theme-bg)] overflow-hidden">
+        <div className="h-screen w-screen flex bg-(--theme-bg) overflow-hidden">
 
             {/* ═══════════ SIDEBAR ═══════════ */}
             <aside className="hidden lg:flex flex-col w-[200px] shrink-0 border-r" style={{ background: T.sidebar, borderColor: T.cardBorder }}>
@@ -380,7 +380,7 @@ export default function AdminPage() {
                         </div>
                         {avatarUploading && (
                             <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-lg">
-                                <span className="inline-block w-3 h-3 border-2 border-[var(--theme-bg)] border-t-transparent rounded-full animate-spin" />
+                                <span className="inline-block w-3 h-3 border-2 border-(--theme-bg) border-t-transparent rounded-full animate-spin" />
                             </div>
                         )}
                     </div>
@@ -793,7 +793,7 @@ export default function AdminPage() {
 
                     {/* ══════════ APPEAL DETAIL MODAL ══════════ */}
                     {selectedAppeal && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
+                        <div className="fixed inset-0 z-100 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
                             <div className="w-full max-w-lg rounded-2xl overflow-hidden" style={{ background: T.card, border: `1px solid ${T.cardBorder}`, boxShadow: `0 0 60px ${T.admin}15` }}>
                                 {/* Modal Header */}
                                 <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: T.cardBorder }}>
@@ -950,7 +950,7 @@ export default function AdminPage() {
 
                     {/* ══════════ POST PREVIEW MODAL ══════════ */}
                     {previewReportId && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
+                        <div className="fixed inset-0 z-100 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
                             <div className="w-full max-w-2xl rounded-2xl overflow-hidden max-h-[90vh] flex flex-col" style={{ background: T.card, border: `1px solid ${T.cardBorder}`, boxShadow: `0 0 60px ${T.admin}15` }}>
                                 {/* Modal Header */}
                                 <div className="flex items-center justify-between px-6 py-4 border-b shrink-0" style={{ borderColor: T.cardBorder }}>
@@ -1001,7 +1001,7 @@ export default function AdminPage() {
 
                     {/* ══════════ SUSPENSION REASON MODAL ══════════ */}
                     {suspendUserId && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
+                        <div className="fixed inset-0 z-100 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
                             <div className="w-full max-w-md rounded-2xl overflow-hidden" style={{ background: T.card, border: `1px solid ${T.danger}30`, boxShadow: `0 0 60px ${T.danger}15` }}>
                                 {/* Danger stripe */}
                                 <div className="h-[2px]" style={{ background: `linear-gradient(90deg, transparent, ${T.danger}, transparent)` }} />

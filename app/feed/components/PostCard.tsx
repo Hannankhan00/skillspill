@@ -70,7 +70,7 @@ function CodeBlock({ code, lang }: { code: string; lang?: string }) {
 
 function GitHubCard({ post }: { post: any }) {
     return (
-        <div className="rounded-xl p-4 border border-[var(--theme-border)]" style={{ background: "var(--theme-card)" }}>
+        <div className="rounded-xl p-4 border border-(--theme-border)" style={{ background: "var(--theme-card)" }}>
             <div className="flex items-center gap-2 mb-2">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style={{ color: "var(--theme-text-muted)" }}><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" /></svg>
                 <span className="text-[14px] font-bold" style={{ color: "var(--theme-text-primary)" }}>{post.githubRepoName}</span>
@@ -82,7 +82,7 @@ function GitHubCard({ post }: { post: any }) {
                 {post.githubRepoForks != null && <span>🍴 {post.githubRepoForks}</span>}
             </div>
             {post.githubRepoUrl && (
-                <a href={post.githubRepoUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium border border-[var(--theme-border)] bg-[var(--theme-card)] text-[var(--theme-text-tertiary)] hover:text-[#3CF91A] transition-all no-underline">
+                <a href={post.githubRepoUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium border border-(--theme-border) bg-(--theme-card) text-(--theme-text-tertiary) hover:text-[#3CF91A] transition-all no-underline">
                     View on GitHub →
                 </a>
             )}
@@ -101,9 +101,9 @@ function HiringCard({ post }: { post: any }) {
                 </div>
             )}
             <div className="flex flex-wrap gap-2 mb-3 text-[10px]">
-                {post.hiringLocationType && <span className="px-2 py-0.5 rounded-full bg-[var(--theme-input-bg)] font-medium" style={{ color: "var(--theme-text-tertiary)" }}>📍 {post.hiringLocationType}</span>}
-                {post.hiringCompType && <span className="px-2 py-0.5 rounded-full bg-[var(--theme-input-bg)] font-medium" style={{ color: "var(--theme-text-tertiary)" }}>💰 {post.hiringCompType}</span>}
-                {post.hiringDeadline && <span className="px-2 py-0.5 rounded-full bg-[var(--theme-input-bg)] font-medium" style={{ color: "var(--theme-text-tertiary)" }}>⏰ {new Date(post.hiringDeadline).toLocaleDateString()}</span>}
+                {post.hiringLocationType && <span className="px-2 py-0.5 rounded-full bg-(--theme-input-bg) font-medium" style={{ color: "var(--theme-text-tertiary)" }}>📍 {post.hiringLocationType}</span>}
+                {post.hiringCompType && <span className="px-2 py-0.5 rounded-full bg-(--theme-input-bg) font-medium" style={{ color: "var(--theme-text-tertiary)" }}>💰 {post.hiringCompType}</span>}
+                {post.hiringDeadline && <span className="px-2 py-0.5 rounded-full bg-(--theme-input-bg) font-medium" style={{ color: "var(--theme-text-tertiary)" }}>⏰ {new Date(post.hiringDeadline).toLocaleDateString()}</span>}
             </div>
             <button className="px-4 py-2 rounded-xl text-[12px] font-bold border-none cursor-pointer text-white transition-all hover:scale-105" style={{ background: "linear-gradient(135deg, #14B8A6, #0D9488)", boxShadow: "0 0 15px rgba(20,184,166,0.3)" }}>
                 Apply Now →
@@ -241,10 +241,10 @@ export default function PostCard({ post, currentUserId, currentUserRole, onDelet
     };
 
     return (
-        <article className="rounded-2xl border bg-[var(--theme-card)] shadow-sm overflow-hidden transition-all hover:shadow-md" style={{ borderColor: "var(--theme-border)" }}>
+        <article className="rounded-2xl border bg-(--theme-card) shadow-sm overflow-hidden transition-all hover:shadow-md" style={{ borderColor: "var(--theme-border)" }}>
             {/* Hiring banner */}
             {post.postType === "hiring" && (
-                <div className="px-4 py-2 bg-gradient-to-r from-teal-500/10 to-transparent border-b border-teal-500/20 flex items-center gap-2">
+                <div className="px-4 py-2 bg-linear-to-r from-teal-500/10 to-transparent border-b border-teal-500/20 flex items-center gap-2">
                     <span className="text-[11px] font-bold text-teal-500">We&apos;re Hiring 🎯</span>
                 </div>
             )}
@@ -277,21 +277,21 @@ export default function PostCard({ post, currentUserId, currentUserRole, onDelet
                         )}
                         {/* Three-dot menu */}
                         <div className="relative">
-                            <button onClick={() => setShowMenu(!showMenu)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[var(--theme-input-bg)] cursor-pointer bg-transparent border-none transition-all" style={{ color: "var(--theme-text-muted)" }}>
+                            <button onClick={() => setShowMenu(!showMenu)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-(--theme-input-bg) cursor-pointer bg-transparent border-none transition-all" style={{ color: "var(--theme-text-muted)" }}>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" /></svg>
                             </button>
                         {showMenu && (
                             <div className="absolute right-0 top-10 w-44 rounded-xl shadow-xl py-1 z-20" style={{ background: "var(--theme-surface)", border: "1px solid var(--theme-border)" }}>
                                 {isOwn ? (
                                     <>
-                                        <button className="w-full px-4 py-2 text-left text-[12px] hover:bg-[var(--theme-input-bg)] bg-transparent border-none cursor-pointer" style={{ color: "var(--theme-text-tertiary)" }}>Edit caption</button>
+                                        <button className="w-full px-4 py-2 text-left text-[12px] hover:bg-(--theme-input-bg) bg-transparent border-none cursor-pointer" style={{ color: "var(--theme-text-tertiary)" }}>Edit caption</button>
                                         <button onClick={handleDelete} className="w-full px-4 py-2 text-left text-[12px] text-red-500 hover:bg-red-500/10 bg-transparent border-none cursor-pointer">Delete post</button>
                                     </>
                                 ) : (
                                     <>
-                                        <button onClick={() => handleReport("POST", post.id)} className="w-full px-4 py-2 text-left text-[12px] hover:bg-[var(--theme-input-bg)] bg-transparent border-none cursor-pointer" style={{ color: "var(--theme-text-tertiary)" }}>Report post</button>
-                                        <button onClick={() => handleReport("USER", user.id)} className="w-full px-4 py-2 text-left text-[12px] hover:bg-[var(--theme-input-bg)] bg-transparent border-none cursor-pointer" style={{ color: "var(--theme-text-tertiary)" }}>Report account</button>
-                                        <button className="w-full px-4 py-2 text-left text-[12px] hover:bg-[var(--theme-input-bg)] bg-transparent border-none cursor-pointer" style={{ color: "var(--theme-text-tertiary)" }}>Not interested</button>
+                                        <button onClick={() => handleReport("POST", post.id)} className="w-full px-4 py-2 text-left text-[12px] hover:bg-(--theme-input-bg) bg-transparent border-none cursor-pointer" style={{ color: "var(--theme-text-tertiary)" }}>Report post</button>
+                                        <button onClick={() => handleReport("USER", user.id)} className="w-full px-4 py-2 text-left text-[12px] hover:bg-(--theme-input-bg) bg-transparent border-none cursor-pointer" style={{ color: "var(--theme-text-tertiary)" }}>Report account</button>
+                                        <button className="w-full px-4 py-2 text-left text-[12px] hover:bg-(--theme-input-bg) bg-transparent border-none cursor-pointer" style={{ color: "var(--theme-text-tertiary)" }}>Not interested</button>
                                     </>
                                 )}
                             </div>
@@ -337,22 +337,22 @@ export default function PostCard({ post, currentUserId, currentUserRole, onDelet
                 {/* Interaction bar */}
                 <div className="flex items-center justify-between pt-3 border-t" style={{ borderColor: "var(--theme-border-light)" }}>
                     <div className="flex items-center gap-1">
-                        <button onClick={toggleLike} className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-transparent border-none cursor-pointer transition-all hover:bg-[var(--theme-input-bg)] ${liked ? "text-red-500" : ""}`} style={liked ? {} : { color: "var(--theme-text-muted)" }}>
+                        <button onClick={toggleLike} className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-transparent border-none cursor-pointer transition-all hover:bg-(--theme-input-bg) ${liked ? "text-red-500" : ""}`} style={liked ? {} : { color: "var(--theme-text-muted)" }}>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill={liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
                             {likesCount > 0 && likesCount}
                         </button>
-                        <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-transparent border-none cursor-pointer transition-all hover:bg-[var(--theme-input-bg)]" style={{ color: "var(--theme-text-muted)" }}>
+                        <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-transparent border-none cursor-pointer transition-all hover:bg-(--theme-input-bg)" style={{ color: "var(--theme-text-muted)" }}>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
                             {commentsCount > 0 && commentsCount}
                         </button>
-                        <button onClick={toggleRepost} className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-transparent border-none cursor-pointer transition-all hover:bg-[var(--theme-input-bg)] ${reposted ? "text-[#3CF91A]" : ""}`} style={reposted ? {} : { color: "var(--theme-text-muted)" }}>
+                        <button onClick={toggleRepost} className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-transparent border-none cursor-pointer transition-all hover:bg-(--theme-input-bg) ${reposted ? "text-[#3CF91A]" : ""}`} style={reposted ? {} : { color: "var(--theme-text-muted)" }}>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="17 1 21 5 17 9" /><path d="M3 11V9a4 4 0 0 1 4-4h14" /><polyline points="7 23 3 19 7 15" /><path d="M21 13v2a4 4 0 0 1-4 4H3" /></svg>
                             {repostsCount > 0 && repostsCount}
                         </button>
-                        <button onClick={toggleSave} className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-transparent border-none cursor-pointer transition-all hover:bg-[var(--theme-input-bg)] ${saved ? "text-yellow-500" : ""}`} style={saved ? {} : { color: "var(--theme-text-muted)" }}>
+                        <button onClick={toggleSave} className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-transparent border-none cursor-pointer transition-all hover:bg-(--theme-input-bg) ${saved ? "text-yellow-500" : ""}`} style={saved ? {} : { color: "var(--theme-text-muted)" }}>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill={saved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>
                         </button>
-                        <button onClick={handleShare} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-transparent border-none cursor-pointer transition-all hover:bg-[var(--theme-input-bg)]" style={{ color: "var(--theme-text-muted)" }}>
+                        <button onClick={handleShare} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-transparent border-none cursor-pointer transition-all hover:bg-(--theme-input-bg)" style={{ color: "var(--theme-text-muted)" }}>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
                         </button>
                     </div>

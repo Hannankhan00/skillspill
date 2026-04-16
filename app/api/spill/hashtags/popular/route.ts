@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
         const { searchParams } = new URL(req.url);
         const query = searchParams.get("q") || "";
 
-        let where: any = {};
+        const where: any = {};
         if (query) {
             where.tag = { contains: query.toLowerCase() };
         }

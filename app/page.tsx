@@ -162,13 +162,13 @@ export default function Home() {
             </button>
           </div>
 
-          <button className="md:hidden bg-transparent border border-[#3CF91A]/30 rounded-lg p-1.5 text-[#3CF91A] cursor-pointer z-[60]" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} aria-label="Toggle menu">
+          <button className="md:hidden bg-transparent border border-[#3CF91A]/30 rounded-lg p-1.5 text-[#3CF91A] cursor-pointer z-60" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} aria-label="Toggle menu">
             {isMobileMenuOpen ? <IconX /> : <IconMenu />}
           </button>
         </div>
 
         {/* Mobile Menu */}
-        <div className={`mobile-menu-overlay fixed inset-0 bg-[#050505]/95 backdrop-blur-2xl z-[55] flex flex-col justify-center items-center ${isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
+        <div className={`mobile-menu-overlay fixed inset-0 bg-[#050505]/95 backdrop-blur-2xl z-55 flex flex-col justify-center items-center ${isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
           <div className="flex flex-col items-center gap-8">
             {["Find Talent", "Post Job", "How it works"].map((t) => (
               <a key={t} href={`#${t.toLowerCase().replace(/ /g, "-")}`} className="text-2xl font-bold text-[#888] no-underline hover:text-[#3CF91A] transition-colors" onClick={() => setIsMobileMenuOpen(false)}>{t}</a>
@@ -348,7 +348,7 @@ export default function Home() {
           <p className="text-[#888] max-w-2xl mx-auto text-lg leading-relaxed">Three steps to the future of hiring. No resumes, just code.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-[2]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-2">
           {[
             { num: "01", icon: <IconGithub />, title: "Connect GitHub", desc: "Link your GitHub profile and let our AI analyze your actual codebase, contributions, and coding patterns." },
             { num: "02", icon: <IconSparkle />, title: "AI Skill Matrix", desc: "We generate a verified skill matrix from real code — no self-assessed ratings, no keyword stuffing." },

@@ -25,7 +25,7 @@ function SpillGridTile({ spill, accent, avatarUrl, initials, username, onClick }
     return (
         <div 
             onClick={() => onClick?.(spill)}
-            className="relative aspect-square bg-[#1a1a1a] overflow-hidden group cursor-pointer border border-[var(--theme-border)]">
+            className="relative aspect-square bg-[#1a1a1a] overflow-hidden group cursor-pointer border border-(--theme-border)">
             {/* If it's an image */}
             {hasImage && (
                 <img src={mediaArray[0].url} alt="Post preview" className="w-full h-full object-cover" />
@@ -45,7 +45,7 @@ function SpillGridTile({ spill, accent, avatarUrl, initials, username, onClick }
             {hasCode && (
                 <div className="w-full h-full bg-[#0D1117] p-2 flex flex-col items-center justify-center text-center">
                     <Code2 size={24} className="mb-2" style={{ color: "var(--theme-text-muted)" }} />
-                    <p className="text-[10px] font-mono text-[var(--theme-text-muted)] truncate max-w-full px-2">
+                    <p className="text-[10px] font-mono text-(--theme-text-muted) truncate max-w-full px-2">
                         {spill.codeLang || "code"}
                     </p>
                 </div>
@@ -53,8 +53,8 @@ function SpillGridTile({ spill, accent, avatarUrl, initials, username, onClick }
 
             {/* If it's purely text or hashtags */}
             {isText && (
-                <div className="w-full h-full p-3 flex flex-col justify-center bg-[var(--theme-card)] text-center">
-                    <p className="text-[11px] text-[var(--theme-text-primary)] line-clamp-3 leading-snug items-center justify-center break-words">
+                <div className="w-full h-full p-3 flex flex-col justify-center bg-(--theme-card) text-center">
+                    <p className="text-[11px] text-(--theme-text-primary) line-clamp-3 leading-snug items-center justify-center break-words">
                         {spill.caption || (spill.hashtags && spill.hashtags.length > 0 ? `#${spill.hashtags[0]}` : "Text post")}
                     </p>
                 </div>
@@ -64,11 +64,11 @@ function SpillGridTile({ spill, accent, avatarUrl, initials, username, onClick }
             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 text-white">
                 <div className="flex items-center gap-1.5 font-bold text-[13px]">
                     {spill.hideLikes ? <HeartOff size={16} fill="currentColor" /> : <Heart size={16} fill="currentColor" />}
-                    <span>{spill.hideLikes ? "-" : (spill.likes || 0)}</span>
+                    <span>{spill.hideLikes ? "-" : (spill.likesCount || 0)}</span>
                 </div>
                 <div className="flex items-center gap-1.5 font-bold text-[13px]">
                     {spill.commentsOff ? <MessageSquareOff size={16} fill="currentColor" /> : <MessageSquare size={16} fill="currentColor" />}
-                    <span>{spill.commentsOff ? "-" : (spill.comments || 0)}</span>
+                    <span>{spill.commentsOff ? "-" : (spill.commentsCount || 0)}</span>
                 </div>
             </div>
         </div>
@@ -135,7 +135,7 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: 
                         background: checked ? "#fff" : "var(--theme-text-muted)",
                     }} />
             </div>
-            <span className="text-[11px] font-medium text-[var(--theme-text-secondary)] group-hover:text-[var(--theme-text-primary)] transition-colors">{label}</span>
+            <span className="text-[11px] font-medium text-(--theme-text-secondary) group-hover:text-(--theme-text-primary) transition-colors">{label}</span>
         </label>
     );
 }
@@ -174,9 +174,117 @@ export default function TalentProfilePage() {
     const overlayRef = useRef<HTMLDivElement>(null);
     const [editTab, setEditTab] = useState<"basic" | "contact" | "privacy">("basic");
 
+    /* ── Inline Experience ── */
+    const [experiences, setExperiences] = useState<any[]>([]);
+    const [expModal, setExpModal] = useState(false);
+    const [editingExp, setEditingExp] = useState<any | null>(null);
+    const blankExp = { companyName: "", role: "", startDate: "", endDate: "", isCurrent: false, description: "" };
+    const [expForm, setExpForm] = useState(blankExp);
+    const [expSaving, setExpSaving] = useState(false);
+
+    /* ── Inline Skills ── */
+    const [skillsList, setSkillsList] = useState<string[]>([]);
+    const [skillInput, setSkillInput] = useState("");
+    const [skillsSaving, setSkillsSaving] = useState(false);
+
+    /* ── Inline Projects ── */
+    const [projectsList, setProjectsList] = useState<any[]>([]);
+    const [projectModal, setProjectModal] = useState(false);
+    const [editingProjectIdx, setEditingProjectIdx] = useState<number | null>(null);
+    const blankProject = { url: "", title: "", description: "" };
+    const [projectForm, setProjectForm] = useState(blankProject);
+    const [projectSaving, setProjectSaving] = useState(false);
+
     const showToast = (type: "success" | "error", text: string) => {
         setToastMessage({ type, text });
         setTimeout(() => setToastMessage(null), 4000);
+    };
+
+    /* ── Experience helpers ── */
+    const openAddExp = () => { setEditingExp(null); setExpForm(blankExp); setExpModal(true); };
+    const openEditExp = (exp: any) => {
+        setEditingExp(exp);
+        setExpForm({
+            companyName: exp.companyName, role: exp.role,
+            startDate: exp.startDate ? new Date(exp.startDate).toISOString().slice(0, 7) : "",
+            endDate: exp.endDate ? new Date(exp.endDate).toISOString().slice(0, 7) : "",
+            isCurrent: exp.isCurrent, description: exp.description || "",
+        });
+        setExpModal(true);
+    };
+    const saveExp = async () => {
+        if (!expForm.companyName.trim() || !expForm.role.trim() || !expForm.startDate) return;
+        setExpSaving(true);
+        const payload = { ...expForm, startDate: expForm.startDate + "-01", endDate: expForm.isCurrent ? null : (expForm.endDate ? expForm.endDate + "-01" : null) };
+        try {
+            const url = editingExp ? `/api/talent/work-experience/${editingExp.id}` : "/api/talent/work-experience";
+            const method = editingExp ? "PATCH" : "POST";
+            const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+            const data = await res.json();
+            if (res.ok) {
+                if (editingExp) {
+                    setExperiences(prev => prev.map(e => e.id === editingExp.id ? data.entry : e).sort((a, b) => (b.isCurrent ? 1 : 0) - (a.isCurrent ? 1 : 0)));
+                } else {
+                    setExperiences(prev => [data.entry, ...prev]);
+                }
+                setExpModal(false);
+                showToast("success", editingExp ? "Experience updated!" : "Experience added!");
+            } else {
+                showToast("error", data.error || "Failed to save");
+            }
+        } catch { showToast("error", "Network error"); }
+        setExpSaving(false);
+    };
+    const deleteExp = async (id: string) => {
+        if (!confirm("Remove this experience?")) return;
+        const res = await fetch(`/api/talent/work-experience/${id}`, { method: "DELETE" });
+        if (res.ok) { setExperiences(prev => prev.filter(e => e.id !== id)); showToast("success", "Removed"); }
+    };
+
+    /* ── Skills helpers ── */
+    const addSkill = async (skill: string) => {
+        const s = skill.trim();
+        if (!s || skillsList.includes(s)) return;
+        const next = [...skillsList, s];
+        setSkillsList(next);
+        setSkillInput("");
+        setSkillsSaving(true);
+        await fetch("/api/user/profile", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ talentProfile: { skills: next } }) });
+        setSkillsSaving(false);
+    };
+    const removeSkill = async (skill: string) => {
+        const next = skillsList.filter(s => s !== skill);
+        setSkillsList(next);
+        setSkillsSaving(true);
+        await fetch("/api/user/profile", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ talentProfile: { skills: next } }) });
+        setSkillsSaving(false);
+    };
+
+    /* ── Projects helpers ── */
+    const openAddProject = () => { setEditingProjectIdx(null); setProjectForm(blankProject); setProjectModal(true); };
+    const openEditProject = (idx: number) => { setEditingProjectIdx(idx); setProjectForm({ ...projectsList[idx] }); setProjectModal(true); };
+    const saveProject = async () => {
+        if (!projectForm.url.trim()) return;
+        setProjectSaving(true);
+        const next = editingProjectIdx !== null
+            ? projectsList.map((p, i) => i === editingProjectIdx ? projectForm : p)
+            : [...projectsList, projectForm];
+        try {
+            const res = await fetch("/api/user/profile", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ talentProfile: { projectLinks: next } }) });
+            if (res.ok) {
+                setProjectsList(next);
+                setProjectModal(false);
+                showToast("success", editingProjectIdx !== null ? "Project updated!" : "Project added!");
+            } else { showToast("error", "Failed to save"); }
+        } catch { showToast("error", "Network error"); }
+        setProjectSaving(false);
+    };
+    const deleteProject = async (idx: number) => {
+        if (!confirm("Remove this project?")) return;
+        const next = projectsList.filter((_, i) => i !== idx);
+        await fetch("/api/user/profile", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ talentProfile: { projectLinks: next } }) });
+        setProjectsList(next);
+        showToast("success", "Removed");
     };
 
     useEffect(() => {
@@ -202,6 +310,9 @@ export default function TalentProfilePage() {
                         showSocials: tp.showSocials ?? true,
                         isAvailable: tp.isAvailable ?? true,
                     });
+                    setExperiences(tp.workExperience ?? []);
+                    setSkillsList(tp.skills?.map((s: any) => s.skillName) ?? []);
+                    setProjectsList(tp.projectLinks ?? []);
                 }
                 setIsLoading(false);
             })
@@ -338,7 +449,7 @@ export default function TalentProfilePage() {
         return (
             <div className="flex flex-col items-center justify-center min-h-full p-20">
                 <Loader2 className="w-10 h-10 animate-spin mb-4" style={{ color: accent }} />
-                <p className="text-[13px] text-[var(--theme-text-muted)] font-medium">Loading your profile...</p>
+                <p className="text-[13px] text-(--theme-text-muted) font-medium">Loading your profile...</p>
             </div>
         );
     }
@@ -347,16 +458,16 @@ export default function TalentProfilePage() {
         return (
             <div className="flex flex-col items-center justify-center min-h-full p-20">
                 <h3 className="text-lg font-bold text-red-400 mb-2">Profile Not Found</h3>
-                <p className="text-[13px] text-[var(--theme-text-muted)]">Could not load your profile data.</p>
+                <p className="text-[13px] text-(--theme-text-muted)">Could not load your profile data.</p>
             </div>
         );
     }
 
-    const { fullName, username, email, spills, avatarUrl } = userData;
+    const { fullName, username, spills, avatarUrl } = userData;
     const {
         bio, experienceLevel, isAvailable, skills, projectLinks, workExperience,
-        githubUsername, githubConnected, githubRepos, githubStars,
-        linkedinUrl, portfolioUrl, resumeUrl,
+        githubUsername, githubConnected, githubRepos,
+        linkedinUrl, portfolioUrl,
         contactEmail, contactPhone, showEmail, showPhone, showSocials,
     } = userData.talentProfile || {};
 
@@ -374,7 +485,7 @@ export default function TalentProfilePage() {
     return (
         <div style={{ background: "var(--theme-bg)" }} className="min-h-full">
             {toastMessage && (
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-bottom-5 fade-in duration-300">
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-100 animate-in slide-in-from-bottom-5 fade-in duration-300">
                     <div className={`px-4 py-3 rounded-xl shadow-2xl border flex items-center gap-3 ${
                         toastMessage.type === "success" 
                             ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" 
@@ -403,12 +514,12 @@ export default function TalentProfilePage() {
                         
                         {/* ── Close Button (Mobile Absolute) ── */}
                         <button onClick={() => setShowEdit(false)}
-                            className="absolute top-4 right-4 sm:hidden p-2 rounded-xl z-50 text-[var(--theme-text-muted)] bg-[var(--theme-bg-secondary)] border border-[var(--theme-border)]">
+                            className="absolute top-4 right-4 sm:hidden p-2 rounded-xl z-50 text-(--theme-text-muted) bg-(--theme-bg-secondary) border border-(--theme-border)">
                             <X className="w-4 h-4" />
                         </button>
 
                         {/* ── Sidebar Navigation ── */}
-                        <div className="w-full sm:w-1/3 border-b sm:border-b-0 sm:border-r border-[var(--theme-border)] bg-[var(--theme-bg)]/50 p-6 flex flex-col relative overflow-hidden">
+                        <div className="w-full sm:w-1/3 border-b sm:border-b-0 sm:border-r border-(--theme-border) bg-(--theme-bg)/50 p-6 flex flex-col relative overflow-hidden">
                             {/* Decorative gradient orb */}
                             <div className="absolute -top-32 -left-32 w-64 h-64 rounded-full pointer-events-none blur-[80px] opacity-40"
                                 style={{ background: accent }} />
@@ -419,8 +530,8 @@ export default function TalentProfilePage() {
                                     <Pencil className="w-5 h-5" style={{ color: accent }} />
                                 </div>
                                 <div className="hidden sm:block">
-                                    <h2 className="text-[16px] font-bold text-[var(--theme-text-primary)] tracking-wide">Edit Profile</h2>
-                                    <p className="text-[11px] text-[var(--theme-text-muted)] font-medium mt-0.5">Customize your appearance</p>
+                                    <h2 className="text-[16px] font-bold text-(--theme-text-primary) tracking-wide">Edit Profile</h2>
+                                    <p className="text-[11px] text-(--theme-text-muted) font-medium mt-0.5">Customize your appearance</p>
                                 </div>
                             </div>
 
@@ -429,7 +540,7 @@ export default function TalentProfilePage() {
                                     className={`flex-1 min-w-[90px] sm:flex-none flex flex-col sm:flex-row items-center sm:justify-start gap-1.5 sm:gap-3 px-2 sm:px-4 py-2 sm:py-3 rounded-xl text-[10px] sm:text-[13px] font-semibold transition-all cursor-pointer border text-center sm:text-left ${
                                         editTab === "basic" 
                                         ? "bg-black/20 text-white" 
-                                        : "bg-transparent border-transparent text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg-secondary)] hover:text-[var(--theme-text-primary)]"
+                                        : "bg-transparent border-transparent text-(--theme-text-muted) hover:bg-(--theme-bg-secondary) hover:text-(--theme-text-primary)"
                                     }`}
                                     style={editTab === "basic" ? { borderColor: `${accent}40`, boxShadow: `inset 0 0 20px ${accent}10` } : {}}>
                                     <Sparkles className="w-4 h-4 shrink-0" style={{ color: editTab === "basic" ? accent : "inherit" }} />
@@ -439,7 +550,7 @@ export default function TalentProfilePage() {
                                     className={`flex-1 min-w-[90px] sm:flex-none flex flex-col sm:flex-row items-center sm:justify-start gap-1.5 sm:gap-3 px-2 sm:px-4 py-2 sm:py-3 rounded-xl text-[10px] sm:text-[13px] font-semibold transition-all cursor-pointer border text-center sm:text-left ${
                                         editTab === "contact" 
                                         ? "bg-black/20 text-white" 
-                                        : "bg-transparent border-transparent text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg-secondary)] hover:text-[var(--theme-text-primary)]"
+                                        : "bg-transparent border-transparent text-(--theme-text-muted) hover:bg-(--theme-bg-secondary) hover:text-(--theme-text-primary)"
                                     }`}
                                     style={editTab === "contact" ? { borderColor: `${accent}40`, boxShadow: `inset 0 0 20px ${accent}10` } : {}}>
                                     <Mail className="w-4 h-4 shrink-0" style={{ color: editTab === "contact" ? accent : "inherit" }} />
@@ -449,7 +560,7 @@ export default function TalentProfilePage() {
                                     className={`flex-1 min-w-[90px] sm:flex-none flex flex-col sm:flex-row items-center sm:justify-start gap-1.5 sm:gap-3 px-2 sm:px-4 py-2 sm:py-3 rounded-xl text-[10px] sm:text-[13px] font-semibold transition-all cursor-pointer border text-center sm:text-left ${
                                         editTab === "privacy" 
                                         ? "bg-black/20 text-white" 
-                                        : "bg-transparent border-transparent text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg-secondary)] hover:text-[var(--theme-text-primary)]"
+                                        : "bg-transparent border-transparent text-(--theme-text-muted) hover:bg-(--theme-bg-secondary) hover:text-(--theme-text-primary)"
                                     }`}
                                     style={editTab === "privacy" ? { borderColor: `${accent}40`, boxShadow: `inset 0 0 20px ${accent}10` } : {}}>
                                     <Eye className="w-4 h-4 shrink-0" style={{ color: editTab === "privacy" ? accent : "inherit" }} />
@@ -458,12 +569,12 @@ export default function TalentProfilePage() {
                             </nav>
 
                             <div className="mt-auto hidden sm:block relative z-10">
-                                <div className="p-4 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg-secondary)]">
+                                <div className="p-4 rounded-xl border border-(--theme-border) bg-(--theme-bg-secondary)">
                                     <div className="flex items-center gap-2 mb-2">
                                         <Shield className="w-4 h-4" style={{ color: accent }} />
-                                        <p className="text-[11px] font-bold text-[var(--theme-text-primary)]">Profile Tips</p>
+                                        <p className="text-[11px] font-bold text-(--theme-text-primary)">Profile Tips</p>
                                     </div>
-                                    <p className="text-[10px] text-[var(--theme-text-muted)] leading-relaxed">
+                                    <p className="text-[10px] text-(--theme-text-muted) leading-relaxed">
                                         Keep your links updated and write a compelling bio to attract more opportunities. Check the Privacy tab to manage what others see.
                                     </p>
                                 </div>
@@ -471,11 +582,11 @@ export default function TalentProfilePage() {
                         </div>
 
                         {/* ── Main Content Area ── */}
-                        <div className="w-full sm:w-2/3 flex flex-col h-full bg-[var(--theme-bg)] relative">
+                        <div className="w-full sm:w-2/3 flex flex-col h-full bg-(--theme-bg) relative">
                             
                             {/* Header (Desktop) */}
-                            <div className="hidden sm:flex items-center justify-between px-8 py-5 border-b border-[var(--theme-border)]">
-                                <p className="text-[13px] text-[var(--theme-text-muted)] font-mono flex items-center gap-2">
+                            <div className="hidden sm:flex items-center justify-between px-8 py-5 border-b border-(--theme-border)">
+                                <p className="text-[13px] text-(--theme-text-muted) font-mono flex items-center gap-2">
                                     <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: accent }} />
                                     {editTab === "basic" ? "Editing Basic Information" : editTab === "contact" ? "Editing Contact Details" : "Adjusting Visibility"}
                                 </p>
@@ -567,24 +678,24 @@ export default function TalentProfilePage() {
                                 {editTab === "privacy" && (
                                     <div className="space-y-5 animate-in slide-in-from-right-4 fade-in duration-300">
                                         <div className="grid grid-cols-1 gap-4">
-                                            <div className="p-4 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg-secondary)] flex items-center justify-between">
+                                            <div className="p-4 rounded-xl border border-(--theme-border) bg-(--theme-bg-secondary) flex items-center justify-between">
                                                 <div>
-                                                    <h4 className="text-[13px] font-bold text-[var(--theme-text-primary)]">Public Email</h4>
-                                                    <p className="text-[11px] text-[var(--theme-text-muted)] mt-0.5">Show your email address on your profile</p>
+                                                    <h4 className="text-[13px] font-bold text-(--theme-text-primary)">Public Email</h4>
+                                                    <p className="text-[11px] text-(--theme-text-muted) mt-0.5">Show your email address on your profile</p>
                                                 </div>
                                                 <Toggle checked={form.showEmail} onChange={v => setForm(f => ({ ...f, showEmail: v }))} label="" />
                                             </div>
-                                            <div className="p-4 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg-secondary)] flex items-center justify-between">
+                                            <div className="p-4 rounded-xl border border-(--theme-border) bg-(--theme-bg-secondary) flex items-center justify-between">
                                                 <div>
-                                                    <h4 className="text-[13px] font-bold text-[var(--theme-text-primary)]">Public Phone</h4>
-                                                    <p className="text-[11px] text-[var(--theme-text-muted)] mt-0.5">Show your phone number on your profile</p>
+                                                    <h4 className="text-[13px] font-bold text-(--theme-text-primary)">Public Phone</h4>
+                                                    <p className="text-[11px] text-(--theme-text-muted) mt-0.5">Show your phone number on your profile</p>
                                                 </div>
                                                 <Toggle checked={form.showPhone} onChange={v => setForm(f => ({ ...f, showPhone: v }))} label="" />
                                             </div>
-                                            <div className="p-4 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg-secondary)] flex items-center justify-between">
+                                            <div className="p-4 rounded-xl border border-(--theme-border) bg-(--theme-bg-secondary) flex items-center justify-between">
                                                 <div>
-                                                    <h4 className="text-[13px] font-bold text-[var(--theme-text-primary)]">Public Socials</h4>
-                                                    <p className="text-[11px] text-[var(--theme-text-muted)] mt-0.5">Display links to LinkedIn, GitHub, etc.</p>
+                                                    <h4 className="text-[13px] font-bold text-(--theme-text-primary)">Public Socials</h4>
+                                                    <p className="text-[11px] text-(--theme-text-muted) mt-0.5">Display links to LinkedIn, GitHub, etc.</p>
                                                 </div>
                                                 <Toggle checked={form.showSocials} onChange={v => setForm(f => ({ ...f, showSocials: v }))} label="" />
                                             </div>
@@ -594,13 +705,13 @@ export default function TalentProfilePage() {
                             </div>
 
                             {/* Footer Actions */}
-                            <div className="px-6 py-4 border-t border-[var(--theme-border)] bg-[var(--theme-bg)] flex items-center justify-between z-10">
-                                <p className="text-[10px] text-[var(--theme-text-muted)] hidden sm:block font-mono">
+                            <div className="px-6 py-4 border-t border-(--theme-border) bg-(--theme-bg) flex items-center justify-between z-10">
+                                <p className="text-[10px] text-(--theme-text-muted) hidden sm:block font-mono">
                                     {"// profile.save()"}
                                 </p>
                                 <div className="flex items-center gap-3 w-full sm:w-auto">
                                     <button onClick={() => setShowEdit(false)}
-                                        className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-[13px] font-medium border cursor-pointer transition-all hover:bg-[var(--theme-bg-secondary)]"
+                                        className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-[13px] font-medium border cursor-pointer transition-all hover:bg-(--theme-bg-secondary)"
                                         style={{ background: "transparent", borderColor: "var(--theme-border)", color: "var(--theme-text-primary)" }}>
                                         Cancel
                                     </button>
@@ -660,7 +771,7 @@ export default function TalentProfilePage() {
                                     setUserData((prev: any) => ({...prev, coverUrl: selectedCoverId}));
                                     showToast("success", "Cover banner updated!");
                                 }
-                            } catch (e) {
+                            } catch {
                                 showToast("error", "Failed to update cover.");
                             }
                             setCoverSaving(false);
@@ -680,9 +791,9 @@ export default function TalentProfilePage() {
                         <div className="relative group shrink-0">
                             <div 
                                 onClick={() => setShowAvatarMenu(prev => !prev)}
-                                className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-black text-2xl sm:text-3xl font-bold border-4 border-[var(--theme-bg)] shadow-xl cursor-pointer overflow-hidden relative">
+                                className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-linear-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-black text-2xl sm:text-3xl font-bold border-4 border-(--theme-bg) shadow-xl cursor-pointer overflow-hidden relative">
                                 {avatarUrl ? (
-                                    <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
+                                    <img src={avatarUrl} alt={fullName} loading="lazy" className="w-full h-full object-cover" />
                                 ) : (
                                     initials
                                 )}
@@ -700,10 +811,10 @@ export default function TalentProfilePage() {
                             {showAvatarMenu && (
                                 <>
                                     <div className="fixed inset-0 z-40" onClick={() => setShowAvatarMenu(false)} />
-                                    <div className="absolute top-full left-0 translate-x-0 sm:left-1/2 sm:-translate-x-1/2 mt-2 w-48 rounded-xl shadow-xl border border-[var(--theme-border)] bg-[var(--theme-card)] z-50 overflow-hidden text-sm animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
+                                    <div className="absolute top-full left-0 translate-x-0 sm:left-1/2 sm:-translate-x-1/2 mt-2 w-48 rounded-xl shadow-xl border border-(--theme-border) bg-(--theme-card) z-50 overflow-hidden text-sm animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
                                         <div className="p-1 flex flex-col">
                                             <button onClick={() => { setShowAvatarMenu(false); fileInputRef.current?.click(); }}
-                                                className="w-full text-left px-4 py-2 hover:bg-[var(--theme-bg-secondary)] text-[var(--theme-text-primary)] rounded-lg transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer">
+                                                className="w-full text-left px-4 py-2 hover:bg-(--theme-bg-secondary) text-(--theme-text-primary) rounded-lg transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer">
                                                 <Upload className="w-4 h-4" /> Upload Photo
                                             </button>
                                             {(avatarUrl && avatarUrl !== "") && (
@@ -721,15 +832,15 @@ export default function TalentProfilePage() {
 
                         <div className="pb-1 sm:pb-2 min-w-0 hidden sm:block">
                             <div className="flex items-center gap-2 flex-wrap">
-                                <h1 className="text-xl sm:text-2xl font-bold text-[var(--theme-text-primary)]">{fullName}</h1>
-                                <span className="text-[12px] font-medium text-[var(--theme-text-muted)]">@{username}</span>
+                                <h1 className="text-xl sm:text-2xl font-bold text-(--theme-text-primary)">{fullName}</h1>
+                                <span className="text-[12px] font-medium text-(--theme-text-muted)">@{username}</span>
                                 {isAvailable !== false && (
                                     <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 uppercase tracking-widest border border-green-500/20">
                                         Open to Work
                                     </span>
                                 )}
                             </div>
-                            {displayRole && <p className="text-[13px] text-[var(--theme-text-muted)] mt-0.5">{displayRole}</p>}
+                            {displayRole && <p className="text-[13px] text-(--theme-text-muted) mt-0.5">{displayRole}</p>}
                             <p className="text-[11px] font-medium flex items-center gap-1 mt-1" style={{ color: accent }}>
                                 <Sparkles className="w-3 h-3" /> Talent Profile
                             </p>
@@ -741,10 +852,10 @@ export default function TalentProfilePage() {
             {/* Mobile name */}
             <div className="sm:hidden px-4 mt-3">
                 <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <h1 className="text-lg font-bold text-[var(--theme-text-primary)]">{fullName}</h1>
-                    <span className="text-[11px] font-medium text-[var(--theme-text-muted)]">@{username}</span>
+                    <h1 className="text-lg font-bold text-(--theme-text-primary)">{fullName}</h1>
+                    <span className="text-[11px] font-medium text-(--theme-text-muted)">@{username}</span>
                 </div>
-                {displayRole && <p className="text-[12px] text-[var(--theme-text-muted)]">{displayRole}</p>}
+                {displayRole && <p className="text-[12px] text-(--theme-text-muted)">{displayRole}</p>}
                 {isAvailable !== false && (
                     <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 uppercase tracking-widest border border-green-500/20 inline-block mt-1">
                         Open to Work
@@ -758,50 +869,53 @@ export default function TalentProfilePage() {
                 {/* Bio & Social Links */}
                 <div className="mt-4 sm:mt-6">
                     {bio ? (
-                        <p className="text-[13px] sm:text-[14px] text-[var(--theme-text-primary)] leading-relaxed whitespace-pre-wrap max-w-3xl">
+                        <p className="text-[13px] sm:text-[14px] text-(--theme-text-primary) leading-relaxed whitespace-pre-wrap max-w-3xl">
                             {bio}
                         </p>
                     ) : (
-                        <p className="text-[13px] text-[var(--theme-text-muted)] italic">
-                            No bio added yet. Go to Settings → Privacy to add one.
+                        <p className="text-[13px] text-(--theme-text-muted) italic">
+                            No bio yet.{" "}
+                            <button onClick={() => setShowEdit(true)} className="border-none bg-transparent cursor-pointer font-medium underline" style={{ color: accent }}>
+                                Add one
+                            </button>
                         </p>
                     )}
 
                     <div className="flex flex-wrap items-center gap-3 mt-4 text-[12px] font-medium">
                         {currentJob && (
-                            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-card)]" style={{ color: accent }}>
+                            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-(--theme-border) bg-(--theme-card)" style={{ color: accent }}>
                                 <Briefcase className="w-3.5 h-3.5" />
                                 {currentJob.role} at {currentJob.companyName}
                             </span>
                         )}
                         {experienceLevel && (
-                            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-card)] text-[var(--theme-text-secondary)]">
+                            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-(--theme-border) bg-(--theme-card) text-(--theme-text-secondary)">
                                 <Zap className="w-3.5 h-3.5 text-yellow-500" />
                                 {experienceLevel.charAt(0) + experienceLevel.slice(1).toLowerCase()} Level
                             </span>
                         )}
                         {showEmail && contactEmail && (
-                            <a href={`mailto:${contactEmail}`} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:opacity-80 transition-colors bg-[var(--theme-card)] border border-[var(--theme-border)] no-underline text-[var(--theme-text-secondary)]">
+                            <a href={`mailto:${contactEmail}`} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:opacity-80 transition-colors bg-(--theme-card) border border-(--theme-border) no-underline text-(--theme-text-secondary)">
                                 <Mail className="w-3.5 h-3.5" /> <span className="hidden sm:inline">{contactEmail}</span>
                             </a>
                         )}
                         {showPhone && contactPhone && (
-                            <a href={`tel:${contactPhone}`} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:opacity-80 transition-colors bg-[var(--theme-card)] border border-[var(--theme-border)] no-underline text-[var(--theme-text-secondary)]">
+                            <a href={`tel:${contactPhone}`} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:opacity-80 transition-colors bg-(--theme-card) border border-(--theme-border) no-underline text-(--theme-text-secondary)">
                                 <Phone className="w-3.5 h-3.5" /> <span className="hidden sm:inline">{contactPhone}</span>
                             </a>
                         )}
                         {showSocials && githubUsername && (
-                            <a href={`https://github.com/${githubUsername}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:opacity-80 transition-colors bg-[var(--theme-card)] border border-[var(--theme-border)] no-underline text-[var(--theme-text-secondary)]">
+                            <a href={`https://github.com/${githubUsername}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:opacity-80 transition-colors bg-(--theme-card) border border-(--theme-border) no-underline text-(--theme-text-secondary)">
                                 <Github className="w-3.5 h-3.5" /> <span className="hidden sm:inline">@{githubUsername}</span>
                             </a>
                         )}
                         {showSocials && linkedinUrl && (
-                            <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:opacity-80 transition-colors bg-[var(--theme-card)] border border-[var(--theme-border)] no-underline text-[var(--theme-text-secondary)]">
+                            <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:opacity-80 transition-colors bg-(--theme-card) border border-(--theme-border) no-underline text-(--theme-text-secondary)">
                                 <Linkedin className="w-3.5 h-3.5 text-blue-500" /> <span className="hidden sm:inline">LinkedIn</span>
                             </a>
                         )}
                         {showSocials && portfolioUrl && (
-                            <a href={portfolioUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:opacity-80 transition-colors bg-[var(--theme-card)] border border-[var(--theme-border)] no-underline text-[var(--theme-text-secondary)]">
+                            <a href={portfolioUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:opacity-80 transition-colors bg-(--theme-card) border border-(--theme-border) no-underline text-(--theme-text-secondary)">
                                 <ExternalLink className="w-3.5 h-3.5 text-purple-500" /> <span className="hidden sm:inline">Portfolio</span>
                             </a>
                         )}
@@ -809,24 +923,24 @@ export default function TalentProfilePage() {
                 </div>
 
                 {/* Stats / Actions row */}
-                <div className="flex items-center gap-3 sm:gap-6 mt-4 sm:mt-5 pb-4 border-b border-[var(--theme-border)]">
+                <div className="flex items-center gap-3 sm:gap-6 mt-4 sm:mt-5 pb-4 border-b border-(--theme-border)">
                     <div className="text-center">
-                        <p className="text-sm sm:text-lg font-bold text-[var(--theme-text-primary)]">{userData?._count?.following || 0}</p>
-                        <p className="text-[9px] sm:text-[10px] text-[var(--theme-text-muted)] uppercase tracking-wider">Following</p>
+                        <p className="text-sm sm:text-lg font-bold text-(--theme-text-primary)">{userData?._count?.following || 0}</p>
+                        <p className="text-[9px] sm:text-[10px] text-(--theme-text-muted) uppercase tracking-wider">Following</p>
                     </div>
                     <div className="text-center">
-                        <p className="text-sm sm:text-lg font-bold text-[var(--theme-text-primary)]">{userData?._count?.followers || 0}</p>
-                        <p className="text-[9px] sm:text-[10px] text-[var(--theme-text-muted)] uppercase tracking-wider">Followers</p>
+                        <p className="text-sm sm:text-lg font-bold text-(--theme-text-primary)">{userData?._count?.followers || 0}</p>
+                        <p className="text-[9px] sm:text-[10px] text-(--theme-text-muted) uppercase tracking-wider">Followers</p>
                     </div>
                     {githubConnected && (
                         <div className="text-center">
-                            <p className="text-sm sm:text-lg font-bold text-[var(--theme-text-primary)]">{githubRepos || 0}</p>
-                            <p className="text-[9px] sm:text-[10px] text-[var(--theme-text-muted)] uppercase tracking-wider">Repos</p>
+                            <p className="text-sm sm:text-lg font-bold text-(--theme-text-primary)">{githubRepos || 0}</p>
+                            <p className="text-[9px] sm:text-[10px] text-(--theme-text-muted) uppercase tracking-wider">Repos</p>
                         </div>
                     )}
                     <div className="text-center">
-                        <p className="text-sm sm:text-lg font-bold text-[var(--theme-text-primary)]">{spills?.length || 0}</p>
-                        <p className="text-[9px] sm:text-[10px] text-[var(--theme-text-muted)] uppercase tracking-wider">Spills</p>
+                        <p className="text-sm sm:text-lg font-bold text-(--theme-text-primary)">{userData?._count?.spillPosts ?? spills?.length ?? 0}</p>
+                        <p className="text-[9px] sm:text-[10px] text-(--theme-text-muted) uppercase tracking-wider">Spills</p>
                     </div>
                     <div className="ml-auto flex gap-2">
                         <button
@@ -840,11 +954,11 @@ export default function TalentProfilePage() {
                 </div>
 
                 {/* Tabs */}
-                <div className="flex gap-0 mt-0 border-b border-[var(--theme-border)] overflow-x-auto scrollbar-none">
+                <div className="flex gap-0 mt-0 border-b border-(--theme-border) overflow-x-auto scrollbar-none">
                     {tabs.map(tab => (
                         <button key={tab} onClick={() => setActiveTab(tab)}
                             className={`px-4 sm:px-6 py-3 text-[12px] sm:text-[13px] font-semibold border-b-2 transition-all cursor-pointer bg-transparent whitespace-nowrap
-                                ${activeTab === tab ? "border-[#3CF91A] text-[#3CF91A]" : "border-transparent text-[var(--theme-text-muted)] hover:text-[var(--theme-text-tertiary)]"}`}>
+                                ${activeTab === tab ? "border-[#3CF91A] text-[#3CF91A]" : "border-transparent text-(--theme-text-muted) hover:text-(--theme-text-tertiary)"}`}>
                             {tab}
                         </button>
                     ))}
@@ -857,61 +971,59 @@ export default function TalentProfilePage() {
                     {/* ── EXPERIENCE TAB ── */}
                     {activeTab === "Experience" && (
                         <div className="space-y-3">
-                            {workExperience && workExperience.length > 0 ? (
-                                <>
-                                    {workExperience.map((exp: any) => (
-                                        <div key={exp.id}
-                                            className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] p-4 sm:p-5 flex gap-4 hover:border-[#3CF91A]/30 transition-all"
-                                            onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}
-                                            onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border)")}>
-                                            <div className="w-10 h-10 shrink-0 rounded-xl bg-gradient-to-br from-[#3CF91A] to-[#10B981] flex items-center justify-center text-[13px] font-bold" style={{ color: "#000" }}>
-                                                {exp.companyName[0].toUpperCase()}
+                            <div className="flex items-center justify-between">
+                                <p className="text-[11px] font-semibold uppercase tracking-wider text-(--theme-text-muted)">
+                                    {experiences.length} Entr{experiences.length !== 1 ? "ies" : "y"}
+                                </p>
+                                <button onClick={openAddExp}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105"
+                                    style={{ background: accent }}>
+                                    <Plus className="w-3 h-3" /> Add Experience
+                                </button>
+                            </div>
+                            {experiences.length > 0 ? experiences.map((exp: any) => (
+                                <div key={exp.id}
+                                    className="rounded-2xl border border-(--theme-border) bg-(--theme-card) p-4 sm:p-5 flex gap-4 group transition-all"
+                                    onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}
+                                    onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border)")}>
+                                    <div className="w-10 h-10 shrink-0 rounded-xl bg-linear-to-br from-[#3CF91A] to-[#10B981] flex items-center justify-center text-[13px] font-bold" style={{ color: "#000" }}>
+                                        {exp.companyName[0].toUpperCase()}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-start gap-2 justify-between flex-wrap">
+                                            <div>
+                                                <p className="text-[13px] font-bold text-(--theme-text-primary)">{exp.role}</p>
+                                                <p className="text-[12px] font-medium" style={{ color: accent }}>{exp.companyName}</p>
+                                                <p className="text-[10px] mt-0.5 text-(--theme-text-muted)">
+                                                    {fmtDate(exp.startDate)} – {exp.isCurrent ? "Present" : exp.endDate ? fmtDate(exp.endDate) : ""}
+                                                </p>
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-start gap-2 justify-between flex-wrap">
-                                                    <div>
-                                                        <p className="text-[13px] font-bold text-[var(--theme-text-primary)]">{exp.role}</p>
-                                                        <p className="text-[12px] font-medium" style={{ color: accent }}>{exp.companyName}</p>
-                                                        <p className="text-[10px] mt-0.5 text-[var(--theme-text-muted)]">
-                                                            {fmtDate(exp.startDate)} – {exp.isCurrent ? "Present" : exp.endDate ? fmtDate(exp.endDate) : ""}
-                                                        </p>
-                                                    </div>
-                                                    {exp.isCurrent && (
-                                                        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full shrink-0"
-                                                            style={{ background: `${accent}15`, color: accent, border: `1px solid ${accent}30` }}>
-                                                            Current
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                {exp.description && (
-                                                    <p className="text-[12px] text-[var(--theme-text-muted)] mt-2 leading-relaxed">{exp.description}</p>
+                                            <div className="flex items-center gap-1.5 shrink-0">
+                                                {exp.isCurrent && (
+                                                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full"
+                                                        style={{ background: `${accent}15`, color: accent, border: `1px solid ${accent}30` }}>
+                                                        Current
+                                                    </span>
                                                 )}
+                                                <button onClick={() => openEditExp(exp)}
+                                                    className="p-1.5 rounded-lg border-none bg-transparent cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity text-(--theme-text-muted) hover:text-(--theme-text-primary) hover:bg-(--theme-bg-secondary)">
+                                                    <Pencil className="w-3.5 h-3.5" />
+                                                </button>
+                                                <button onClick={() => deleteExp(exp.id)}
+                                                    className="p-1.5 rounded-lg border-none bg-transparent cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:bg-red-500/10">
+                                                    <Trash className="w-3.5 h-3.5" />
+                                                </button>
                                             </div>
                                         </div>
-                                    ))}
-                                    <div className="pt-2">
-                                        <button
-                                            onClick={() => setShowEdit(true)}
-                                            className="inline-flex items-center gap-1.5 text-[11px] font-medium transition-all hover:opacity-80 border-none bg-transparent cursor-pointer"
-                                            style={{ color: accent }}>
-                                            <Pencil className="w-3 h-3" />
-                                            <span>Edit Profile Info</span>
-                                        </button>
+                                        {exp.description && (
+                                            <p className="text-[12px] text-(--theme-text-muted) mt-2 leading-relaxed">{exp.description}</p>
+                                        )}
                                     </div>
-                                </>
-                            ) : (
-                                <div className="rounded-2xl border border-dashed border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-8 text-center flex flex-col items-center">
-                                    <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3" style={{ background: `${accent}10` }}>
-                                        <Briefcase className="w-5 h-5" style={{ color: accent }} />
-                                    </div>
-                                    <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-1">No Work Experience Yet</h3>
-                                    <p className="text-[12px] text-[var(--theme-text-muted)] mb-3">Add your current and past roles — they'll appear here and on your public profile.</p>
-                                    <button
-                                        onClick={() => setShowEdit(true)}
-                                        className="px-4 py-2 rounded-xl text-[12px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105"
-                                        style={{ background: accent }}>
-                                        Edit Profile
-                                    </button>
+                                </div>
+                            )) : (
+                                <div className="rounded-2xl border border-dashed border-(--theme-border) bg-(--theme-card) p-8 text-center">
+                                    <Briefcase className="w-8 h-8 mx-auto mb-2" style={{ color: accent, opacity: 0.5 }} />
+                                    <p className="text-[13px] font-medium text-(--theme-text-muted)">No experience yet — click &ldquo;Add Experience&rdquo; above</p>
                                 </div>
                             )}
                         </div>
@@ -919,27 +1031,45 @@ export default function TalentProfilePage() {
 
                     {/* ── SKILLS TAB ── */}
                     {activeTab === "Skills" && (
-                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
-                            <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-4 flex items-center gap-2">
-                                <Zap className="w-4 h-4 text-[#3CF91A]" /> Professional Skills
-                            </h2>
-                            {skills && skills.length > 0 ? (
+                        <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm p-4 sm:p-5">
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-[14px] font-bold text-(--theme-text-primary) flex items-center gap-2">
+                                    <Zap className="w-4 h-4" style={{ color: accent }} /> Skills
+                                    {skillsSaving && <Loader2 className="w-3.5 h-3.5 animate-spin" style={{ color: accent }} />}
+                                </h2>
+                                <span className="text-[10px] text-(--theme-text-muted)">{skillsList.length} skills</span>
+                            </div>
+                            <div className="flex gap-2 mb-4">
+                                <input
+                                    type="text"
+                                    value={skillInput}
+                                    onChange={e => setSkillInput(e.target.value)}
+                                    onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addSkill(skillInput); } }}
+                                    placeholder="Type a skill and press Enter"
+                                    className="flex-1 px-3 py-2 rounded-xl text-[12px] outline-none"
+                                    style={{ background: "var(--theme-input-bg)", border: "1px solid var(--theme-border)", color: "var(--theme-text-primary)" }}
+                                />
+                                <button onClick={() => addSkill(skillInput)}
+                                    className="px-3 py-2 rounded-xl text-[12px] font-bold text-black border-none cursor-pointer hover:scale-105 transition-all"
+                                    style={{ background: accent }}>
+                                    <Plus className="w-4 h-4" />
+                                </button>
+                            </div>
+                            {skillsList.length > 0 ? (
                                 <div className="flex flex-wrap gap-2">
-                                    {skills.map((skill: any) => (
-                                        <span key={skill.skillName}
-                                            className="px-3 py-1.5 rounded-lg text-[11px] sm:text-[12px] font-medium bg-[var(--theme-input-bg)] text-[var(--theme-text-secondary)] border border-[var(--theme-border-light)] shadow-sm flex items-center gap-1.5 hover:border-[#3CF91A]/30 transition-colors">
-                                            {skill.isVerified && <CheckCircle className="w-3 h-3 text-[#3CF91A]" />}
-                                            {skill.skillName}
+                                    {skillsList.map(skill => (
+                                        <span key={skill}
+                                            className="px-3 py-1.5 rounded-lg text-[11px] sm:text-[12px] font-medium bg-(--theme-input-bg) text-(--theme-text-secondary) border border-(--theme-border-light) shadow-sm flex items-center gap-1.5 group">
+                                            {skill}
+                                            <button onClick={() => removeSkill(skill)}
+                                                className="p-0.5 rounded-full border-none bg-transparent cursor-pointer text-(--theme-text-muted) hover:text-red-500 transition-colors opacity-60 group-hover:opacity-100">
+                                                <X className="w-3 h-3" />
+                                            </button>
                                         </span>
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center py-6">
-                                    <p className="text-[12px] text-[var(--theme-text-muted)] mb-2">No skills added yet.</p>
-                                    <button onClick={() => setShowEdit(true)} className="text-[11px] font-medium border-none bg-transparent cursor-pointer" style={{ color: accent }}>
-                                        Edit Profile
-                                    </button>
-                                </div>
+                                <p className="text-[12px] text-(--theme-text-muted) text-center py-4">Type a skill above and press Enter to add it</p>
                             )}
                         </div>
                     )}
@@ -947,30 +1077,47 @@ export default function TalentProfilePage() {
                     {/* ── PROJECTS TAB ── */}
                     {activeTab === "Projects" && (
                         <div className="space-y-4">
-                            {projectLinks && projectLinks.length > 0 ? (
-                                projectLinks.map((project: any, i: number) => (
-                                    <div key={i}
-                                        className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5 transition-all"
-                                        onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}
-                                        onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border)")}>
-                                        <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-1">{project.title || "Project Link"}</h3>
-                                        {project.description && (
-                                            <p className="text-[12px] text-[var(--theme-text-secondary)] mb-3 leading-relaxed">{project.description}</p>
-                                        )}
-                                        <a href={project.url} target="_blank" rel="noopener noreferrer"
-                                            className="text-[11px] font-medium flex items-center gap-1 no-underline hover:underline"
-                                            style={{ color: accent }}>
-                                            <LinkIcon className="w-3 h-3" /> View Project
-                                        </a>
+                            <div className="flex items-center justify-between">
+                                <p className="text-[11px] font-semibold uppercase tracking-wider text-(--theme-text-muted)">
+                                    {projectsList.length} Project{projectsList.length !== 1 ? "s" : ""}
+                                </p>
+                                <button onClick={openAddProject}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105"
+                                    style={{ background: accent }}>
+                                    <Plus className="w-3 h-3" /> Add Project
+                                </button>
+                            </div>
+                            {projectsList.length > 0 ? projectsList.map((project: any, i: number) => (
+                                <div key={i}
+                                    className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm p-4 sm:p-5 transition-all group"
+                                    onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}
+                                    onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border)")}>
+                                    <div className="flex items-start justify-between gap-2">
+                                        <h3 className="text-[14px] font-bold text-(--theme-text-primary) mb-1">{project.title || "Untitled Project"}</h3>
+                                        <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button onClick={() => openEditProject(i)}
+                                                className="p-1.5 rounded-lg border-none bg-transparent cursor-pointer text-(--theme-text-muted) hover:text-(--theme-text-primary) hover:bg-(--theme-bg-secondary)">
+                                                <Pencil className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button onClick={() => deleteProject(i)}
+                                                className="p-1.5 rounded-lg border-none bg-transparent cursor-pointer text-red-500 hover:bg-red-500/10">
+                                                <Trash className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
                                     </div>
-                                ))
-                            ) : (
-                                <div className="rounded-2xl border border-dashed border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-8 text-center flex flex-col items-center">
-                                    <div className="w-12 h-12 rounded-full bg-[var(--theme-bg-secondary)] flex items-center justify-center mb-3">
-                                        <Briefcase className="w-5 h-5 text-[var(--theme-text-muted)]" />
-                                    </div>
-                                    <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-1">No Projects Yet</h3>
-                                    <p className="text-[12px] text-[var(--theme-text-muted)]">Add spotlight projects from your profile settings.</p>
+                                    {project.description && (
+                                        <p className="text-[12px] text-(--theme-text-secondary) mb-3 leading-relaxed">{project.description}</p>
+                                    )}
+                                    <a href={project.url} target="_blank" rel="noopener noreferrer"
+                                        className="text-[11px] font-medium flex items-center gap-1 no-underline hover:underline"
+                                        style={{ color: accent }}>
+                                        <LinkIcon className="w-3 h-3" /> View Project
+                                    </a>
+                                </div>
+                            )) : (
+                                <div className="rounded-2xl border border-dashed border-(--theme-border) bg-(--theme-card) p-8 text-center">
+                                    <LinkIcon className="w-8 h-8 mx-auto mb-2" style={{ color: accent, opacity: 0.5 }} />
+                                    <p className="text-[13px] font-medium text-(--theme-text-muted)">No projects yet — click &ldquo;Add Project&rdquo; above</p>
                                 </div>
                             )}
                         </div>
@@ -985,17 +1132,18 @@ export default function TalentProfilePage() {
                                 <>
                                     {/* ── GitHub Profile Card ── */}
                                     {githubData.githubProfile && (
-                                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
+                                        <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm p-4 sm:p-5">
                                             <div className="flex items-start gap-4">
                                                 <img
                                                     src={githubData.githubProfile.avatarUrl}
                                                     alt="GitHub Avatar"
+                                                    loading="lazy"
                                                     className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl border-2 shrink-0"
                                                     style={{ borderColor: `${accent}40` }}
                                                 />
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                                                        <h2 className="text-[15px] font-bold text-[var(--theme-text-primary)]">@{githubData.githubUsername}</h2>
+                                                        <h2 className="text-[15px] font-bold text-(--theme-text-primary)">@{githubData.githubUsername}</h2>
                                                         <a href={githubData.githubProfile.htmlUrl} target="_blank" rel="noopener noreferrer"
                                                             className="flex items-center gap-1 text-[10px] font-medium no-underline px-2 py-0.5 rounded-full transition-all hover:opacity-80"
                                                             style={{ background: `${accent}15`, color: accent }}>
@@ -1003,15 +1151,15 @@ export default function TalentProfilePage() {
                                                         </a>
                                                     </div>
                                                     {githubData.githubProfile.bio && (
-                                                        <p className="text-[12px] text-[var(--theme-text-muted)] mb-2 line-clamp-2">{githubData.githubProfile.bio}</p>
+                                                        <p className="text-[12px] text-(--theme-text-muted) mb-2 line-clamp-2">{githubData.githubProfile.bio}</p>
                                                     )}
-                                                    <div className="flex items-center gap-4 text-[11px] text-[var(--theme-text-secondary)]">
+                                                    <div className="flex items-center gap-4 text-[11px] text-(--theme-text-secondary)">
                                                         <span><strong style={{ color: 'var(--theme-text-primary)' }}>{githubData.githubProfile.followers}</strong> followers</span>
                                                         <span><strong style={{ color: 'var(--theme-text-primary)' }}>{githubData.githubProfile.following}</strong> following</span>
                                                         <span><strong style={{ color: 'var(--theme-text-primary)' }}>{githubData.totalRepos}</strong> repos</span>
                                                         <span><strong style={{ color: accent }}>{githubData.totalStars}</strong> <Star className="w-3 h-3 inline" /></span>
                                                     </div>
-                                                    <p className="text-[10px] text-[var(--theme-text-muted)] mt-1.5">
+                                                    <p className="text-[10px] text-(--theme-text-muted) mt-1.5">
                                                         Member since {new Date(githubData.githubProfile.createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
                                                     </p>
                                                 </div>
@@ -1020,8 +1168,8 @@ export default function TalentProfilePage() {
                                     )}
 
                                     {/* ── Top Languages ── */}
-                                    <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
-                                        <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-4 flex items-center gap-2">
+                                    <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm p-4 sm:p-5">
+                                        <h2 className="text-[14px] font-bold text-(--theme-text-primary) mb-4 flex items-center gap-2">
                                             <Github className="w-4 h-4 text-[#3CF91A]" /> Top Languages
                                         </h2>
                                         {Object.keys(githubData.languageStats).length > 0 ? (
@@ -1029,35 +1177,35 @@ export default function TalentProfilePage() {
                                                 {Object.entries(githubData.languageStats)
                                                     .sort(([, a], [, b]) => (b as number) - (a as number))
                                                     .map(([lang, count]) => (
-                                                        <span key={lang} className="px-3 py-1.5 rounded-lg text-[11px] sm:text-[12px] font-medium bg-[var(--theme-input-bg)] text-[var(--theme-text-secondary)] border border-[var(--theme-border-light)] flex items-center gap-1.5">
+                                                        <span key={lang} className="px-3 py-1.5 rounded-lg text-[11px] sm:text-[12px] font-medium bg-(--theme-input-bg) text-(--theme-text-secondary) border border-(--theme-border-light) flex items-center gap-1.5">
                                                             <span className="w-2 h-2 rounded-full bg-[#3CF91A]"></span>
                                                             {lang} <span className="text-[#3CF91A] font-bold">{count as number}</span>
                                                         </span>
                                                     ))}
                                             </div>
                                         ) : (
-                                            <p className="text-[12px] text-[var(--theme-text-muted)]">No language data available.</p>
+                                            <p className="text-[12px] text-(--theme-text-muted)">No language data available.</p>
                                         )}
                                     </div>
 
                                     {/* ── Repositories ── */}
-                                    <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
-                                        <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-4 flex items-center gap-2">
+                                    <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm p-4 sm:p-5">
+                                        <h2 className="text-[14px] font-bold text-(--theme-text-primary) mb-4 flex items-center gap-2">
                                             <Github className="w-4 h-4 text-[#3CF91A]" /> Repositories {githubData.sharePrivateRepos && <span className="text-[10px] bg-[#3CF91A]/10 text-[#3CF91A] px-2 py-0.5 rounded-full ml-2">Includes Private</span>}
                                         </h2>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             {githubData.repos.map((repo: any) => (
-                                                <a key={repo.id} href={repo.html_url} target="_blank" rel="noopener noreferrer" className="p-4 rounded-xl border border-[var(--theme-border-light)] bg-[var(--theme-bg-secondary)] hover:border-[#3CF91A]/40 transition-all no-underline block flex flex-col break-inside-avoid">
-                                                    <h3 className="text-[13px] font-bold text-[var(--theme-text-primary)] mb-1 flex items-center justify-between">
+                                                <a key={repo.id} href={repo.html_url} target="_blank" rel="noopener noreferrer" className="p-4 rounded-xl border border-(--theme-border-light) bg-(--theme-bg-secondary) hover:border-[#3CF91A]/40 transition-all no-underline block flex flex-col break-inside-avoid">
+                                                    <h3 className="text-[13px] font-bold text-(--theme-text-primary) mb-1 flex items-center justify-between">
                                                         <span className="truncate pr-2">{repo.name}</span>
                                                         {repo.private && <span className="text-[9px] bg-red-500/10 text-red-500 px-2 py-0.5 rounded-full border border-red-500/20 shrink-0">Private</span>}
                                                     </h3>
-                                                    <p className="text-[11px] text-[var(--theme-text-muted)] mb-3 line-clamp-2 flex-grow">{repo.description || "No description"}</p>
-                                                    <div className="flex items-center gap-3 text-[10px] text-[var(--theme-text-secondary)] mt-auto pt-2 border-t border-[var(--theme-border-light)]">
+                                                    <p className="text-[11px] text-(--theme-text-muted) mb-3 line-clamp-2 flex-grow">{repo.description || "No description"}</p>
+                                                    <div className="flex items-center gap-3 text-[10px] text-(--theme-text-secondary) mt-auto pt-2 border-t border-(--theme-border-light)">
                                                         {repo.language && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#3CF91A]"></span>{repo.language}</span>}
-                                                        <span className="flex items-center gap-1"><Star className="w-3 h-3 text-[var(--theme-text-muted)]" /> {repo.stargazers_count}</span>
+                                                        <span className="flex items-center gap-1"><Star className="w-3 h-3 text-(--theme-text-muted)" /> {repo.stargazers_count}</span>
                                                         {repo.forks_count > 0 && <span className="flex items-center gap-1">🔱 {repo.forks_count}</span>}
-                                                        <span className="flex items-center gap-1 ml-auto text-[var(--theme-text-muted)]">{new Date(repo.updated_at).toLocaleDateString()}</span>
+                                                        <span className="flex items-center gap-1 ml-auto text-(--theme-text-muted)">{new Date(repo.updated_at).toLocaleDateString()}</span>
                                                     </div>
                                                 </a>
                                             ))}
@@ -1066,8 +1214,8 @@ export default function TalentProfilePage() {
 
                                     {/* ── Recent Activity ── */}
                                     {githubData.recentActivity && githubData.recentActivity.length > 0 && (
-                                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
-                                            <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-4 flex items-center gap-2">
+                                        <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm p-4 sm:p-5">
+                                            <h2 className="text-[14px] font-bold text-(--theme-text-primary) mb-4 flex items-center gap-2">
                                                 <Zap className="w-4 h-4 text-[#3CF91A]" /> Recent Activity
                                             </h2>
                                             <div className="space-y-2 max-h-[300px] overflow-y-auto">
@@ -1085,15 +1233,15 @@ export default function TalentProfilePage() {
                                                     };
                                                     const label = typeMap[event.type] || event.type.replace("Event", "");
                                                     return (
-                                                        <div key={i} className="flex items-center gap-3 py-2 border-b border-[var(--theme-border-light)] last:border-b-0">
+                                                        <div key={i} className="flex items-center gap-3 py-2 border-b border-(--theme-border-light) last:border-b-0">
                                                             <div className="w-2 h-2 rounded-full shrink-0" style={{ background: accent }}></div>
                                                             <div className="flex-1 min-w-0">
-                                                                <p className="text-[12px] text-[var(--theme-text-secondary)] truncate">
-                                                                    <span className="font-semibold text-[var(--theme-text-primary)]">{label}</span>{" "}
+                                                                <p className="text-[12px] text-(--theme-text-secondary) truncate">
+                                                                    <span className="font-semibold text-(--theme-text-primary)">{label}</span>{" "}
                                                                     <span className="font-mono text-[11px]" style={{ color: accent }}>{event.repo}</span>
                                                                 </p>
                                                             </div>
-                                                            <span className="text-[10px] text-[var(--theme-text-muted)] shrink-0">
+                                                            <span className="text-[10px] text-(--theme-text-muted) shrink-0">
                                                                 {new Date(event.createdAt).toLocaleDateString()}
                                                             </span>
                                                         </div>
@@ -1104,8 +1252,8 @@ export default function TalentProfilePage() {
                                     )}
 
                                     {/* ── ACHIEVEMENTS (Gamification) ── */}
-                                    <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 sm:p-5">
-                                        <h2 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-4 flex items-center gap-2">
+                                    <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm p-4 sm:p-5">
+                                        <h2 className="text-[14px] font-bold text-(--theme-text-primary) mb-4 flex items-center gap-2">
                                             <Sparkles className="w-4 h-4 text-[#3CF91A]" /> GitHub Achievements
                                         </h2>
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -1114,46 +1262,46 @@ export default function TalentProfilePage() {
                                                 <div className="w-10 h-10 rounded-full bg-[#3CF91A]/20 text-[#3CF91A] flex items-center justify-center mb-2 shadow-[0_0_15px_rgba(60,249,26,0.3)]">
                                                     <Github className="w-5 h-5" />
                                                 </div>
-                                                <span className="text-[11px] font-bold text-[var(--theme-text-primary)]">Verified Hacker</span>
-                                                <span className="text-[9px] text-[var(--theme-text-muted)] mt-0.5">Linked GitHub</span>
+                                                <span className="text-[11px] font-bold text-(--theme-text-primary)">Verified Hacker</span>
+                                                <span className="text-[9px] text-(--theme-text-muted) mt-0.5">Linked GitHub</span>
                                             </div>
 
                                             {/* Badge 2: Polyglot */}
-                                            <div className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all ${Object.keys(githubData.languageStats).length >= 3 ? 'border-purple-500/30 bg-purple-500/5' : 'border-[var(--theme-border)] bg-[var(--theme-bg-secondary)] opacity-50 grayscale'}`}>
-                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${Object.keys(githubData.languageStats).length >= 3 ? 'bg-purple-500/20 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'bg-[var(--theme-input-bg)] text-[var(--theme-text-muted)]'}`}>
+                                            <div className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all ${Object.keys(githubData.languageStats).length >= 3 ? 'border-purple-500/30 bg-purple-500/5' : 'border-(--theme-border) bg-(--theme-bg-secondary) opacity-50 grayscale'}`}>
+                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${Object.keys(githubData.languageStats).length >= 3 ? 'bg-purple-500/20 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'bg-(--theme-input-bg) text-(--theme-text-muted)'}`}>
                                                     <FileText className="w-5 h-5" />
                                                 </div>
-                                                <span className="text-[11px] font-bold text-[var(--theme-text-primary)]">Polyglot</span>
-                                                <span className="text-[9px] text-[var(--theme-text-muted)] mt-0.5">3+ Languages</span>
+                                                <span className="text-[11px] font-bold text-(--theme-text-primary)">Polyglot</span>
+                                                <span className="text-[9px] text-(--theme-text-muted) mt-0.5">3+ Languages</span>
                                             </div>
 
                                             {/* Badge 3: Stargazer */}
-                                            <div className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all ${(githubData.totalStars || 0) >= 10 ? 'border-yellow-500/30 bg-yellow-500/5' : 'border-[var(--theme-border)] bg-[var(--theme-bg-secondary)] opacity-50 grayscale'}`}>
-                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${(githubData.totalStars || 0) >= 10 ? 'bg-yellow-500/20 text-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.3)]' : 'bg-[var(--theme-input-bg)] text-[var(--theme-text-muted)]'}`}>
+                                            <div className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all ${(githubData.totalStars || 0) >= 10 ? 'border-yellow-500/30 bg-yellow-500/5' : 'border-(--theme-border) bg-(--theme-bg-secondary) opacity-50 grayscale'}`}>
+                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${(githubData.totalStars || 0) >= 10 ? 'bg-yellow-500/20 text-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.3)]' : 'bg-(--theme-input-bg) text-(--theme-text-muted)'}`}>
                                                     <Star className="w-5 h-5" />
                                                 </div>
-                                                <span className="text-[11px] font-bold text-[var(--theme-text-primary)]">Stargazer</span>
-                                                <span className="text-[9px] text-[var(--theme-text-muted)] mt-0.5">10+ Total Stars</span>
+                                                <span className="text-[11px] font-bold text-(--theme-text-primary)">Stargazer</span>
+                                                <span className="text-[9px] text-(--theme-text-muted) mt-0.5">10+ Total Stars</span>
                                             </div>
 
                                             {/* Badge 4: Deep Contributor */}
-                                            <div className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all ${(githubData.totalRepos || 0) >= 10 ? 'border-blue-500/30 bg-blue-500/5' : 'border-[var(--theme-border)] bg-[var(--theme-bg-secondary)] opacity-50 grayscale'}`}>
-                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${(githubData.totalRepos || 0) >= 10 ? 'bg-blue-500/20 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.3)]' : 'bg-[var(--theme-input-bg)] text-[var(--theme-text-muted)]'}`}>
+                                            <div className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all ${(githubData.totalRepos || 0) >= 10 ? 'border-blue-500/30 bg-blue-500/5' : 'border-(--theme-border) bg-(--theme-bg-secondary) opacity-50 grayscale'}`}>
+                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${(githubData.totalRepos || 0) >= 10 ? 'bg-blue-500/20 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.3)]' : 'bg-(--theme-input-bg) text-(--theme-text-muted)'}`}>
                                                     <Briefcase className="w-5 h-5" />
                                                 </div>
-                                                <span className="text-[11px] font-bold text-[var(--theme-text-primary)]">Archivist</span>
-                                                <span className="text-[9px] text-[var(--theme-text-muted)] mt-0.5">10+ Repositories</span>
+                                                <span className="text-[11px] font-bold text-(--theme-text-primary)">Archivist</span>
+                                                <span className="text-[9px] text-(--theme-text-muted) mt-0.5">10+ Repositories</span>
                                             </div>
                                         </div>
                                     </div>
                                 </>
                             ) : (
-                                <div className="rounded-2xl border border-dashed border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-8 text-center flex flex-col items-center">
+                                <div className="rounded-2xl border border-dashed border-(--theme-border) bg-(--theme-card) shadow-sm p-8 text-center flex flex-col items-center">
                                     <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3" style={{ background: `${accent}10` }}>
                                         <Github className="w-5 h-5" style={{ color: accent }} />
                                     </div>
-                                    <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-1">No GitHub Data</h3>
-                                    <p className="text-[12px] text-[var(--theme-text-muted)] mb-3">Connect your account in settings to display your source code activities.</p>
+                                    <h3 className="text-[14px] font-bold text-(--theme-text-primary) mb-1">No GitHub Data</h3>
+                                    <p className="text-[12px] text-(--theme-text-muted) mb-3">Connect your account in settings to display your source code activities.</p>
                                 </div>
                             )}
                         </div>
@@ -1193,12 +1341,12 @@ export default function TalentProfilePage() {
                                     </div>
                                 </>
                             ) : (
-                                <div className="rounded-2xl border border-dashed border-[var(--theme-border)] bg-[var(--theme-card)] p-12 text-center flex flex-col items-center">
+                                <div className="rounded-2xl border border-dashed border-(--theme-border) bg-(--theme-card) p-12 text-center flex flex-col items-center">
                                     <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: `${accent}10` }}>
                                         <MessageSquare className="w-7 h-7" style={{ color: accent }} />
                                     </div>
-                                    <h3 className="text-[15px] font-bold text-[var(--theme-text-primary)] mb-1">No Spills Yet</h3>
-                                    <p className="text-[12px] text-[var(--theme-text-muted)] mb-5 max-w-xs">Share your thoughts, code snippets, or insights with the community.</p>
+                                    <h3 className="text-[15px] font-bold text-(--theme-text-primary) mb-1">No Spills Yet</h3>
+                                    <p className="text-[12px] text-(--theme-text-muted) mb-5 max-w-xs">Share your thoughts, code snippets, or insights with the community.</p>
                                     <button
                                         onClick={() => setComposerOpen(true)}
                                         className="px-5 py-2.5 rounded-xl text-[12px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105"
@@ -1212,6 +1360,85 @@ export default function TalentProfilePage() {
 
                 </div>
             </div>
+
+            {/* ── Experience Modal ── */}
+            {expModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
+                    style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)" }}
+                    onClick={e => { if (e.target === e.currentTarget) setExpModal(false); }}>
+                    <div className="w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+                        style={{ background: "var(--theme-card)", border: `1px solid ${accent}30` }}>
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-(--theme-border)">
+                            <h3 className="text-[15px] font-bold text-(--theme-text-primary)">{editingExp ? "Edit Experience" : "Add Experience"}</h3>
+                            <button onClick={() => setExpModal(false)} className="p-1.5 rounded-lg border-none bg-transparent cursor-pointer text-(--theme-text-muted) hover:bg-(--theme-bg-secondary)"><X className="w-4 h-4" /></button>
+                        </div>
+                        <div className="p-5 space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="col-span-2">
+                                    <Field label="Company *" value={expForm.companyName} onChange={v => setExpForm(f => ({ ...f, companyName: v }))} placeholder="e.g. Google" icon={<Briefcase className="w-3 h-3" />} />
+                                </div>
+                                <div className="col-span-2">
+                                    <Field label="Role *" value={expForm.role} onChange={v => setExpForm(f => ({ ...f, role: v }))} placeholder="e.g. Senior Engineer" />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] uppercase tracking-widest font-semibold mb-1.5 block" style={{ color: "var(--theme-text-muted)" }}>Start Date *</label>
+                                    <input type="month" value={expForm.startDate} onChange={e => setExpForm(f => ({ ...f, startDate: e.target.value }))}
+                                        className="w-full px-3 py-2 rounded-xl text-[13px] outline-none"
+                                        style={{ background: "var(--theme-input-bg)", border: "1px solid var(--theme-border)", color: "var(--theme-text-primary)" }} />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] uppercase tracking-widest font-semibold mb-1.5 block" style={{ color: "var(--theme-text-muted)" }}>End Date</label>
+                                    <input type="month" value={expForm.isCurrent ? "" : expForm.endDate} onChange={e => setExpForm(f => ({ ...f, endDate: e.target.value }))}
+                                        disabled={expForm.isCurrent}
+                                        className="w-full px-3 py-2 rounded-xl text-[13px] outline-none disabled:opacity-40"
+                                        style={{ background: "var(--theme-input-bg)", border: "1px solid var(--theme-border)", color: "var(--theme-text-primary)" }} />
+                                </div>
+                            </div>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" checked={expForm.isCurrent} onChange={e => setExpForm(f => ({ ...f, isCurrent: e.target.checked, endDate: "" }))} className="accent-[#3CF91A] w-4 h-4" />
+                                <span className="text-[12px] text-(--theme-text-secondary)">I currently work here</span>
+                            </label>
+                            <Field label="Description" value={expForm.description} onChange={v => setExpForm(f => ({ ...f, description: v }))} placeholder="What did you work on?" textarea />
+                        </div>
+                        <div className="px-5 py-4 border-t border-(--theme-border) flex justify-end gap-3">
+                            <button onClick={() => setExpModal(false)} className="px-4 py-2 rounded-xl text-[12px] font-medium border cursor-pointer transition-all hover:bg-(--theme-bg-secondary)" style={{ background: "transparent", borderColor: "var(--theme-border)", color: "var(--theme-text-primary)" }}>Cancel</button>
+                            <button onClick={saveExp} disabled={expSaving || !expForm.companyName.trim() || !expForm.role.trim() || !expForm.startDate}
+                                className="px-5 py-2 rounded-xl text-[12px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105 disabled:opacity-50 flex items-center gap-2"
+                                style={{ background: accent }}>
+                                {expSaving ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving…</> : <><CheckCircle className="w-3.5 h-3.5" /> Save</>}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── Project Modal ── */}
+            {projectModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
+                    style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)" }}
+                    onClick={e => { if (e.target === e.currentTarget) setProjectModal(false); }}>
+                    <div className="w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+                        style={{ background: "var(--theme-card)", border: `1px solid ${accent}30` }}>
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-(--theme-border)">
+                            <h3 className="text-[15px] font-bold text-(--theme-text-primary)">{editingProjectIdx !== null ? "Edit Project" : "Add Project"}</h3>
+                            <button onClick={() => setProjectModal(false)} className="p-1.5 rounded-lg border-none bg-transparent cursor-pointer text-(--theme-text-muted) hover:bg-(--theme-bg-secondary)"><X className="w-4 h-4" /></button>
+                        </div>
+                        <div className="p-5 space-y-4">
+                            <Field label="URL *" value={projectForm.url} onChange={v => setProjectForm(f => ({ ...f, url: v }))} placeholder="https://github.com/you/project" icon={<LinkIcon className="w-3 h-3" />} />
+                            <Field label="Title" value={projectForm.title} onChange={v => setProjectForm(f => ({ ...f, title: v }))} placeholder="My Awesome Project" />
+                            <Field label="Description" value={projectForm.description} onChange={v => setProjectForm(f => ({ ...f, description: v }))} placeholder="What does it do?" textarea />
+                        </div>
+                        <div className="px-5 py-4 border-t border-(--theme-border) flex justify-end gap-3">
+                            <button onClick={() => setProjectModal(false)} className="px-4 py-2 rounded-xl text-[12px] font-medium border cursor-pointer transition-all hover:bg-(--theme-bg-secondary)" style={{ background: "transparent", borderColor: "var(--theme-border)", color: "var(--theme-text-primary)" }}>Cancel</button>
+                            <button onClick={saveProject} disabled={projectSaving || !projectForm.url.trim()}
+                                className="px-5 py-2 rounded-xl text-[12px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105 disabled:opacity-50 flex items-center gap-2"
+                                style={{ background: accent }}>
+                                {projectSaving ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving…</> : <><CheckCircle className="w-3.5 h-3.5" /> Save</>}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* ── Post Composer Modal ── */}
             {composerOpen && (
@@ -1230,12 +1457,12 @@ export default function TalentProfilePage() {
 
             {/* ── Post Preview Modal ── */}
             {selectedSpill && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedSpill(null)} />
                     <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl z-10 custom-scrollbar">
                         <button 
                             onClick={() => setSelectedSpill(null)} 
-                            className="absolute top-4 right-4 z-[70] w-8 h-8 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/80 text-white transition-colors border-none cursor-pointer shadow-md">
+                            className="absolute top-4 right-4 z-70 w-8 h-8 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/80 text-white transition-colors border-none cursor-pointer shadow-md">
                             <X size={16} />
                         </button>
                         <PostCard

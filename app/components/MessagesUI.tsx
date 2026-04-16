@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { MessageSquare, Send, ArrowLeft, Loader2 } from "lucide-react";
+import { io, Socket } from "socket.io-client";
 
 interface OtherUser {
     id: string;
@@ -99,8 +100,9 @@ export default function MessagesUI({ accent }: { accent: string }) {
     const [loadingConvos, setLoadingConvos] = useState(true);
     const [loadingMessages, setLoadingMessages] = useState(false);
     const [sending, setSending] = useState(false);
-    const [sseConnected, setSseConnected] = useState(false);
+    const [socketConnected, setSocketConnected] = useState(false);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+    const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
 
     // Attachment State
     const [attachment, setAttachment] = useState<{ url: string; type: string } | null>(null);
@@ -113,8 +115,9 @@ export default function MessagesUI({ accent }: { accent: string }) {
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const messagesRef = useRef<Message[]>([]);
-    const eventSourceRef = useRef<EventSource | null>(null);
+    const socketRef = useRef<Socket | null>(null);
     const activeConvoIdRef = useRef<string | null>(null);
+    const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Sync refs with state
     useEffect(() => { messagesRef.current = messages; }, [messages]);
@@ -154,11 +157,77 @@ export default function MessagesUI({ accent }: { accent: string }) {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [showAttachMenu]);
 
-    // Fetch current user ID once
+    // Fetch current user ID and initialise socket once
     useEffect(() => {
         fetch("/api/user/profile")
             .then(r => r.json())
-            .then(d => setCurrentUserId(d.user?.id ?? null));
+            .then(d => {
+                const uid = d.user?.id ?? null;
+                setCurrentUserId(uid);
+
+                // Connect socket
+                const socket = io({ path: "/socket.io", transports: ["websocket", "polling"] });
+                socketRef.current = socket;
+
+                socket.on("connect", () => {
+                    setSocketConnected(true);
+                    if (uid) socket.emit("identify", uid);
+                    // Re-join active conversation room if any
+                    if (activeConvoIdRef.current) {
+                        socket.emit("join-conversation", activeConvoIdRef.current);
+                    }
+                });
+
+                socket.on("disconnect", () => setSocketConnected(false));
+
+                // Incoming message from another user
+                socket.on("message", (msg: Message) => {
+                    setMessages(prev => {
+                        if (prev.some(m => m.id === msg.id)) return prev;
+                        return [...prev, msg];
+                    });
+                    setConversations(prev => prev.map(c =>
+                        c.id === msg.conversationId
+                            ? {
+                                ...c,
+                                lastMessage: msg.content,
+                                lastAt: msg.createdAt,
+                                unread: c.id === activeConvoIdRef.current ? 0 : c.unread + 1,
+                            }
+                            : c
+                    ));
+                    // Send read receipt if this conversation is active
+                    if (msg.conversationId === activeConvoIdRef.current) {
+                        socket.emit("read-receipt", { conversationId: msg.conversationId, readIds: [msg.id] });
+                    }
+                });
+
+                // Read receipts — mark our sent messages as read
+                socket.on("read-receipt", ({ readIds }: { readIds: string[] }) => {
+                    const readSet = new Set(readIds);
+                    setMessages(prev => prev.map(m => readSet.has(m.id) ? { ...m, isRead: true } : m));
+                    setConversations(prev => prev.map(c =>
+                        c.id === activeConvoIdRef.current && c.lastSenderId === uid
+                            ? { ...c, lastIsRead: true }
+                            : c
+                    ));
+                });
+
+                // Typing indicator
+                socket.on("typing", ({ userId, isTyping }: { userId: string; isTyping: boolean }) => {
+                    setTypingUsers(prev => {
+                        const next = new Set(prev);
+                        if (isTyping) next.add(userId); else next.delete(userId);
+                        return next;
+                    });
+                });
+            });
+
+        return () => {
+            socketRef.current?.disconnect();
+            socketRef.current = null;
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Load conversation list
@@ -194,16 +263,11 @@ export default function MessagesUI({ accent }: { accent: string }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
 
-    // ── SSE connection management ──────────────────────────────────────────────
+    // ── Conversation switch: load messages + join socket room ─────────────────
     useEffect(() => {
-        if (eventSourceRef.current) {
-            eventSourceRef.current.close();
-            eventSourceRef.current = null;
-            setSseConnected(false);
-        }
-
         if (!activeConvoId) {
             setMessages([]);
+            setTypingUsers(new Set());
             return;
         }
 
@@ -217,91 +281,24 @@ export default function MessagesUI({ accent }: { accent: string }) {
                 const initial: Message[] = d.messages ?? [];
                 setMessages(initial);
                 messagesRef.current = initial;
-
-                // Open SSE starting AFTER the last message we already have
-                const lastId = initial[initial.length - 1]?.id ?? null;
-                openSSEFor(activeConvoId, lastId);
             })
             .finally(() => { if (!cancelled) setLoadingMessages(false); });
 
-        // Mark conversations as read when we open them
+        // Join socket room for real-time delivery
+        socketRef.current?.emit("join-conversation", activeConvoId);
+
+        // Mark as read in sidebar
         setConversations(prev => prev.map(c => c.id === activeConvoId ? { ...c, unread: 0 } : c));
 
         return () => {
             cancelled = true;
-            if (eventSourceRef.current) {
-                eventSourceRef.current.close();
-                eventSourceRef.current = null;
+            if (activeConvoId) {
+                socketRef.current?.emit("leave-conversation", activeConvoId);
             }
-            setSseConnected(false);
+            setTypingUsers(new Set());
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeConvoId]);
-
-    // ── SSE opener (also used for reconnect) ──────────────────────────────────
-    function openSSEFor(convoId: string, afterId: string | null) {
-        const param = afterId ? `?afterId=${afterId}` : "";
-        const es = new EventSource(`/api/conversations/${convoId}/stream${param}`);
-        eventSourceRef.current = es;
-
-        es.addEventListener("connected", () => setSseConnected(true));
-
-        es.addEventListener("messages", (e: MessageEvent) => {
-            const newMsgs: Message[] = JSON.parse(e.data);
-            if (!newMsgs.length) return;
-
-            setMessages(prev => {
-                const existingIds = new Set(prev.map(m => m.id));
-                // Only add messages from OTHER users (ours come via optimistic path)
-                const incoming = newMsgs.filter(m =>
-                    m.senderId !== currentUserId && !existingIds.has(m.id)
-                );
-                if (!incoming.length) return prev;
-                return [...prev, ...incoming];
-            });
-
-            // Update sidebar preview for this conversation
-            const last = newMsgs[newMsgs.length - 1];
-            setConversations(prev => prev.map(c =>
-                c.id === convoId
-                    ? { ...c, lastMessage: last.content, lastAt: last.createdAt, unread: c.id === activeConvoIdRef.current ? 0 : c.unread + newMsgs.length }
-                    : c
-            ));
-        });
-
-        // ── Read receipts: update isRead on our sent messages ─────────────────
-        es.addEventListener("read_receipts", (e: MessageEvent) => {
-            const { readIds } = JSON.parse(e.data) as { readIds: string[] };
-            if (!readIds?.length) return;
-            const readSet = new Set(readIds);
-            setMessages(prev => prev.map(m => readSet.has(m.id) ? { ...m, isRead: true } : m));
-            // Also update the sidebar's last message tick
-            setConversations(prev => prev.map(c => {
-                if (c.id !== convoId) return c;
-                return c.lastSenderId === currentUserId ? { ...c, lastIsRead: true } : c;
-            }));
-        });
-
-        // Reconnect when server sends planned-close event
-        es.addEventListener("reconnect", (e: MessageEvent) => {
-            const { lastSeenId } = JSON.parse(e.data) as { lastSeenId: string | null };
-            es.close();
-            setSseConnected(false);
-            if (activeConvoIdRef.current === convoId) {
-                const latestId = messagesRef.current[messagesRef.current.length - 1]?.id ?? lastSeenId;
-                openSSEFor(convoId, latestId);
-            }
-        });
-
-        es.onerror = () => {
-            es.close();
-            setSseConnected(false);
-            if (activeConvoIdRef.current === convoId) {
-                const lastId = messagesRef.current[messagesRef.current.length - 1]?.id ?? null;
-                setTimeout(() => openSSEFor(convoId, lastId), 2000);
-            }
-        };
-    }
 
     // Scroll to bottom when messages change (smooth, but instant on first load)
     const isFirstLoad = useRef(true);
@@ -347,12 +344,15 @@ export default function MessagesUI({ accent }: { accent: string }) {
             });
             const data = await res.json();
             if (data.message) {
+                // Replace optimistic message with persisted one
                 setMessages(prev => prev.map(m => m.id === optimisticId ? data.message : m));
                 setConversations(prev => prev.map(c =>
                     c.id === activeConvoId
                         ? { ...c, lastMessage: content || "Sent an attachment", lastAt: data.message.createdAt, lastSenderId: currentUserId, lastIsRead: false }
                         : c
                 ));
+                // Notify other participants via socket
+                socketRef.current?.emit("new-message", { conversationId: activeConvoId, message: data.message });
             }
         } catch {
             setMessages(prev => prev.filter(m => m.id !== optimisticId));
@@ -426,11 +426,11 @@ export default function MessagesUI({ accent }: { accent: string }) {
         >
             {/* ── SIDEBAR ─────────────────────────────────────────────────────── */}
             <div
-                className={`${activeConvoId ? "hidden sm:flex" : "flex"} w-full sm:w-[290px] lg:w-[320px] flex-col shrink-0 border-r border-[var(--theme-border)]`}
+                className={`${activeConvoId ? "hidden sm:flex" : "flex"} w-full sm:w-72.5 lg:w-80 flex-col shrink-0 border-r border-(--theme-border)`}
                 style={{ background: "var(--theme-surface)" }}
             >
-                <div className="p-4 border-b border-[var(--theme-border)] shrink-0">
-                    <h2 className="text-[17px] font-bold text-[var(--theme-text-primary)]">Messages</h2>
+                <div className="p-4 border-b border-(--theme-border) shrink-0">
+                    <h2 className="text-[17px] font-bold text-(--theme-text-primary)">Messages</h2>
                     <div className="mt-2.5 relative">
                         <svg className="absolute left-3 top-1/2 -translate-y-1/2" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2">
                             <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -449,15 +449,15 @@ export default function MessagesUI({ accent }: { accent: string }) {
                     ) : conversations.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-12 px-5 text-center">
                             <MessageSquare className="w-9 h-9 mb-3" style={{ color: accent, opacity: 0.35 }} />
-                            <p className="text-[13px] font-medium text-[var(--theme-text-muted)]">No conversations yet</p>
-                            <p className="text-[11px] text-[var(--theme-text-muted)] mt-1 leading-relaxed">
+                            <p className="text-[13px] font-medium text-(--theme-text-muted)">No conversations yet</p>
+                            <p className="text-[11px] text-(--theme-text-muted) mt-1 leading-relaxed">
                                 Start a chat from the Talent Search or a profile page
                             </p>
                         </div>
                     ) : (
                         conversations.map(c => (
                             <button key={c.id} onClick={() => setActiveConvoId(c.id)}
-                                className="w-full flex items-start gap-3 p-3.5 text-left border-b border-[var(--theme-border-light)] cursor-pointer border-none transition-colors"
+                                className="w-full flex items-start gap-3 p-3.5 text-left border-b border-(--theme-border-light) cursor-pointer border-none transition-colors"
                                 style={{ background: activeConvoId === c.id ? `${accent}12` : "transparent" }}
                             >
                                 {/* Avatar */}
@@ -465,13 +465,13 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                     {c.other.avatarUrl ? (
                                         <img src={c.other.avatarUrl} alt={c.other.fullName} className="w-10 h-10 rounded-full object-cover" />
                                     ) : (
-                                        <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${gradientFor(c.other.role)} flex items-center justify-center text-white text-[11px] font-bold`}>
+                                        <div className={`w-10 h-10 rounded-full bg-linear-to-br ${gradientFor(c.other.role)} flex items-center justify-center text-white text-[11px] font-bold`}>
                                             {getInitials(c.other.fullName)}
                                         </div>
                                     )}
                                     {/* Unread badge on avatar */}
                                     {c.unread > 0 && (
-                                        <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 rounded-full text-[9px] font-bold text-white flex items-center justify-center px-1"
+                                        <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 rounded-full text-[9px] font-bold text-white flex items-center justify-center px-1"
                                             style={{ background: accent }}>
                                             {c.unread > 99 ? "99+" : c.unread}
                                         </span>
@@ -480,10 +480,10 @@ export default function MessagesUI({ accent }: { accent: string }) {
 
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between mb-0.5">
-                                        <p className={`text-[13px] truncate ${c.unread > 0 ? "font-bold text-[var(--theme-text-primary)]" : "font-semibold text-[var(--theme-text-primary)]"}`}>
+                                        <p className={`text-[13px] truncate ${c.unread > 0 ? "font-bold text-(--theme-text-primary)" : "font-semibold text-(--theme-text-primary)"}`}>
                                             {c.other.fullName}
                                         </p>
-                                        <span className="text-[10px] text-[var(--theme-text-muted)] shrink-0 ml-2">{formatTime(c.lastAt)}</span>
+                                        <span className="text-[10px] text-(--theme-text-muted) shrink-0 ml-2">{formatTime(c.lastAt)}</span>
                                     </div>
                                     <div className="flex items-center gap-1">
                                         {/* Mini tick for last sent message */}
@@ -492,7 +492,7 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                                 <TickIcon isRead={c.lastIsRead} isOptimistic={false} />
                                             </span>
                                         )}
-                                        <p className={`text-[11px] truncate ${c.unread > 0 ? "font-semibold text-[var(--theme-text-primary)]" : "text-[var(--theme-text-muted)]"}`}>
+                                        <p className={`text-[11px] truncate ${c.unread > 0 ? "font-semibold text-(--theme-text-primary)" : "text-(--theme-text-muted)"}`}>
                                             {c.lastMessage ?? "Say hello 👋"}
                                         </p>
                                     </div>
@@ -514,27 +514,29 @@ export default function MessagesUI({ accent }: { accent: string }) {
                 {activeConvo ? (
                     <>
                         {/* Header */}
-                        <div className="shrink-0 h-14 flex items-center justify-between px-4 border-b border-[var(--theme-border)]"
+                        <div className="shrink-0 h-14 flex items-center justify-between px-4 border-b border-(--theme-border)"
                             style={{ background: "var(--theme-surface)" }}>
                             <div className="flex items-center gap-3">
                                 <button onClick={() => setActiveConvoId(null)}
-                                    className="sm:hidden p-1.5 -ml-1 rounded-lg cursor-pointer bg-transparent border-none text-[var(--theme-text-muted)]">
+                                    className="sm:hidden p-1.5 -ml-1 rounded-lg cursor-pointer bg-transparent border-none text-(--theme-text-muted)">
                                     <ArrowLeft className="w-5 h-5" />
                                 </button>
                                 {activeConvo.other.avatarUrl ? (
                                     <img src={activeConvo.other.avatarUrl} alt={activeConvo.other.fullName}
                                         className="w-9 h-9 rounded-full object-cover shrink-0 border border-black/10" />
                                 ) : (
-                                    <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${gradientFor(activeConvo.other.role)} flex items-center justify-center text-white text-[10px] font-bold shrink-0`}>
+                                    <div className={`w-9 h-9 rounded-full bg-linear-to-br ${gradientFor(activeConvo.other.role)} flex items-center justify-center text-white text-[10px] font-bold shrink-0`}>
                                         {getInitials(activeConvo.other.fullName)}
                                     </div>
                                 )}
                                 <div>
-                                    <p className="text-[13px] font-bold text-[var(--theme-text-primary)]">{activeConvo.other.fullName}</p>
+                                    <p className="text-[13px] font-bold text-(--theme-text-primary)">{activeConvo.other.fullName}</p>
                                     <div className="flex items-center gap-1.5">
-                                        <p className="text-[10px] text-[var(--theme-text-muted)]">@{activeConvo.other.username}</p>
-                                        <span className={`w-1.5 h-1.5 rounded-full transition-colors ${sseConnected ? "bg-green-500" : "bg-yellow-500 animate-pulse"}`} />
-                                        <p className="text-[10px] text-[var(--theme-text-muted)]">{sseConnected ? "Online" : "Connecting…"}</p>
+                                        <p className="text-[10px] text-(--theme-text-muted)">@{activeConvo.other.username}</p>
+                                        <span className={`w-1.5 h-1.5 rounded-full transition-colors ${socketConnected ? "bg-green-500" : "bg-yellow-500 animate-pulse"}`} />
+                                        <p className="text-[10px] text-(--theme-text-muted)">
+                                            {typingUsers.size > 0 ? "Typing…" : socketConnected ? "Online" : "Connecting…"}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -555,8 +557,8 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                     <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3" style={{ background: `${accent}15` }}>
                                         <MessageSquare className="w-6 h-6" style={{ color: accent }} />
                                     </div>
-                                    <p className="text-[13px] font-medium text-[var(--theme-text-muted)]">No messages yet</p>
-                                    <p className="text-[11px] text-[var(--theme-text-muted)] mt-1">Say hello 👋</p>
+                                    <p className="text-[13px] font-medium text-(--theme-text-muted)">No messages yet</p>
+                                    <p className="text-[11px] text-(--theme-text-muted) mt-1">Say hello 👋</p>
                                 </div>
                             ) : (
                                 messages.map((msg, i) => {
@@ -604,7 +606,7 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                                             msg.sender.avatarUrl ? (
                                                                 <img src={msg.sender.avatarUrl} alt={msg.sender.fullName} className="w-7 h-7 rounded-full object-cover" />
                                                             ) : (
-                                                                <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${gradientFor(activeConvo.other.role)} flex items-center justify-center text-white text-[9px] font-bold`}>
+                                                                <div className={`w-7 h-7 rounded-full bg-linear-to-br ${gradientFor(activeConvo.other.role)} flex items-center justify-center text-white text-[9px] font-bold`}>
                                                                     {getInitials(activeConvo.other.fullName)}
                                                                 </div>
                                                             )
@@ -613,7 +615,7 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                                 )}
                                                 <div className={`flex flex-col ${isMine ? "items-end" : "items-start"} max-w-[82%] sm:max-w-[68%]`}>
                                                     <div
-                                                        className={`px-3.5 py-2.5 leading-relaxed break-words text-[14px] sm:text-[13px] ${isOptimistic ? "opacity-70" : ""}`}
+                                                        className={`px-3.5 py-2.5 leading-relaxed wrap-break-word text-[14px] sm:text-[13px] ${isOptimistic ? "opacity-70" : ""}`}
                                                         style={{
                                                             borderRadius: getBubbleRadius(),
                                                             ...(isMine
@@ -631,7 +633,7 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                                                     <video src={msg.attachmentUrl} controls className="max-w-full max-h-64 rounded-lg" />
                                                                 ) : (
                                                                     <a href={msg.attachmentUrl} target="_blank" rel="noopener noreferrer"
-                                                                        className={`flex items-center gap-2 px-3 py-2 ${isMine ? "text-white hover:text-white/80" : "text-[var(--theme-text-primary)]"} underline break-all text-[12px]`}>
+                                                                        className={`flex items-center gap-2 px-3 py-2 ${isMine ? "text-white hover:text-white/80" : "text-(--theme-text-primary)"} underline break-all text-[12px]`}>
                                                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                                                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" />
                                                                         </svg>
@@ -646,7 +648,7 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                                     {/* Timestamp + tick — only on last msg of group or last overall */}
                                                     {(!sameAsNext || i === messages.length - 1) && (
                                                         <div className={`flex items-center gap-1 mt-0.5 px-1 ${isMine ? "flex-row-reverse" : "flex-row"}`}>
-                                                            <span className="text-[9px] text-[var(--theme-text-muted)]">
+                                                            <span className="text-[9px] text-(--theme-text-muted)">
                                                                 {formatTime(msg.createdAt)}
                                                             </span>
                                                             {isMine && (
@@ -665,13 +667,13 @@ export default function MessagesUI({ accent }: { accent: string }) {
 
                         {/* Input bar — sticky at bottom, moves with keyboard */}
                         <div
-                            className="shrink-0 border-t border-[var(--theme-border)] relative"
+                            className="shrink-0 border-t border-(--theme-border) relative"
                             style={{ background: "var(--theme-surface)" }}
                         >
                             {/* WhatsApp-Style Attach Menu */}
                             {showAttachMenu && (
                                 <div ref={attachMenuRef}
-                                    className="absolute bottom-full left-0 right-0 sm:left-4 sm:right-auto mb-1 z-50 rounded-2xl shadow-2xl p-2 sm:w-[220px] animate-in slide-in-from-bottom-2 fade-in duration-200"
+                                    className="absolute bottom-full left-0 right-0 sm:left-4 sm:right-auto mb-1 z-50 rounded-2xl shadow-2xl p-2 sm:w-55 animate-in slide-in-from-bottom-2 fade-in duration-200"
                                     style={{ background: "#20232b", border: "1px solid rgba(255,255,255,0.05)", marginBottom: "8px" }}>
                                     <div className="flex flex-col gap-1">
                                         {[
@@ -706,12 +708,12 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                             }
                                         </div>
                                         <div>
-                                            <p className="text-[12px] font-semibold text-[var(--theme-text-primary)]">Attached File</p>
-                                            <p className="text-[10px] text-[var(--theme-text-muted)] uppercase tracking-wider">{attachment.type}</p>
+                                            <p className="text-[12px] font-semibold text-(--theme-text-primary)">Attached File</p>
+                                            <p className="text-[10px] text-(--theme-text-muted) uppercase tracking-wider">{attachment.type}</p>
                                         </div>
                                     </div>
                                     <button onClick={() => setAttachment(null)}
-                                        className="p-1.5 rounded-full hover:bg-[var(--theme-bg-secondary)] text-[var(--theme-text-muted)] cursor-pointer border-none bg-transparent">
+                                        className="p-1.5 rounded-full hover:bg-(--theme-bg-secondary) text-(--theme-text-muted) cursor-pointer border-none bg-transparent">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                                     </button>
                                 </div>
@@ -723,7 +725,7 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                 style={{ background: "var(--theme-input-bg)", border: `1px solid var(--theme-border)` }}
                             >
                                 <button type="button" onClick={() => setShowAttachMenu(!showAttachMenu)} disabled={uploadingAttr}
-                                    className={`p-1.5 rounded-full cursor-pointer border-none bg-transparent transition-colors ${showAttachMenu ? "text-[--theme-text-primary]" : "text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg-secondary)]"}`}>
+                                    className={`p-1.5 rounded-full cursor-pointer border-none bg-transparent transition-colors ${showAttachMenu ? "text-[--theme-text-primary]" : "text-(--theme-text-muted) hover:bg-(--theme-bg-secondary)"}`}>
                                     {uploadingAttr ? <Loader2 className="w-4 h-4 animate-spin" /> :
                                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
                                             style={{ transform: showAttachMenu ? "rotate(45deg)" : "none", transition: "transform 0.2s" }}>
@@ -736,13 +738,21 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                     ref={inputRef}
                                     type="text"
                                     value={draft}
-                                    onChange={e => setDraft(e.target.value)}
+                                    onChange={e => {
+                                        setDraft(e.target.value);
+                                        if (!activeConvoId) return;
+                                        socketRef.current?.emit("typing", { conversationId: activeConvoId, isTyping: true });
+                                        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+                                        typingTimeoutRef.current = setTimeout(() => {
+                                            socketRef.current?.emit("typing", { conversationId: activeConvoId, isTyping: false });
+                                        }, 1500);
+                                    }}
                                     onFocus={() => {
                                         // Small delay — let the keyboard appear, then scroll to bottom
                                         setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 350);
                                     }}
                                     // 16px minimum font on mobile prevents iOS auto-zoom on focus
-                                    className="flex-1 bg-transparent border-none outline-none text-[16px] sm:text-[13px] placeholder:text-[var(--theme-text-muted)] py-1"
+                                    className="flex-1 bg-transparent border-none outline-none text-[16px] sm:text-[13px] placeholder:text-(--theme-text-muted) py-1"
                                     placeholder="Type a message…"
                                     autoComplete="off"
                                     style={{ color: "var(--theme-text-primary)" }}
@@ -760,8 +770,8 @@ export default function MessagesUI({ accent }: { accent: string }) {
                         <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: `${accent}15` }}>
                             <MessageSquare className="w-8 h-8" style={{ color: accent }} />
                         </div>
-                        <h3 className="text-[16px] font-bold text-[var(--theme-text-primary)] mb-1">Your Messages</h3>
-                        <p className="text-[12px] text-[var(--theme-text-muted)] max-w-[240px] leading-relaxed">
+                        <h3 className="text-[16px] font-bold text-(--theme-text-primary) mb-1">Your Messages</h3>
+                        <p className="text-[12px] text-(--theme-text-muted) max-w-60 leading-relaxed">
                             Select a conversation or start a new one from any profile or search page.
                         </p>
                     </div>
