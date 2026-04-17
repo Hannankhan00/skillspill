@@ -41,11 +41,16 @@ app.prepare().then(() => {
 
         // ── New message — broadcast to the other participants in the room ───────
         // Client sends this AFTER persisting the message via the REST API.
-        // Payload: { conversationId: string, message: Message }
-        socket.on("new-message", ({ conversationId, message }) => {
+        // Payload: { conversationId: string, message: Message, recipientId: string }
+        socket.on("new-message", ({ conversationId, message, recipientId }) => {
             if (!conversationId || !message) return;
-            // Broadcast to everyone in the room except the sender
+            // Broadcast to everyone in the conversation room except the sender
             socket.to(`convo:${conversationId}`).emit("message", message);
+            // Also deliver to the recipient's personal room — this ensures delivery
+            // even when the recipient hasn't opened this specific conversation yet.
+            if (recipientId) {
+                socket.to(`user:${recipientId}`).emit("message", message);
+            }
         });
 
         // ── Read receipt — notify the original sender ───────────────────────────

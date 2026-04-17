@@ -182,24 +182,46 @@ export default function MessagesUI({ accent }: { accent: string }) {
 
                 // Incoming message from another user
                 socket.on("message", (msg: Message) => {
-                    setMessages(prev => {
-                        if (prev.some(m => m.id === msg.id)) return prev;
-                        return [...prev, msg];
-                    });
-                    setConversations(prev => prev.map(c =>
-                        c.id === msg.conversationId
-                            ? {
-                                ...c,
-                                lastMessage: msg.content,
-                                lastAt: msg.createdAt,
-                                unread: c.id === activeConvoIdRef.current ? 0 : c.unread + 1,
-                            }
-                            : c
-                    ));
-                    // Send read receipt if this conversation is active
+                    // Only append to the visible messages list if this conversation is active.
+                    // (We receive events via both convo room and personal user room; deduplicate by id.)
                     if (msg.conversationId === activeConvoIdRef.current) {
+                        setMessages(prev => {
+                            if (prev.some(m => m.id === msg.id)) return prev;
+                            return [...prev, msg];
+                        });
+                        // Acknowledge read immediately
                         socket.emit("read-receipt", { conversationId: msg.conversationId, readIds: [msg.id] });
                     }
+
+                    // Always update the sidebar conversation list
+                    setConversations(prev => {
+                        const exists = prev.some(c => c.id === msg.conversationId);
+                        if (!exists) {
+                            // First-ever message from this person — reload the full list
+                            // so the new conversation row appears with complete metadata.
+                            fetch("/api/conversations")
+                                .then(r => r.json())
+                                .then(d => {
+                                    if (d.conversations) setConversations(d.conversations);
+                                })
+                                .catch(() => {/* ignore */});
+                            return prev;
+                        }
+                        const updated = prev.map(c =>
+                            c.id === msg.conversationId
+                                ? {
+                                    ...c,
+                                    lastMessage: msg.content || (msg.attachmentUrl ? "Sent an attachment" : ""),
+                                    lastAt: msg.createdAt,
+                                    unread: c.id === activeConvoIdRef.current ? 0 : c.unread + 1,
+                                }
+                                : c
+                        );
+                        // Bubble the updated conversation to the top (like WhatsApp/Instagram)
+                        return [...updated].sort(
+                            (a, b) => new Date(b.lastAt).getTime() - new Date(a.lastAt).getTime()
+                        );
+                    });
                 });
 
                 // Read receipts — mark our sent messages as read
@@ -346,13 +368,21 @@ export default function MessagesUI({ accent }: { accent: string }) {
             if (data.message) {
                 // Replace optimistic message with persisted one
                 setMessages(prev => prev.map(m => m.id === optimisticId ? data.message : m));
-                setConversations(prev => prev.map(c =>
-                    c.id === activeConvoId
-                        ? { ...c, lastMessage: content || "Sent an attachment", lastAt: data.message.createdAt, lastSenderId: currentUserId, lastIsRead: false }
-                        : c
-                ));
-                // Notify other participants via socket
-                socketRef.current?.emit("new-message", { conversationId: activeConvoId, message: data.message });
+                setConversations(prev => {
+                    const updated = prev.map(c =>
+                        c.id === activeConvoId
+                            ? { ...c, lastMessage: content || "Sent an attachment", lastAt: data.message.createdAt, lastSenderId: currentUserId, lastIsRead: false }
+                            : c
+                    );
+                    return [...updated].sort(
+                        (a, b) => new Date(b.lastAt).getTime() - new Date(a.lastAt).getTime()
+                    );
+                });
+                // Notify recipient via socket — include recipientId so the server
+                // can deliver to their personal user room even if they haven't
+                // opened this conversation yet.
+                const recipientId = conversations.find(c => c.id === activeConvoId)?.other.id;
+                socketRef.current?.emit("new-message", { conversationId: activeConvoId, message: data.message, recipientId });
             }
         } catch {
             setMessages(prev => prev.filter(m => m.id !== optimisticId));
