@@ -129,7 +129,7 @@ function LoginPageInner() {
                 {/* ── Card ── */}
                 <div className="w-full max-w-[480px] rounded-2xl overflow-hidden" id="login-card">
                     {/* Top gradient border line */}
-                    <div className="h-[2px] bg-gradient-to-r from-[#3CF91A]/40 via-[#3CF91A]/10 to-[#A855F7]/30" />
+                    <div className="h-[2px] bg-linear-to-r from-[#3CF91A]/40 via-[#3CF91A]/10 to-[#A855F7]/30" />
 
                     <div className="border border-t-0 border-white/[0.06] rounded-b-2xl bg-[#0c0c10]/90 backdrop-blur-2xl">
                         <div className="px-5 pt-5 pb-6 sm:px-8 sm:pt-7 sm:pb-8">
@@ -179,7 +179,7 @@ function LoginPageInner() {
 
                                     {/* Submit */}
                                     <button type="submit" onClick={ripple} disabled={loading}
-                                        className="w-full py-3.5 mt-1 bg-gradient-to-r from-[#9333ea] to-[#A855F7] text-white border-none rounded-full font-bold text-[0.8rem] uppercase tracking-[0.18em] cursor-pointer transition-all duration-300 shadow-[0_4px_20px_rgba(168,85,247,0.25)] hover:shadow-[0_4px_30px_rgba(168,85,247,0.4)] hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none"
+                                        className="w-full py-3.5 mt-1 bg-linear-to-r from-[#9333ea] to-[#A855F7] text-white border-none rounded-full font-bold text-[0.8rem] uppercase tracking-[0.18em] cursor-pointer transition-all duration-300 shadow-[0_4px_20px_rgba(168,85,247,0.25)] hover:shadow-[0_4px_30px_rgba(168,85,247,0.4)] hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none"
                                         style={mono} id="login-submit">
                                         {loading ? <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : "ENTER THE SPILL"}
                                     </button>
@@ -221,7 +221,7 @@ function LoginPageInner() {
                                             className="w-full py-3.5 rounded-full font-bold text-[0.8rem] uppercase tracking-[0.18em] cursor-pointer transition-all duration-300 bg-white/[0.04] text-white flex items-center justify-center gap-3 hover:-translate-y-0.5 border-none relative overflow-hidden group"
                                             style={{ ...mono, boxShadow: "inset 0 0 0 1.5px rgba(255,255,255,0.1), 0 2px 12px rgba(0,0,0,0.3)" }}
                                             id="login-social-github">
-                                            <span className="absolute inset-0 bg-gradient-to-r from-white/[0.06] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                            <span className="absolute inset-0 bg-linear-to-r from-white/[0.06] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                                             <span className="relative flex items-center justify-center w-7 h-7 rounded-full bg-white/[0.08]">
                                                 <IconGithub />
                                             </span>

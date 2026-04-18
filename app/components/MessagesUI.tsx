@@ -2,8 +2,13 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+<<<<<<< HEAD
 import { MessageSquare, Send, ArrowLeft, Loader2, Wifi, WifiOff } from "lucide-react";
 import { useSocket } from "@/lib/use-socket";
+=======
+import { MessageSquare, Send, ArrowLeft, Loader2 } from "lucide-react";
+import Pusher, { Channel } from "pusher-js";
+>>>>>>> 7dce057f728eceb80b3b51a670744c53a4d9d2fc
 
 interface OtherUser {
     id: string;
@@ -94,6 +99,10 @@ export default function MessagesUI({ accent }: { accent: string }) {
     const [loadingConvos, setLoadingConvos] = useState(true);
     const [loadingMessages, setLoadingMessages] = useState(false);
     const [sending, setSending] = useState(false);
+<<<<<<< HEAD
+=======
+    const [pusherConnected, setPusherConnected] = useState(false);
+>>>>>>> 7dce057f728eceb80b3b51a670744c53a4d9d2fc
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
     const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
 
@@ -107,9 +116,17 @@ export default function MessagesUI({ accent }: { accent: string }) {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+<<<<<<< HEAD
     const activeConvoIdRef = useRef<string | null>(null);
     const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isTypingRef = useRef(false);
+=======
+    const messagesRef = useRef<Message[]>([]);
+    const pusherRef = useRef<Pusher | null>(null);
+    const convoChannelRef = useRef<Channel | null>(null);
+    const activeConvoIdRef = useRef<string | null>(null);
+    const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+>>>>>>> 7dce057f728eceb80b3b51a670744c53a4d9d2fc
 
     useEffect(() => { activeConvoIdRef.current = activeConvoId; }, [activeConvoId]);
 
@@ -138,11 +155,82 @@ export default function MessagesUI({ accent }: { accent: string }) {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [showAttachMenu]);
 
+<<<<<<< HEAD
     // ── Fetch current user ────────────────────────────────────────────────────
+=======
+    // Shared message handler — used by both the conversation channel and the personal user channel
+    const handleIncomingMessage = useCallback((msg: Message) => {
+        // Append to visible messages only if this conversation is currently open
+        if (msg.conversationId === activeConvoIdRef.current) {
+            setMessages(prev => {
+                if (prev.some(m => m.id === msg.id)) return prev; // deduplicate
+                return [...prev, msg];
+            });
+            // Mark as read immediately via API (fire-and-forget)
+            fetch(`/api/conversations/${msg.conversationId}/messages/read`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ messageIds: [msg.id] }),
+            }).catch(() => {});
+        }
+
+        // Always update the sidebar — unread count + last message preview + re-sort to top
+        setConversations(prev => {
+            const exists = prev.some(c => c.id === msg.conversationId);
+            if (!exists) {
+                // First-ever message from this person — reload full list for complete metadata
+                fetch("/api/conversations")
+                    .then(r => r.json())
+                    .then(d => { if (d.conversations) setConversations(d.conversations); })
+                    .catch(() => {});
+                return prev;
+            }
+            const updated = prev.map(c =>
+                c.id === msg.conversationId
+                    ? {
+                        ...c,
+                        lastMessage: msg.content || (msg.attachmentUrl ? "Sent an attachment" : ""),
+                        lastAt: msg.createdAt,
+                        unread: c.id === activeConvoIdRef.current ? 0 : c.unread + 1,
+                    }
+                    : c
+            );
+            return [...updated].sort(
+                (a, b) => new Date(b.lastAt).getTime() - new Date(a.lastAt).getTime()
+            );
+        });
+    }, []);
+
+    // Fetch current user ID and initialise Pusher once
+>>>>>>> 7dce057f728eceb80b3b51a670744c53a4d9d2fc
     useEffect(() => {
         fetch("/api/user/profile")
             .then(r => r.json())
-            .then(d => setCurrentUserId(d.user?.id ?? null));
+            .then(d => {
+                const uid = d.user?.id ?? null;
+                setCurrentUserId(uid);
+                if (!uid) return;
+
+                const client = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+                    cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+                });
+                pusherRef.current = client;
+
+                client.connection.bind("connected", () => setPusherConnected(true));
+                client.connection.bind("disconnected", () => setPusherConnected(false));
+                client.connection.bind("unavailable", () => setPusherConnected(false));
+
+                // Personal channel — receives new messages for ANY conversation,
+                // so the sidebar updates even when a chat isn't open.
+                const userChannel = client.subscribe(`user-${uid}`);
+                userChannel.bind("new-message", handleIncomingMessage);
+            });
+
+        return () => {
+            pusherRef.current?.disconnect();
+            pusherRef.current = null;
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // ── Load conversation list ────────────────────────────────────────────────
@@ -178,6 +266,7 @@ export default function MessagesUI({ accent }: { accent: string }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
 
+<<<<<<< HEAD
     // ── Socket.io event listeners ─────────────────────────────────────────────
     useEffect(() => {
         if (!socket) return;
@@ -303,6 +392,53 @@ export default function MessagesUI({ accent }: { accent: string }) {
     }, [activeConvoId, socket]);
 
     // ── Scroll to bottom ──────────────────────────────────────────────────────
+=======
+    // ── Conversation switch: load messages + subscribe to Pusher channel ──────
+    useEffect(() => {
+        if (!activeConvoId) {
+            setMessages([]);
+            setTypingUsers(new Set());
+            return;
+        }
+
+        let cancelled = false;
+
+        setLoadingMessages(true);
+        fetch(`/api/conversations/${activeConvoId}/messages`)
+            .then(r => r.json())
+            .then(d => {
+                if (cancelled) return;
+                const initial: Message[] = d.messages ?? [];
+                setMessages(initial);
+                messagesRef.current = initial;
+            })
+            .finally(() => { if (!cancelled) setLoadingMessages(false); });
+
+        // Subscribe to the conversation-specific Pusher channel.
+        // This gives instant delivery when both users have the same chat open
+        // (deduplication with the personal user channel is handled in handleIncomingMessage).
+        if (pusherRef.current) {
+            const ch = pusherRef.current.subscribe(`conversation-${activeConvoId}`);
+            ch.bind("new-message", handleIncomingMessage);
+            convoChannelRef.current = ch;
+        }
+
+        // Mark as read in sidebar
+        setConversations(prev => prev.map(c => c.id === activeConvoId ? { ...c, unread: 0 } : c));
+
+        return () => {
+            cancelled = true;
+            if (pusherRef.current && activeConvoId) {
+                pusherRef.current.unsubscribe(`conversation-${activeConvoId}`);
+            }
+            convoChannelRef.current = null;
+            setTypingUsers(new Set());
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeConvoId]);
+
+    // Scroll to bottom when messages change (smooth, but instant on first load)
+>>>>>>> 7dce057f728eceb80b3b51a670744c53a4d9d2fc
     const isFirstLoad = useRef(true);
     useEffect(() => {
         if (!messagesEndRef.current) return;
@@ -369,6 +505,7 @@ export default function MessagesUI({ accent }: { accent: string }) {
                 next[idx] = msg;
                 return next;
             });
+<<<<<<< HEAD
             socket.off("new_message", onNewMessage);
         };
         socket.on("new_message", onNewMessage);
@@ -376,6 +513,31 @@ export default function MessagesUI({ accent }: { accent: string }) {
         // Fallback: remove optimistic listener after 10s to avoid leaks
         setTimeout(() => socket.off("new_message", onNewMessage), 10000);
 
+=======
+            const data = await res.json();
+            if (data.message) {
+                // Replace optimistic message with persisted one
+                setMessages(prev => prev.map(m => m.id === optimisticId ? data.message : m));
+                setConversations(prev => {
+                    const updated = prev.map(c =>
+                        c.id === activeConvoId
+                            ? { ...c, lastMessage: content || "Sent an attachment", lastAt: data.message.createdAt, lastSenderId: currentUserId, lastIsRead: false }
+                            : c
+                    );
+                    return [...updated].sort(
+                        (a, b) => new Date(b.lastAt).getTime() - new Date(a.lastAt).getTime()
+                    );
+                });
+                // Real-time delivery is now handled server-side via Pusher
+                // (triggered inside POST /api/conversations/[id]/messages).
+                // Nothing to emit from the client.
+            }
+        } catch {
+            setMessages(prev => prev.filter(m => m.id !== optimisticId));
+            setDraft(content);
+            setAttachment(finalAttachment);
+        }
+>>>>>>> 7dce057f728eceb80b3b51a670744c53a4d9d2fc
         setSending(false);
         inputRef.current?.focus();
     };
@@ -459,9 +621,10 @@ export default function MessagesUI({ accent }: { accent: string }) {
         >
             {/* ── SIDEBAR ─────────────────────────────────────────────────────── */}
             <div
-                className={`${activeConvoId ? "hidden sm:flex" : "flex"} w-full sm:w-[290px] lg:w-[320px] flex-col shrink-0 border-r border-[var(--theme-border)]`}
+                className={`${activeConvoId ? "hidden sm:flex" : "flex"} w-full sm:w-72.5 lg:w-80 flex-col shrink-0 border-r border-(--theme-border)`}
                 style={{ background: "var(--theme-surface)" }}
             >
+<<<<<<< HEAD
                 <div className="p-4 border-b border-[var(--theme-border)] shrink-0">
                     <div className="flex items-center justify-between mb-2.5">
                         <h2 className="text-[17px] font-bold text-[var(--theme-text-primary)]">Messages</h2>
@@ -475,6 +638,11 @@ export default function MessagesUI({ accent }: { accent: string }) {
                         </div>
                     </div>
                     <div className="relative">
+=======
+                <div className="p-4 border-b border-(--theme-border) shrink-0">
+                    <h2 className="text-[17px] font-bold text-(--theme-text-primary)">Messages</h2>
+                    <div className="mt-2.5 relative">
+>>>>>>> 7dce057f728eceb80b3b51a670744c53a4d9d2fc
                         <svg className="absolute left-3 top-1/2 -translate-y-1/2" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2">
                             <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                         </svg>
@@ -492,15 +660,15 @@ export default function MessagesUI({ accent }: { accent: string }) {
                     ) : conversations.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-12 px-5 text-center">
                             <MessageSquare className="w-9 h-9 mb-3" style={{ color: accent, opacity: 0.35 }} />
-                            <p className="text-[13px] font-medium text-[var(--theme-text-muted)]">No conversations yet</p>
-                            <p className="text-[11px] text-[var(--theme-text-muted)] mt-1 leading-relaxed">
+                            <p className="text-[13px] font-medium text-(--theme-text-muted)">No conversations yet</p>
+                            <p className="text-[11px] text-(--theme-text-muted) mt-1 leading-relaxed">
                                 Start a chat from the Talent Search or a profile page
                             </p>
                         </div>
                     ) : (
                         conversations.map(c => (
                             <button key={c.id} onClick={() => setActiveConvoId(c.id)}
-                                className="w-full flex items-start gap-3 p-3.5 text-left border-b border-[var(--theme-border-light)] cursor-pointer border-none transition-colors"
+                                className="w-full flex items-start gap-3 p-3.5 text-left border-b border-(--theme-border-light) cursor-pointer border-none transition-colors"
                                 style={{ background: activeConvoId === c.id ? `${accent}12` : "transparent" }}
                             >
                                 {/* Avatar */}
@@ -508,12 +676,12 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                     {c.other.avatarUrl ? (
                                         <img src={c.other.avatarUrl} alt={c.other.fullName} className="w-10 h-10 rounded-full object-cover" />
                                     ) : (
-                                        <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${gradientFor(c.other.role)} flex items-center justify-center text-white text-[11px] font-bold`}>
+                                        <div className={`w-10 h-10 rounded-full bg-linear-to-br ${gradientFor(c.other.role)} flex items-center justify-center text-white text-[11px] font-bold`}>
                                             {getInitials(c.other.fullName)}
                                         </div>
                                     )}
                                     {c.unread > 0 && (
-                                        <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 rounded-full text-[9px] font-bold text-white flex items-center justify-center px-1"
+                                        <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 rounded-full text-[9px] font-bold text-white flex items-center justify-center px-1"
                                             style={{ background: accent }}>
                                             {c.unread > 99 ? "99+" : c.unread}
                                         </span>
@@ -522,10 +690,10 @@ export default function MessagesUI({ accent }: { accent: string }) {
 
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between mb-0.5">
-                                        <p className={`text-[13px] truncate ${c.unread > 0 ? "font-bold text-[var(--theme-text-primary)]" : "font-semibold text-[var(--theme-text-primary)]"}`}>
+                                        <p className={`text-[13px] truncate ${c.unread > 0 ? "font-bold text-(--theme-text-primary)" : "font-semibold text-(--theme-text-primary)"}`}>
                                             {c.other.fullName}
                                         </p>
-                                        <span className="text-[10px] text-[var(--theme-text-muted)] shrink-0 ml-2">{formatTime(c.lastAt)}</span>
+                                        <span className="text-[10px] text-(--theme-text-muted) shrink-0 ml-2">{formatTime(c.lastAt)}</span>
                                     </div>
                                     <div className="flex items-center gap-1">
                                         {c.lastSenderId === currentUserId && c.lastMessage && (
@@ -533,7 +701,7 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                                 <TickIcon isRead={c.lastIsRead} isOptimistic={false} />
                                             </span>
                                         )}
-                                        <p className={`text-[11px] truncate ${c.unread > 0 ? "font-semibold text-[var(--theme-text-primary)]" : "text-[var(--theme-text-muted)]"}`}>
+                                        <p className={`text-[11px] truncate ${c.unread > 0 ? "font-semibold text-(--theme-text-primary)" : "text-(--theme-text-muted)"}`}>
                                             {c.lastMessage ?? "Say hello 👋"}
                                         </p>
                                     </div>
@@ -555,24 +723,25 @@ export default function MessagesUI({ accent }: { accent: string }) {
                 {activeConvo ? (
                     <>
                         {/* Header */}
-                        <div className="shrink-0 h-14 flex items-center justify-between px-4 border-b border-[var(--theme-border)]"
+                        <div className="shrink-0 h-14 flex items-center justify-between px-4 border-b border-(--theme-border)"
                             style={{ background: "var(--theme-surface)" }}>
                             <div className="flex items-center gap-3">
                                 <button onClick={() => setActiveConvoId(null)}
-                                    className="sm:hidden p-1.5 -ml-1 rounded-lg cursor-pointer bg-transparent border-none text-[var(--theme-text-muted)]">
+                                    className="sm:hidden p-1.5 -ml-1 rounded-lg cursor-pointer bg-transparent border-none text-(--theme-text-muted)">
                                     <ArrowLeft className="w-5 h-5" />
                                 </button>
                                 {activeConvo.other.avatarUrl ? (
                                     <img src={activeConvo.other.avatarUrl} alt={activeConvo.other.fullName}
                                         className="w-9 h-9 rounded-full object-cover shrink-0 border border-black/10" />
                                 ) : (
-                                    <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${gradientFor(activeConvo.other.role)} flex items-center justify-center text-white text-[10px] font-bold shrink-0`}>
+                                    <div className={`w-9 h-9 rounded-full bg-linear-to-br ${gradientFor(activeConvo.other.role)} flex items-center justify-center text-white text-[10px] font-bold shrink-0`}>
                                         {getInitials(activeConvo.other.fullName)}
                                     </div>
                                 )}
                                 <div>
-                                    <p className="text-[13px] font-bold text-[var(--theme-text-primary)]">{activeConvo.other.fullName}</p>
+                                    <p className="text-[13px] font-bold text-(--theme-text-primary)">{activeConvo.other.fullName}</p>
                                     <div className="flex items-center gap-1.5">
+<<<<<<< HEAD
                                         <p className="text-[10px] text-[var(--theme-text-muted)]">@{activeConvo.other.username}</p>
                                         {typingUsers.size > 0 ? (
                                             <span className="text-[10px] italic" style={{ color: accent }}>
@@ -584,6 +753,13 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                                 <p className="text-[10px] text-[var(--theme-text-muted)]">{connected ? "Connected" : "Reconnecting…"}</p>
                                             </>
                                         )}
+=======
+                                        <p className="text-[10px] text-(--theme-text-muted)">@{activeConvo.other.username}</p>
+                                        <span className={`w-1.5 h-1.5 rounded-full transition-colors ${pusherConnected ? "bg-green-500" : "bg-yellow-500 animate-pulse"}`} />
+                                        <p className="text-[10px] text-(--theme-text-muted)">
+                                            {typingUsers.size > 0 ? "Typing…" : pusherConnected ? "Online" : "Connecting…"}
+                                        </p>
+>>>>>>> 7dce057f728eceb80b3b51a670744c53a4d9d2fc
                                     </div>
                                 </div>
                             </div>
@@ -604,8 +780,8 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                     <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3" style={{ background: `${accent}15` }}>
                                         <MessageSquare className="w-6 h-6" style={{ color: accent }} />
                                     </div>
-                                    <p className="text-[13px] font-medium text-[var(--theme-text-muted)]">No messages yet</p>
-                                    <p className="text-[11px] text-[var(--theme-text-muted)] mt-1">Say hello 👋</p>
+                                    <p className="text-[13px] font-medium text-(--theme-text-muted)">No messages yet</p>
+                                    <p className="text-[11px] text-(--theme-text-muted) mt-1">Say hello 👋</p>
                                 </div>
                             ) : (
                                 messages.map((msg, i) => {
@@ -650,7 +826,7 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                                             msg.sender.avatarUrl ? (
                                                                 <img src={msg.sender.avatarUrl} alt={msg.sender.fullName} className="w-7 h-7 rounded-full object-cover" />
                                                             ) : (
-                                                                <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${gradientFor(activeConvo.other.role)} flex items-center justify-center text-white text-[9px] font-bold`}>
+                                                                <div className={`w-7 h-7 rounded-full bg-linear-to-br ${gradientFor(activeConvo.other.role)} flex items-center justify-center text-white text-[9px] font-bold`}>
                                                                     {getInitials(activeConvo.other.fullName)}
                                                                 </div>
                                                             )
@@ -659,7 +835,7 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                                 )}
                                                 <div className={`flex flex-col ${isMine ? "items-end" : "items-start"} max-w-[82%] sm:max-w-[68%]`}>
                                                     <div
-                                                        className={`px-3.5 py-2.5 leading-relaxed break-words text-[14px] sm:text-[13px] ${isOptimistic ? "opacity-70" : ""}`}
+                                                        className={`px-3.5 py-2.5 leading-relaxed wrap-break-word text-[14px] sm:text-[13px] ${isOptimistic ? "opacity-70" : ""}`}
                                                         style={{
                                                             borderRadius: getBubbleRadius(),
                                                             ...(isMine
@@ -676,7 +852,7 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                                                     <video src={msg.attachmentUrl} controls className="max-w-full max-h-64 rounded-lg" />
                                                                 ) : (
                                                                     <a href={msg.attachmentUrl} target="_blank" rel="noopener noreferrer"
-                                                                        className={`flex items-center gap-2 px-3 py-2 ${isMine ? "text-white hover:text-white/80" : "text-[var(--theme-text-primary)]"} underline break-all text-[12px]`}>
+                                                                        className={`flex items-center gap-2 px-3 py-2 ${isMine ? "text-white hover:text-white/80" : "text-(--theme-text-primary)"} underline break-all text-[12px]`}>
                                                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                                                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" />
                                                                         </svg>
@@ -690,7 +866,7 @@ export default function MessagesUI({ accent }: { accent: string }) {
 
                                                     {(!sameAsNext || i === messages.length - 1) && (
                                                         <div className={`flex items-center gap-1 mt-0.5 px-1 ${isMine ? "flex-row-reverse" : "flex-row"}`}>
-                                                            <span className="text-[9px] text-[var(--theme-text-muted)]">
+                                                            <span className="text-[9px] text-(--theme-text-muted)">
                                                                 {formatTime(msg.createdAt)}
                                                             </span>
                                                             {isMine && (
@@ -730,13 +906,17 @@ export default function MessagesUI({ accent }: { accent: string }) {
 
                         {/* Input bar */}
                         <div
-                            className="shrink-0 border-t border-[var(--theme-border)] relative"
+                            className="shrink-0 border-t border-(--theme-border) relative"
                             style={{ background: "var(--theme-surface)" }}
                         >
                             {/* Attach Menu */}
                             {showAttachMenu && (
                                 <div ref={attachMenuRef}
+<<<<<<< HEAD
                                     className="absolute bottom-full left-0 right-0 sm:left-4 sm:right-auto mb-1 z-50 rounded-2xl shadow-2xl p-2 sm:w-[220px]"
+=======
+                                    className="absolute bottom-full left-0 right-0 sm:left-4 sm:right-auto mb-1 z-50 rounded-2xl shadow-2xl p-2 sm:w-55 animate-in slide-in-from-bottom-2 fade-in duration-200"
+>>>>>>> 7dce057f728eceb80b3b51a670744c53a4d9d2fc
                                     style={{ background: "#20232b", border: "1px solid rgba(255,255,255,0.05)", marginBottom: "8px" }}>
                                     <div className="flex flex-col gap-1">
                                         {[
@@ -771,12 +951,12 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                             }
                                         </div>
                                         <div>
-                                            <p className="text-[12px] font-semibold text-[var(--theme-text-primary)]">Attached File</p>
-                                            <p className="text-[10px] text-[var(--theme-text-muted)] uppercase tracking-wider">{attachment.type}</p>
+                                            <p className="text-[12px] font-semibold text-(--theme-text-primary)">Attached File</p>
+                                            <p className="text-[10px] text-(--theme-text-muted) uppercase tracking-wider">{attachment.type}</p>
                                         </div>
                                     </div>
                                     <button onClick={() => setAttachment(null)}
-                                        className="p-1.5 rounded-full hover:bg-[var(--theme-bg-secondary)] text-[var(--theme-text-muted)] cursor-pointer border-none bg-transparent">
+                                        className="p-1.5 rounded-full hover:bg-(--theme-bg-secondary) text-(--theme-text-muted) cursor-pointer border-none bg-transparent">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                                     </button>
                                 </div>
@@ -788,7 +968,7 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                 style={{ background: "var(--theme-input-bg)", border: `1px solid var(--theme-border)` }}
                             >
                                 <button type="button" onClick={() => setShowAttachMenu(!showAttachMenu)} disabled={uploadingAttr}
-                                    className={`p-1.5 rounded-full cursor-pointer border-none bg-transparent transition-colors ${showAttachMenu ? "text-[--theme-text-primary]" : "text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg-secondary)]"}`}>
+                                    className={`p-1.5 rounded-full cursor-pointer border-none bg-transparent transition-colors ${showAttachMenu ? "text-[--theme-text-primary]" : "text-(--theme-text-muted) hover:bg-(--theme-bg-secondary)"}`}>
                                     {uploadingAttr ? <Loader2 className="w-4 h-4 animate-spin" /> :
                                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
                                             style={{ transform: showAttachMenu ? "rotate(45deg)" : "none", transition: "transform 0.2s" }}>
@@ -801,11 +981,22 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                     ref={inputRef}
                                     type="text"
                                     value={draft}
+<<<<<<< HEAD
                                     onChange={handleDraftChange}
+=======
+                                    onChange={e => {
+                                        setDraft(e.target.value);
+                                    }}
+>>>>>>> 7dce057f728eceb80b3b51a670744c53a4d9d2fc
                                     onFocus={() => {
                                         setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 350);
                                     }}
+<<<<<<< HEAD
                                     className="flex-1 bg-transparent border-none outline-none text-[16px] sm:text-[13px] placeholder:text-[var(--theme-text-muted)] py-1"
+=======
+                                    // 16px minimum font on mobile prevents iOS auto-zoom on focus
+                                    className="flex-1 bg-transparent border-none outline-none text-[16px] sm:text-[13px] placeholder:text-(--theme-text-muted) py-1"
+>>>>>>> 7dce057f728eceb80b3b51a670744c53a4d9d2fc
                                     placeholder="Type a message…"
                                     autoComplete="off"
                                     style={{ color: "var(--theme-text-primary)" }}
@@ -823,8 +1014,8 @@ export default function MessagesUI({ accent }: { accent: string }) {
                         <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: `${accent}15` }}>
                             <MessageSquare className="w-8 h-8" style={{ color: accent }} />
                         </div>
-                        <h3 className="text-[16px] font-bold text-[var(--theme-text-primary)] mb-1">Your Messages</h3>
-                        <p className="text-[12px] text-[var(--theme-text-muted)] max-w-[240px] leading-relaxed">
+                        <h3 className="text-[16px] font-bold text-(--theme-text-primary) mb-1">Your Messages</h3>
+                        <p className="text-[12px] text-(--theme-text-muted) max-w-60 leading-relaxed">
                             Select a conversation or start a new one from any profile or search page.
                         </p>
                         {/* Live indicator */}

@@ -26,7 +26,7 @@ function SpillGridTile({ spill, accent, avatarUrl, initials, username, onClick }
     return (
         <div 
             onClick={() => onClick?.(spill)}
-            className="relative aspect-square bg-[#1a1a1a] overflow-hidden group cursor-pointer border border-[var(--theme-border)]">
+            className="relative aspect-square bg-[#1a1a1a] overflow-hidden group cursor-pointer border border-(--theme-border)">
             {/* If it's an image */}
             {hasImage && (
                 <img src={mediaArray[0].url} alt="Post preview" className="w-full h-full object-cover" />
@@ -46,7 +46,7 @@ function SpillGridTile({ spill, accent, avatarUrl, initials, username, onClick }
             {hasCode && (
                 <div className="w-full h-full bg-[#0D1117] p-2 flex flex-col items-center justify-center text-center">
                     <Code2 size={24} className="mb-2" style={{ color: "var(--theme-text-muted)" }} />
-                    <p className="text-[10px] font-mono text-[var(--theme-text-muted)] truncate max-w-full px-2">
+                    <p className="text-[10px] font-mono text-(--theme-text-muted) truncate max-w-full px-2">
                         {spill.codeLang || "code"}
                     </p>
                 </div>
@@ -54,8 +54,8 @@ function SpillGridTile({ spill, accent, avatarUrl, initials, username, onClick }
 
             {/* If it's purely text or hashtags */}
             {isText && (
-                <div className="w-full h-full p-3 flex flex-col justify-center bg-[var(--theme-card)] text-center">
-                    <p className="text-[11px] text-[var(--theme-text-primary)] line-clamp-3 leading-snug items-center justify-center break-words">
+                <div className="w-full h-full p-3 flex flex-col justify-center bg-(--theme-card) text-center">
+                    <p className="text-[11px] text-(--theme-text-primary) line-clamp-3 leading-snug items-center justify-center break-words">
                         {spill.caption || (spill.hashtags && spill.hashtags.length > 0 ? `#${spill.hashtags[0]}` : "Text post")}
                     </p>
                 </div>
@@ -65,11 +65,11 @@ function SpillGridTile({ spill, accent, avatarUrl, initials, username, onClick }
             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 text-white">
                 <div className="flex items-center gap-1.5 font-bold text-[13px]">
                     {spill.hideLikes ? <HeartOff size={16} fill="currentColor" /> : <Heart size={16} fill="currentColor" />}
-                    <span>{spill.hideLikes ? "-" : (spill.likes || 0)}</span>
+                    <span>{spill.hideLikes ? "-" : (spill.likesCount || 0)}</span>
                 </div>
                 <div className="flex items-center gap-1.5 font-bold text-[13px]">
                     {spill.commentsOff ? <MessageSquareOff size={16} fill="currentColor" /> : <MessageSquare size={16} fill="currentColor" />}
-                    <span>{spill.commentsOff ? "-" : (spill.comments || 0)}</span>
+                    <span>{spill.commentsOff ? "-" : (spill.commentsCount || 0)}</span>
                 </div>
             </div>
         </div>
@@ -291,7 +291,7 @@ export default function RecruiterProfilePage() {
         return (
             <div className="flex flex-col items-center justify-center min-h-full p-20">
                 <Loader2 className="w-10 h-10 animate-spin mb-4" style={{ color: accent }} />
-                <p className="text-[13px] text-[var(--theme-text-muted)] font-medium">Loading your profile...</p>
+                <p className="text-[13px] text-(--theme-text-muted) font-medium">Loading your profile...</p>
             </div>
         );
     }
@@ -299,7 +299,7 @@ export default function RecruiterProfilePage() {
         return (
             <div className="flex flex-col items-center justify-center min-h-full p-20">
                 <h3 className="text-lg font-bold text-red-400 mb-2">Profile Not Found</h3>
-                <p className="text-[13px] text-[var(--theme-text-muted)]">We couldn't load your profile.</p>
+                <p className="text-[13px] text-(--theme-text-muted)">We couldn&apos;t load your profile.</p>
             </div>
         );
     }
@@ -316,7 +316,7 @@ export default function RecruiterProfilePage() {
     return (
         <div style={{ background: "var(--theme-bg)" }} className="min-h-full">
             {toastMessage && (
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-bottom-5 fade-in duration-300">
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-100 animate-in slide-in-from-bottom-5 fade-in duration-300">
                     <div className={`px-4 py-3 rounded-xl shadow-2xl border flex items-center gap-3 ${
                         toastMessage.type === "success" 
                             ? "bg-purple-500/10 border-purple-500/30 text-purple-500" 
@@ -345,12 +345,12 @@ export default function RecruiterProfilePage() {
                         
                         {/* ── Close Button (Mobile Absolute) ── */}
                         <button onClick={() => setShowEdit(false)}
-                            className="absolute top-4 right-4 sm:hidden p-2 rounded-xl z-50 text-[var(--theme-text-muted)] bg-[var(--theme-bg-secondary)] border border-[var(--theme-border)]">
+                            className="absolute top-4 right-4 sm:hidden p-2 rounded-xl z-50 text-(--theme-text-muted) bg-(--theme-bg-secondary) border border-(--theme-border)">
                             <X className="w-4 h-4" />
                         </button>
 
                         {/* ── Sidebar Navigation ── */}
-                        <div className="w-full sm:w-1/3 border-b sm:border-b-0 sm:border-r border-[var(--theme-border)] bg-[var(--theme-bg)]/50 p-6 flex flex-col relative overflow-hidden">
+                        <div className="w-full sm:w-1/3 border-b sm:border-b-0 sm:border-r border-(--theme-border) bg-(--theme-bg)/50 p-6 flex flex-col relative overflow-hidden">
                             {/* Decorative gradient orb */}
                             <div className="absolute -top-32 -left-32 w-64 h-64 rounded-full pointer-events-none blur-[80px] opacity-40"
                                 style={{ background: accent }} />
@@ -361,8 +361,8 @@ export default function RecruiterProfilePage() {
                                     <Pencil className="w-5 h-5" style={{ color: accent }} />
                                 </div>
                                 <div className="hidden sm:block">
-                                    <h2 className="text-[16px] font-bold text-[var(--theme-text-primary)] tracking-wide">Edit Company</h2>
-                                    <p className="text-[11px] text-[var(--theme-text-muted)] font-medium mt-0.5">Customize your appearance</p>
+                                    <h2 className="text-[16px] font-bold text-(--theme-text-primary) tracking-wide">Edit Company</h2>
+                                    <p className="text-[11px] text-(--theme-text-muted) font-medium mt-0.5">Customize your appearance</p>
                                 </div>
                             </div>
 
@@ -371,7 +371,7 @@ export default function RecruiterProfilePage() {
                                     className={`flex-1 min-w-[90px] sm:flex-none flex flex-col sm:flex-row items-center sm:justify-start gap-1.5 sm:gap-3 px-2 sm:px-4 py-2 sm:py-3 rounded-xl text-[10px] sm:text-[13px] font-semibold transition-all cursor-pointer border text-center sm:text-left ${
                                         editTab === "basic" 
                                         ? "bg-black/20 text-white" 
-                                        : "bg-transparent border-transparent text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg-secondary)] hover:text-[var(--theme-text-primary)]"
+                                        : "bg-transparent border-transparent text-(--theme-text-muted) hover:bg-(--theme-bg-secondary) hover:text-(--theme-text-primary)"
                                     }`}
                                     style={editTab === "basic" ? { borderColor: `${accent}40`, boxShadow: `inset 0 0 20px ${accent}10` } : {}}>
                                     <Building2 className="w-4 h-4 shrink-0" style={{ color: editTab === "basic" ? accent : "inherit" }} />
@@ -381,7 +381,7 @@ export default function RecruiterProfilePage() {
                                     className={`flex-1 min-w-[90px] sm:flex-none flex flex-col sm:flex-row items-center sm:justify-start gap-1.5 sm:gap-3 px-2 sm:px-4 py-2 sm:py-3 rounded-xl text-[10px] sm:text-[13px] font-semibold transition-all cursor-pointer border text-center sm:text-left ${
                                         editTab === "address" 
                                         ? "bg-black/20 text-white" 
-                                        : "bg-transparent border-transparent text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg-secondary)] hover:text-[var(--theme-text-primary)]"
+                                        : "bg-transparent border-transparent text-(--theme-text-muted) hover:bg-(--theme-bg-secondary) hover:text-(--theme-text-primary)"
                                     }`}
                                     style={editTab === "address" ? { borderColor: `${accent}40`, boxShadow: `inset 0 0 20px ${accent}10` } : {}}>
                                     <MapPin className="w-4 h-4 shrink-0" style={{ color: editTab === "address" ? accent : "inherit" }} />
@@ -391,7 +391,7 @@ export default function RecruiterProfilePage() {
                                     className={`flex-1 min-w-[90px] sm:flex-none flex flex-col sm:flex-row items-center sm:justify-start gap-1.5 sm:gap-3 px-2 sm:px-4 py-2 sm:py-3 rounded-xl text-[10px] sm:text-[13px] font-semibold transition-all cursor-pointer border text-center sm:text-left ${
                                         editTab === "contact" 
                                         ? "bg-black/20 text-white" 
-                                        : "bg-transparent border-transparent text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg-secondary)] hover:text-[var(--theme-text-primary)]"
+                                        : "bg-transparent border-transparent text-(--theme-text-muted) hover:bg-(--theme-bg-secondary) hover:text-(--theme-text-primary)"
                                     }`}
                                     style={editTab === "contact" ? { borderColor: `${accent}40`, boxShadow: `inset 0 0 20px ${accent}10` } : {}}>
                                     <Phone className="w-4 h-4 shrink-0" style={{ color: editTab === "contact" ? accent : "inherit" }} />
@@ -400,12 +400,12 @@ export default function RecruiterProfilePage() {
                             </nav>
 
                             <div className="mt-auto hidden sm:block relative z-10">
-                                <div className="p-4 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg-secondary)]">
+                                <div className="p-4 rounded-xl border border-(--theme-border) bg-(--theme-bg-secondary)">
                                     <div className="flex items-center gap-2 mb-2">
                                         <Shield className="w-4 h-4" style={{ color: accent }} />
-                                        <p className="text-[11px] font-bold text-[var(--theme-text-primary)]">Profile Tips</p>
+                                        <p className="text-[11px] font-bold text-(--theme-text-primary)">Profile Tips</p>
                                     </div>
-                                    <p className="text-[10px] text-[var(--theme-text-muted)] leading-relaxed">
+                                    <p className="text-[10px] text-(--theme-text-muted) leading-relaxed">
                                         A complete profile helps talent understand your company culture and location. Updating these details improves matchmaking.
                                     </p>
                                 </div>
@@ -413,11 +413,11 @@ export default function RecruiterProfilePage() {
                         </div>
 
                         {/* ── Main Content Area ── */}
-                        <div className="w-full sm:w-2/3 flex flex-col h-full bg-[var(--theme-bg)] relative">
+                        <div className="w-full sm:w-2/3 flex flex-col h-full bg-(--theme-bg) relative">
                             
                             {/* Header (Desktop) */}
-                            <div className="hidden sm:flex items-center justify-between px-8 py-5 border-b border-[var(--theme-border)]">
-                                <p className="text-[13px] text-[var(--theme-text-muted)] font-mono flex items-center gap-2">
+                            <div className="hidden sm:flex items-center justify-between px-8 py-5 border-b border-(--theme-border)">
+                                <p className="text-[13px] text-(--theme-text-muted) font-mono flex items-center gap-2">
                                     <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: accent }} />
                                     {editTab === "basic" ? "Editing Company Details" : editTab === "address" ? "Updating Location Info" : "Managing Contact Info"}
                                 </p>
@@ -529,13 +529,13 @@ export default function RecruiterProfilePage() {
                             </div>
 
                             {/* Footer Actions */}
-                            <div className="px-6 py-4 border-t border-[var(--theme-border)] bg-[var(--theme-bg)] flex items-center justify-between z-10">
-                                <p className="text-[10px] text-[var(--theme-text-muted)] hidden sm:block font-mono">
+                            <div className="px-6 py-4 border-t border-(--theme-border) bg-(--theme-bg) flex items-center justify-between z-10">
+                                <p className="text-[10px] text-(--theme-text-muted) hidden sm:block font-mono">
                                     {"// company.save()"}
                                 </p>
                                 <div className="flex items-center gap-3 w-full sm:w-auto">
                                     <button onClick={() => setShowEdit(false)}
-                                        className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-[13px] font-medium border cursor-pointer transition-all hover:bg-[var(--theme-bg-secondary)]"
+                                        className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-[13px] font-medium border cursor-pointer transition-all hover:bg-(--theme-bg-secondary)"
                                         style={{ background: "transparent", borderColor: "var(--theme-border)", color: "var(--theme-text-primary)" }}>
                                         Cancel
                                     </button>
@@ -615,9 +615,9 @@ export default function RecruiterProfilePage() {
                         <div className="relative group shrink-0">
                             <div 
                                 onClick={() => setShowAvatarMenu(prev => !prev)}
-                                className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold border-4 border-[var(--theme-bg)] shadow-xl shrink-0 cursor-pointer overflow-hidden relative">
+                                className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-linear-to-br from-violet-400 to-purple-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold border-4 border-(--theme-bg) shadow-xl shrink-0 cursor-pointer overflow-hidden relative">
                                 {avatarUrl ? (
-                                    <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
+                                    <img src={avatarUrl} alt={fullName} loading="lazy" className="w-full h-full object-cover" />
                                 ) : (
                                     initials
                                 )}
@@ -635,10 +635,10 @@ export default function RecruiterProfilePage() {
                             {showAvatarMenu && (
                                 <>
                                     <div className="fixed inset-0 z-40" onClick={() => setShowAvatarMenu(false)} />
-                                    <div className="absolute top-full left-0 translate-x-0 sm:left-1/2 sm:-translate-x-1/2 mt-2 w-48 rounded-xl shadow-xl border border-[var(--theme-border)] bg-[var(--theme-card)] z-50 overflow-hidden text-sm animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
+                                    <div className="absolute top-full left-0 translate-x-0 sm:left-1/2 sm:-translate-x-1/2 mt-2 w-48 rounded-xl shadow-xl border border-(--theme-border) bg-(--theme-card) z-50 overflow-hidden text-sm animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
                                         <div className="p-1 flex flex-col">
                                             <button onClick={() => { setShowAvatarMenu(false); fileInputRef.current?.click(); }}
-                                                className="w-full text-left px-4 py-2 hover:bg-[var(--theme-bg-secondary)] text-[var(--theme-text-primary)] rounded-lg transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer">
+                                                className="w-full text-left px-4 py-2 hover:bg-(--theme-bg-secondary) text-(--theme-text-primary) rounded-lg transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer">
                                                 <Upload className="w-4 h-4" /> Upload Photo
                                             </button>
                                             {(avatarUrl && avatarUrl !== "") && (
@@ -656,10 +656,10 @@ export default function RecruiterProfilePage() {
 
                         <div className="pb-1 sm:pb-2 min-w-0 hidden sm:block">
                             <div className="flex items-center gap-2 flex-wrap">
-                                <h1 className="text-xl sm:text-2xl font-bold text-[var(--theme-text-primary)]">{fullName}</h1>
-                                <span className="text-[12px] font-medium text-[var(--theme-text-muted)]">@{username}</span>
+                                <h1 className="text-xl sm:text-2xl font-bold text-(--theme-text-primary)">{fullName}</h1>
+                                <span className="text-[12px] font-medium text-(--theme-text-muted)">@{username}</span>
                             </div>
-                            <p className="text-[13px] text-[var(--theme-text-muted)] mt-0.5">{displayTitle}</p>
+                            <p className="text-[13px] text-(--theme-text-muted) mt-0.5">{displayTitle}</p>
                             <p className="text-[11px] font-medium flex items-center gap-1 mt-1" style={{ color: accent }}>
                                 <Sparkles className="w-3 h-3" /> Company Profile
                             </p>
@@ -671,10 +671,10 @@ export default function RecruiterProfilePage() {
             {/* Mobile name */}
             <div className="sm:hidden px-4 mt-3">
                 <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <h1 className="text-lg font-bold text-[var(--theme-text-primary)]">{fullName}</h1>
-                    <span className="text-[11px] font-medium text-[var(--theme-text-muted)]">@{username}</span>
+                    <h1 className="text-lg font-bold text-(--theme-text-primary)">{fullName}</h1>
+                    <span className="text-[11px] font-medium text-(--theme-text-muted)">@{username}</span>
                 </div>
-                <p className="text-[12px] text-[var(--theme-text-muted)]">{displayTitle}</p>
+                <p className="text-[12px] text-(--theme-text-muted)">{displayTitle}</p>
             </div>
 
             {/* ── MAIN CONTENT ── */}
@@ -683,11 +683,11 @@ export default function RecruiterProfilePage() {
                 {/* Bio & Social Links */}
                 <div className="mt-4 sm:mt-6">
                     {bio ? (
-                        <p className="text-[13px] sm:text-[14px] text-[var(--theme-text-primary)] leading-relaxed whitespace-pre-wrap max-w-3xl">
+                        <p className="text-[13px] sm:text-[14px] text-(--theme-text-primary) leading-relaxed whitespace-pre-wrap max-w-3xl">
                             {bio}
                         </p>
                     ) : (
-                        <p className="text-[13px] text-[var(--theme-text-muted)] italic">
+                        <p className="text-[13px] text-(--theme-text-muted) italic">
                             No bio yet.{" "}
                             <button onClick={() => setShowEdit(true)} className="border-none bg-transparent cursor-pointer font-medium underline" style={{ color: accent }}>
                                 Add one
@@ -697,29 +697,29 @@ export default function RecruiterProfilePage() {
 
                     <div className="flex flex-wrap items-center gap-3 mt-4 text-[12px] font-medium">
                         {displayLocation && (
-                            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-card)]" style={{ color: accent }}>
+                            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-(--theme-border) bg-(--theme-card)" style={{ color: accent }}>
                                 <MapPin className="w-3.5 h-3.5" />
                                 {displayLocation}
                             </span>
                         )}
                         {companyName && (
-                            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-card)] text-[var(--theme-text-secondary)]">
+                            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-(--theme-border) bg-(--theme-card) text-(--theme-text-secondary)">
                                 <Building2 className="w-3.5 h-3.5" style={{ color: accent }} />
                                 {companyName}
                             </span>
                         )}
                         {email && (
-                            <a href={`mailto:${email}`} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:opacity-80 transition-colors bg-[var(--theme-card)] border border-[var(--theme-border)] no-underline text-[var(--theme-text-secondary)]">
+                            <a href={`mailto:${email}`} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:opacity-80 transition-colors bg-(--theme-card) border border-(--theme-border) no-underline text-(--theme-text-secondary)">
                                 <Mail className="w-3.5 h-3.5" /> <span className="hidden sm:inline">{email}</span>
                             </a>
                         )}
                         {phone && (
-                            <a href={`tel:${phone}`} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:opacity-80 transition-colors bg-[var(--theme-card)] border border-[var(--theme-border)] no-underline text-[var(--theme-text-secondary)]">
+                            <a href={`tel:${phone}`} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:opacity-80 transition-colors bg-(--theme-card) border border-(--theme-border) no-underline text-(--theme-text-secondary)">
                                 <Phone className="w-3.5 h-3.5" /> <span className="hidden sm:inline">{phone}</span>
                             </a>
                         )}
                         {companyWebsite && (
-                            <a href={companyWebsite.startsWith("http") ? companyWebsite : `https://${companyWebsite}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:opacity-80 transition-colors bg-[var(--theme-card)] border border-[var(--theme-border)] no-underline text-[var(--theme-text-secondary)]">
+                            <a href={companyWebsite.startsWith("http") ? companyWebsite : `https://${companyWebsite}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:opacity-80 transition-colors bg-(--theme-card) border border-(--theme-border) no-underline text-(--theme-text-secondary)">
                                 <Globe className="w-3.5 h-3.5" style={{ color: accent }} /> <span className="hidden sm:inline">Website</span>
                             </a>
                         )}
@@ -727,14 +727,22 @@ export default function RecruiterProfilePage() {
                 </div>
 
                 {/* Stats / Actions row */}
-                <div className="flex items-center gap-3 sm:gap-6 mt-4 sm:mt-5 pb-4 border-b border-[var(--theme-border)]">
+                <div className="flex items-center gap-3 sm:gap-6 mt-4 sm:mt-5 pb-4 border-b border-(--theme-border)">
                     <div className="text-center">
-                        <p className="text-sm sm:text-lg font-bold text-[var(--theme-text-primary)]">{bounties?.length || 0}</p>
-                        <p className="text-[9px] sm:text-[10px] text-[var(--theme-text-muted)] uppercase tracking-wider">Bounties</p>
+                        <p className="text-sm sm:text-lg font-bold text-(--theme-text-primary)">{bounties?.length || 0}</p>
+                        <p className="text-[9px] sm:text-[10px] text-(--theme-text-muted) uppercase tracking-wider">Bounties</p>
                     </div>
                     <div className="text-center">
-                        <p className="text-sm sm:text-lg font-bold text-[var(--theme-text-primary)]">{spills?.length || 0}</p>
-                        <p className="text-[9px] sm:text-[10px] text-[var(--theme-text-muted)] uppercase tracking-wider">Spills</p>
+                        <p className="text-sm sm:text-lg font-bold text-(--theme-text-primary)">{userData?._count?.spillPosts ?? spills?.length ?? 0}</p>
+                        <p className="text-[9px] sm:text-[10px] text-(--theme-text-muted) uppercase tracking-wider">Spills</p>
+                    </div>
+                    <div className="text-center">
+                        <p className="text-sm sm:text-lg font-bold text-(--theme-text-primary)">{userData?._count?.followers ?? 0}</p>
+                        <p className="text-[9px] sm:text-[10px] text-(--theme-text-muted) uppercase tracking-wider">Followers</p>
+                    </div>
+                    <div className="text-center">
+                        <p className="text-sm sm:text-lg font-bold text-(--theme-text-primary)">{userData?._count?.following ?? 0}</p>
+                        <p className="text-[9px] sm:text-[10px] text-(--theme-text-muted) uppercase tracking-wider">Following</p>
                     </div>
                     <div className="ml-auto flex gap-2">
                         {/* ✏️  Opens modal — no navigation */}
@@ -749,11 +757,11 @@ export default function RecruiterProfilePage() {
                 </div>
 
                 {/* Tabs */}
-                <div className="flex gap-0 mt-0 border-b border-[var(--theme-border)] overflow-x-auto scrollbar-none">
+                <div className="flex gap-0 mt-0 border-b border-(--theme-border) overflow-x-auto scrollbar-none">
                     {tabs.map(tab => (
                         <button key={tab} onClick={() => setActiveTab(tab)}
                             className={`px-4 sm:px-6 py-3 text-[12px] sm:text-[13px] font-semibold border-b-2 transition-all cursor-pointer bg-transparent whitespace-nowrap
-                                ${activeTab === tab ? "border-[#A855F7] text-[#A855F7]" : "border-transparent text-[var(--theme-text-muted)] hover:text-[var(--theme-text-tertiary)]"}`}>
+                                ${activeTab === tab ? "border-[#A855F7] text-[#A855F7]" : "border-transparent text-(--theme-text-muted) hover:text-(--theme-text-tertiary)"}`}>
                             {tab}
                         </button>
                     ))}
@@ -769,17 +777,17 @@ export default function RecruiterProfilePage() {
                             {bounties && bounties.length > 0 ? (
                                 bounties.map((bounty: any) => (
                                     <div key={bounty.id}
-                                        className="rounded-2xl border bg-[var(--theme-card)] p-4 sm:p-5 transition-all"
+                                        className="rounded-2xl border bg-(--theme-card) p-4 sm:p-5 transition-all"
                                         style={{ borderColor: "var(--theme-border)" }}
                                         onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}
                                         onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border)")}>
                                         <div className="flex items-start justify-between gap-3 flex-wrap">
                                             <div>
-                                                <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-1">{bounty.title}</h3>
+                                                <h3 className="text-[14px] font-bold text-(--theme-text-primary) mb-1">{bounty.title}</h3>
                                                 {bounty.description && (
-                                                    <p className="text-[12px] text-[var(--theme-text-secondary)] leading-relaxed mb-2 line-clamp-2">{bounty.description}</p>
+                                                    <p className="text-[12px] text-(--theme-text-secondary) leading-relaxed mb-2 line-clamp-2">{bounty.description}</p>
                                                 )}
-                                                <div className="flex flex-wrap gap-2 text-[10px] text-[var(--theme-text-muted)]">
+                                                <div className="flex flex-wrap gap-2 text-[10px] text-(--theme-text-muted)">
                                                     {bounty.reward && (
                                                         <span className="font-bold text-[11px]" style={{ color: accent }}>${bounty.reward?.toLocaleString()}</span>
                                                     )}
@@ -791,7 +799,7 @@ export default function RecruiterProfilePage() {
                                                     ))}
                                                 </div>
                                             </div>
-                                            <span className={`text-[10px] font-bold px-2 py-1 rounded-full shrink-0 ${bounty.status === "OPEN" ? "bg-green-500/10 text-green-500 border border-green-500/20" : "text-[var(--theme-text-muted)]"}`}
+                                            <span className={`text-[10px] font-bold px-2 py-1 rounded-full shrink-0 ${bounty.status === "OPEN" ? "bg-green-500/10 text-green-500 border border-green-500/20" : "text-(--theme-text-muted)"}`}
                                                 style={bounty.status !== "OPEN" ? { background: "var(--theme-input-bg)", border: "1px solid var(--theme-border-light)" } : {}}>
                                                 {bounty.status}
                                             </span>
@@ -799,12 +807,12 @@ export default function RecruiterProfilePage() {
                                     </div>
                                 ))
                             ) : (
-                                <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-8 text-center flex flex-col items-center">
+                                <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm p-8 text-center flex flex-col items-center">
                                     <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3" style={{ background: `${accent}15` }}>
                                         <Briefcase className="w-5 h-5" style={{ color: accent }} />
                                     </div>
-                                    <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mb-1">No Active Jobs</h3>
-                                    <p className="text-[12px] text-[var(--theme-text-muted)] mb-3">You haven&apos;t posted any bounties yet.</p>
+                                    <h3 className="text-[14px] font-bold text-(--theme-text-primary) mb-1">No Active Jobs</h3>
+                                    <p className="text-[12px] text-(--theme-text-muted) mb-3">You haven&apos;t posted any bounties yet.</p>
                                     <Link href="/recruiter/jobs"
                                         className="px-4 py-2 rounded-xl text-[12px] font-bold text-white no-underline transition-all hover:scale-105"
                                         style={{ background: `linear-gradient(135deg, ${accent}, #7C3AED)` }}>
@@ -849,12 +857,12 @@ export default function RecruiterProfilePage() {
                                     </div>
                                 </>
                             ) : (
-                                <div className="rounded-2xl border border-dashed border-[var(--theme-border)] bg-[var(--theme-card)] p-12 text-center flex flex-col items-center">
+                                <div className="rounded-2xl border border-dashed border-(--theme-border) bg-(--theme-card) p-12 text-center flex flex-col items-center">
                                     <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: `${accent}15` }}>
                                         <MessageSquare className="w-7 h-7" style={{ color: accent }} />
                                     </div>
-                                    <h3 className="text-[15px] font-bold text-[var(--theme-text-primary)] mb-1">No Spills Yet</h3>
-                                    <p className="text-[12px] text-[var(--theme-text-muted)] mb-5 max-w-xs">Share your hiring insights and company culture.</p>
+                                    <h3 className="text-[15px] font-bold text-(--theme-text-primary) mb-1">No Spills Yet</h3>
+                                    <p className="text-[12px] text-(--theme-text-muted) mb-5 max-w-xs">Share your hiring insights and company culture.</p>
                                     <button
                                         onClick={() => setComposerOpen(true)}
                                         className="px-5 py-2.5 rounded-xl text-[12px] font-bold text-white border-none cursor-pointer transition-all hover:scale-105"
@@ -886,12 +894,12 @@ export default function RecruiterProfilePage() {
 
             {/* ── Post Preview Modal ── */}
             {selectedSpill && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedSpill(null)} />
                     <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl z-10 custom-scrollbar">
                         <button 
                             onClick={() => setSelectedSpill(null)} 
-                            className="absolute top-4 right-4 z-[70] w-8 h-8 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/80 text-white transition-colors border-none cursor-pointer shadow-md">
+                            className="absolute top-4 right-4 z-70 w-8 h-8 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/80 text-white transition-colors border-none cursor-pointer shadow-md">
                             <X size={16} />
                         </button>
                         <PostCard

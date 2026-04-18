@@ -72,6 +72,7 @@ export default function SearchPage() {
     const [idLookup, setIdLookup] = useState<IdLookupResult>({ status: "idle", user: null });
 
     // Fetch once on mount (server-side filtering for roles, client-side text search)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => {
         setIsLoading(true);
         const param = roleFilter !== "ALL" ? `?role=${roleFilter}` : "";
@@ -94,6 +95,7 @@ export default function SearchPage() {
             .catch(() => setIdLookup({ status: "notfound", user: null }));
     }, []);
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => {
         const trimmed = searchTerm.trim();
         if (!looksLikeId(trimmed)) {
@@ -126,18 +128,18 @@ export default function SearchPage() {
 
                 {/* HEADER */}
                 <div className="mb-5">
-                    <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--theme-text-primary)]">Search</h1>
-                    <p className="text-[12px] sm:text-[13px] text-[var(--theme-text-muted)] mt-1">
+                    <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-(--theme-text-primary)">Search</h1>
+                    <p className="text-[12px] sm:text-[13px] text-(--theme-text-muted) mt-1">
                         Find talents and recruiters across SkillSpill
                     </p>
                 </div>
 
                 {/* SEARCH BAR + ROLE FILTER */}
-                <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-3 sm:p-4 mb-5">
+                <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm p-3 sm:p-4 mb-5">
 
                     {/* Search input */}
                     <div className="relative mb-3">
-                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--theme-text-muted)]" />
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-(--theme-text-muted)" />
                         <input
                             type="text"
                             value={searchTerm}
@@ -154,7 +156,7 @@ export default function SearchPage() {
 
                     {/* Role filter pills */}
                     <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider shrink-0">Filter:</span>
+                        <span className="text-[11px] font-semibold text-(--theme-text-muted) uppercase tracking-wider shrink-0">Filter:</span>
                         <div className="flex gap-2 overflow-x-auto scrollbar-none">
                             {ROLE_FILTERS.map(f => (
                                 <button
@@ -212,16 +214,16 @@ export default function SearchPage() {
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center flex-1 p-12">
                         <Loader2 className="w-7 h-7 animate-spin mb-3" style={{ color: accent }} />
-                        <p className="text-[13px] text-[var(--theme-text-muted)] font-medium">Searching…</p>
+                        <p className="text-[13px] text-(--theme-text-muted) font-medium">Searching…</p>
                     </div>
                 ) : results.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center flex-1 p-12 text-center rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)]">
+                    <div className="flex flex-col items-center justify-center flex-1 p-12 text-center rounded-2xl border border-(--theme-border) bg-(--theme-card)">
                         <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4"
                             style={{ background: `${accent}10` }}>
                             <Search className="w-6 h-6" style={{ color: accent, opacity: 0.6 }} />
                         </div>
-                        <h3 className="text-[15px] font-bold text-[var(--theme-text-primary)] mb-1">No results found</h3>
-                        <p className="text-[13px] text-[var(--theme-text-muted)]">Try a different name, skill, or switch the filter.</p>
+                        <h3 className="text-[15px] font-bold text-(--theme-text-primary) mb-1">No results found</h3>
+                        <p className="text-[13px] text-(--theme-text-muted)">Try a different name, skill, or switch the filter.</p>
                     </div>
                 ) : (
                     <div className="space-y-3">
@@ -250,14 +252,14 @@ function TalentCard({ user, index, accent }: { user: UserResult; index: number; 
         : exp ? `${exp.charAt(0) + exp.slice(1).toLowerCase()} Developer` : "Developer";
 
     return (
-        <div className="rounded-2xl border bg-[var(--theme-card)] p-4 sm:p-5 transition-all hover:border-[var(--theme-border)] group"
+        <div className="rounded-2xl border bg-(--theme-card) p-4 sm:p-5 transition-all hover:border-(--theme-border) group"
             style={{ borderColor: "var(--theme-border)" }}
             onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}
             onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border)")}>
 
             <div className="flex gap-3 sm:gap-4">
                 {/* Avatar */}
-                <div className={`w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br ${grad} flex items-center justify-center text-white text-[13px] sm:text-[16px] font-bold shrink-0`}>
+                <div className={`w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-linear-to-br ${grad} flex items-center justify-center text-white text-[13px] sm:text-[16px] font-bold shrink-0`}>
                     {getInitials(user.fullName)}
                 </div>
 
@@ -266,8 +268,8 @@ function TalentCard({ user, index, accent }: { user: UserResult; index: number; 
                     <div className="flex items-start justify-between gap-2 flex-wrap">
                         <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                                <h2 className="text-[14px] sm:text-[15px] font-bold text-[var(--theme-text-primary)] truncate">{user.fullName}</h2>
-                                <span className="text-[11px] text-[var(--theme-text-muted)]">@{user.username}</span>
+                                <h2 className="text-[14px] sm:text-[15px] font-bold text-(--theme-text-primary) truncate">{user.fullName}</h2>
+                                <span className="text-[11px] text-(--theme-text-muted)">@{user.username}</span>
                                 {available && (
                                     <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 border border-green-500/20 uppercase tracking-widest">
                                         Open to Work
@@ -275,7 +277,7 @@ function TalentCard({ user, index, accent }: { user: UserResult; index: number; 
                                 )}
                             </div>
                             <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-                                <p className="text-[12px] font-medium text-[var(--theme-text-secondary)]">{role}</p>
+                                <p className="text-[12px] font-medium text-(--theme-text-secondary)">{role}</p>
                                 {/* Role badge */}
                                 <span className="text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest"
                                     style={{ background: "#3CF91A15", color: "#3CF91A", border: "1px solid #3CF91A30" }}>
@@ -300,7 +302,7 @@ function TalentCard({ user, index, accent }: { user: UserResult; index: number; 
                     </div>
 
                     {bio && (
-                        <p className="text-[12px] text-[var(--theme-text-muted)] mt-2 leading-relaxed line-clamp-2 hidden sm:block">{bio}</p>
+                        <p className="text-[12px] text-(--theme-text-muted) mt-2 leading-relaxed line-clamp-2 hidden sm:block">{bio}</p>
                     )}
 
                     {/* Skills */}
@@ -336,14 +338,14 @@ function RecruiterCard({ user, index, accent }: { user: UserResult; index: numbe
     const bio = user.recruiterProfile?.bio;
 
     return (
-        <div className="rounded-2xl border bg-[var(--theme-card)] p-4 sm:p-5 transition-all"
+        <div className="rounded-2xl border bg-(--theme-card) p-4 sm:p-5 transition-all"
             style={{ borderColor: "var(--theme-border)" }}
             onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}
             onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border)")}>
 
             <div className="flex gap-3 sm:gap-4">
                 {/* Avatar */}
-                <div className={`w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br ${grad} flex items-center justify-center text-white text-[13px] sm:text-[16px] font-bold shrink-0`}>
+                <div className={`w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-linear-to-br ${grad} flex items-center justify-center text-white text-[13px] sm:text-[16px] font-bold shrink-0`}>
                     {getInitials(user.fullName)}
                 </div>
 
@@ -352,8 +354,8 @@ function RecruiterCard({ user, index, accent }: { user: UserResult; index: numbe
                     <div className="flex items-start justify-between gap-2 flex-wrap">
                         <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                                <h2 className="text-[14px] sm:text-[15px] font-bold text-[var(--theme-text-primary)] truncate">{user.fullName}</h2>
-                                <span className="text-[11px] text-[var(--theme-text-muted)]">@{user.username}</span>
+                                <h2 className="text-[14px] sm:text-[15px] font-bold text-(--theme-text-primary) truncate">{user.fullName}</h2>
+                                <span className="text-[11px] text-(--theme-text-muted)">@{user.username}</span>
                                 {/* Role badge */}
                                 <span className="text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest"
                                     style={{ background: `${accent}15`, color: accent, border: `1px solid ${accent}30` }}>
@@ -361,11 +363,11 @@ function RecruiterCard({ user, index, accent }: { user: UserResult; index: numbe
                                 </span>
                             </div>
                             <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-                                <p className="text-[12px] font-medium text-[var(--theme-text-secondary)]">
+                                <p className="text-[12px] font-medium text-(--theme-text-secondary)">
                                     {jobTitle} at <span style={{ color: accent }}>{company}</span>
                                 </p>
                                 {location && (
-                                    <span className="flex items-center gap-1 text-[11px] text-[var(--theme-text-muted)]">
+                                    <span className="flex items-center gap-1 text-[11px] text-(--theme-text-muted)">
                                         <MapPin className="w-3 h-3" />{location}
                                     </span>
                                 )}
@@ -388,7 +390,7 @@ function RecruiterCard({ user, index, accent }: { user: UserResult; index: numbe
                     </div>
 
                     {bio && (
-                        <p className="text-[12px] text-[var(--theme-text-muted)] mt-2 leading-relaxed line-clamp-2 hidden sm:block">{bio}</p>
+                        <p className="text-[12px] text-(--theme-text-muted) mt-2 leading-relaxed line-clamp-2 hidden sm:block">{bio}</p>
                     )}
 
                     {website && (
@@ -452,10 +454,10 @@ function DirectIdCard({ user, accent }: { user: UserResult; accent: string }) {
                     <div className="flex items-start justify-between gap-3 flex-wrap">
                         <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                                <h2 className="text-[15px] sm:text-[16px] font-bold text-[var(--theme-text-primary)]">
+                                <h2 className="text-[15px] sm:text-[16px] font-bold text-(--theme-text-primary)">
                                     {user.fullName}
                                 </h2>
-                                <span className="text-[11px] text-[var(--theme-text-muted)]">@{user.username}</span>
+                                <span className="text-[11px] text-(--theme-text-muted)">@{user.username}</span>
                                 <span
                                     className="text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest"
                                     style={{ background: `${accent}15`, color: accent, border: `1px solid ${accent}30` }}
@@ -463,9 +465,9 @@ function DirectIdCard({ user, accent }: { user: UserResult; accent: string }) {
                                     {isTalent ? "Talent" : "Recruiter"}
                                 </span>
                             </div>
-                            <p className="text-[12px] text-[var(--theme-text-secondary)] mt-0.5">{subtitle}</p>
+                            <p className="text-[12px] text-(--theme-text-secondary) mt-0.5">{subtitle}</p>
                             {bio && (
-                                <p className="text-[12px] text-[var(--theme-text-muted)] mt-1.5 leading-relaxed line-clamp-2 hidden sm:block">
+                                <p className="text-[12px] text-(--theme-text-muted) mt-1.5 leading-relaxed line-clamp-2 hidden sm:block">
                                     {bio}
                                 </p>
                             )}

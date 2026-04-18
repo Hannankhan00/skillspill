@@ -13,7 +13,7 @@ export async function GET() {
         const user = await prisma.user.findUnique({
             where: { id: session.userId },
             include: {
-                _count: { select: { followers: true, following: true } },
+                _count: { select: { followers: true, following: true, spillPosts: true } },
                 talentProfile: {
                     include: {
                         skills: true,
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
         const data = await req.json();
 
         // Exclude specific fields and nested objects from the top-level update
-        const { id, role, passwordHash, createdAt, updatedAt, talentProfile, recruiterProfile, githubId, ...updateData } = data;
+        const { id: _id, role: _role, passwordHash: _passwordHash, createdAt: _createdAt, updatedAt: _updatedAt, talentProfile: _talentProfile, recruiterProfile: _recruiterProfile, githubId: _githubId, ...updateData } = data;
 
         // Start a transaction for user updates + profile-specific updates
         const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {

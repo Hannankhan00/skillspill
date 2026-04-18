@@ -249,7 +249,7 @@ export default function TalentShell({
                     <div className="p-3 rounded-xl border border-orange-500/30 bg-orange-500/5 flex flex-col gap-2 relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-12 h-12 bg-orange-500/10 rounded-bl-full pointer-events-none" />
                         <h4 className="text-[11px] font-bold text-orange-500">Incomplete Profile</h4>
-                        <p className="text-[9px] text-[var(--theme-text-muted)] leading-relaxed">
+                        <p className="text-[9px] text-(--theme-text-muted) leading-relaxed">
                             Stand out to companies by completing your profile.
                         </p>
                         <Link href="/talent/profile" className="mt-1 flex items-center gap-1 text-[10px] font-bold text-[#3CF91A] hover:underline">

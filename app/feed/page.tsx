@@ -84,7 +84,7 @@ export default function SpillFeedPage() {
                             The Spill <span className="text-xl">🌊</span>
                         </h1>
                         <div className="flex items-center gap-2">
-                            <Link href="/feed/saved" className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:bg-[var(--theme-input-bg)]" style={{ color: "var(--theme-text-muted)" }}>
+                            <Link href="/feed/saved" className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:bg-(--theme-input-bg)" style={{ color: "var(--theme-text-muted)" }}>
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>
                             </Link>
                         </div>
@@ -94,7 +94,7 @@ export default function SpillFeedPage() {
                         {filters.map(f => (
                             <button key={f.key} onClick={() => setFilter(f.key)}
                                 className={`px-4 py-2.5 text-[12px] font-semibold border-b-2 transition-all cursor-pointer bg-transparent
-                                    ${filter === f.key ? "border-[#3CF91A] text-[#2edb13]" : "border-transparent text-[var(--theme-text-muted)] hover:text-[var(--theme-text-tertiary)]"}`}>
+                                    ${filter === f.key ? "border-[#3CF91A] text-[#2edb13]" : "border-transparent text-(--theme-text-muted) hover:text-(--theme-text-tertiary)"}`}>
                                 {f.label}
                             </button>
                         ))}
@@ -106,9 +106,9 @@ export default function SpillFeedPage() {
                 {/* Desktop compose card */}
                 <div className="hidden sm:block mb-4">
                     <button onClick={() => setComposerOpen(true)}
-                        className="w-full rounded-2xl border bg-[var(--theme-card)] shadow-sm p-4 flex items-center gap-3 cursor-pointer transition-all hover:shadow-md text-left"
+                        className="w-full rounded-2xl border bg-(--theme-card) shadow-sm p-4 flex items-center gap-3 cursor-pointer transition-all hover:shadow-md text-left"
                         style={{ borderColor: "var(--theme-border)" }}>
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-[#2edb13] flex items-center justify-center text-white text-[11px] font-bold shrink-0">{initials}</div>
+                        <div className="w-10 h-10 rounded-full bg-linear-to-br from-green-400 to-[#2edb13] flex items-center justify-center text-white text-[11px] font-bold shrink-0">{initials}</div>
                         <span className="text-[13px] flex-1" style={{ color: "var(--theme-text-muted)" }}>What&apos;s on your mind? Share a spill...</span>
                         <span className="px-3 py-1.5 rounded-lg text-[11px] font-bold text-black" style={{ background: "#3CF91A" }}>Spill</span>
                     </button>
@@ -118,14 +118,14 @@ export default function SpillFeedPage() {
                 {loading && (
                     <div className="space-y-4">
                         {[1, 2, 3].map(i => (
-                            <div key={i} className="rounded-2xl border bg-[var(--theme-card)] shadow-sm p-5 animate-pulse" style={{ borderColor: "var(--theme-border)" }}>
+                            <div key={i} className="rounded-2xl border bg-(--theme-card) shadow-sm p-5 animate-pulse" style={{ borderColor: "var(--theme-border)" }}>
                                 <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-10 h-10 rounded-full bg-[var(--theme-input-bg)]" />
-                                    <div className="flex-1"><div className="h-3 w-24 bg-[var(--theme-input-bg)] rounded mb-2" /><div className="h-2 w-16 bg-[var(--theme-input-bg)] rounded" /></div>
+                                    <div className="w-10 h-10 rounded-full bg-(--theme-input-bg)" />
+                                    <div className="flex-1"><div className="h-3 w-24 bg-(--theme-input-bg) rounded mb-2" /><div className="h-2 w-16 bg-(--theme-input-bg) rounded" /></div>
                                 </div>
-                                <div className="h-3 w-full bg-[var(--theme-input-bg)] rounded mb-2" />
-                                <div className="h-3 w-3/4 bg-[var(--theme-input-bg)] rounded mb-4" />
-                                <div className="h-8 w-full bg-[var(--theme-input-bg)] rounded" />
+                                <div className="h-3 w-full bg-(--theme-input-bg) rounded mb-2" />
+                                <div className="h-3 w-3/4 bg-(--theme-input-bg) rounded mb-4" />
+                                <div className="h-8 w-full bg-(--theme-input-bg) rounded" />
                             </div>
                         ))}
                     </div>
@@ -161,7 +161,7 @@ export default function SpillFeedPage() {
 
                 {/* Empty state */}
                 {!loading && posts.length === 0 && (
-                    <div className="rounded-2xl border border-dashed bg-[var(--theme-card)] p-10 text-center" style={{ borderColor: "var(--theme-border)" }}>
+                    <div className="rounded-2xl border border-dashed bg-(--theme-card) p-10 text-center" style={{ borderColor: "var(--theme-border)" }}>
                         <p className="text-4xl mb-3">🌊</p>
                         <p className="text-[15px] font-bold mb-1" style={{ color: "var(--theme-text-secondary)" }}>The feed is quiet...</p>
                         <p className="text-[12px] mb-4" style={{ color: "var(--theme-text-muted)" }}>Be the first to share a spill!</p>

@@ -3,11 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+<<<<<<< HEAD
     "dev": "ts-node --project tsconfig.server.json -r tsconfig-paths/register server.ts",
     "dev:next": "next dev",
     "build": "npx prisma generate && next build",
     "postinstall": "npx prisma generate",
     "start": "node dist/server.js",
+=======
+    "dev": "node server.js",
+    "build": "npx prisma generate && next build",
+    "postinstall": "npx prisma generate",
+    "start": "NODE_ENV=production node server.js",
+>>>>>>> 7dce057f728eceb80b3b51a670744c53a4d9d2fc
     "lint": "eslint"
   },
   "dependencies": {
@@ -19,6 +26,8 @@
     "lucide-react": "^0.575.0",
     "next": "16.1.6",
     "prisma": "5.22.0",
+    "pusher": "^5.3.3",
+    "pusher-js": "^8.5.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "sharp": "^0.34.5",

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import { Sparkles, Briefcase, Target, BarChart2, Copy, Check } from "lucide-react";
+import { Sparkles, Briefcase, Target, BarChart2, Copy, Check, Loader2 } from "lucide-react";
 import { CoverBanner } from "@/app/components/CoverBanners";
 import CommentThread from "@/app/feed/components/CommentThread";
 
@@ -66,6 +66,31 @@ const defaultTopCandidates = [
 
 
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• MAIN FEED â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ═══════════════ SKELETON ═══════════════ */
+function PostSkeleton() {
+    return (
+        <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) overflow-hidden animate-pulse">
+            <div className="flex items-center gap-3 px-5 pt-4 pb-2">
+                <div className="w-10 h-10 rounded-full bg-(--theme-border)" />
+                <div className="flex-1 space-y-1.5">
+                    <div className="h-3 bg-(--theme-border) rounded w-28" />
+                    <div className="h-2.5 bg-(--theme-border) rounded w-20" />
+                </div>
+            </div>
+            <div className="px-5 py-3 space-y-2">
+                <div className="h-3 bg-(--theme-border) rounded w-full" />
+                <div className="h-3 bg-(--theme-border) rounded w-4/5" />
+                <div className="h-3 bg-(--theme-border) rounded w-3/5" />
+            </div>
+            <div className="flex items-center gap-5 px-5 py-3 border-t border-(--theme-border-light)">
+                <div className="h-3 bg-(--theme-border) rounded w-10" />
+                <div className="h-3 bg-(--theme-border) rounded w-10" />
+                <div className="h-3 bg-(--theme-border) rounded w-10" />
+            </div>
+        </div>
+    );
+}
+
 export default function RecruiterFeed() {
     const [feedTab, setFeedTab] = useState("Discover");
     const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
@@ -77,10 +102,14 @@ export default function RecruiterFeed() {
     // In-flight guards keyed by post ID
     const likeInFlight = useRef<Record<string, boolean>>({});
     const saveInFlight = useRef<Record<string, boolean>>({});
-    
+
     // Real feed data
     const [posts, setPosts] = useState<any[]>([]);
     const [loadingPosts, setLoadingPosts] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [hasMore, setHasMore] = useState(false);
+    const cursorRef = useRef<string | null>(null);
+    const sentinelRef = useRef<HTMLDivElement>(null);
 
     const [userData, setUserData] = useState<any>(null);
     const [sidebarData, setSidebarData] = useState<{ suggestedUsers: any[], jobSuggestions: any[] } | null>(null);
@@ -103,20 +132,56 @@ export default function RecruiterFeed() {
             .catch(console.error);
     }, []);
 
-    // Fetch the Feed Posts
+    // Fetch the Feed Posts (initial / tab change)
     useEffect(() => {
         setLoadingPosts(true);
+        setPosts([]);
+        cursorRef.current = null;
+        setHasMore(false);
         let filter = "all";
         if (feedTab === "My Network") filter = "following";
         if (feedTab === "Trending") filter = "trending";
-        fetch(`/api/spill/posts?limit=20&filter=${filter}`)
+        fetch(`/api/spill/posts?limit=10&filter=${filter}`)
             .then(res => res.json())
             .then(data => {
                 if (data.posts) setPosts(data.posts);
+                cursorRef.current = data.nextCursor ?? null;
+                setHasMore(data.hasMore ?? false);
                 setLoadingPosts(false);
             })
             .catch(() => setLoadingPosts(false));
     }, [feedTab]);
+
+    // Fetch next page
+    const fetchMore = useCallback(async () => {
+        if (!cursorRef.current || loadingMore) return;
+        setLoadingMore(true);
+        let filter = "all";
+        if (feedTab === "My Network") filter = "following";
+        if (feedTab === "Trending") filter = "trending";
+        try {
+            const res = await fetch(`/api/spill/posts?limit=10&filter=${filter}&cursor=${cursorRef.current}`);
+            const data = await res.json();
+            if (data.posts) {
+                setPosts(prev => [...prev, ...data.posts]);
+                cursorRef.current = data.nextCursor ?? null;
+                setHasMore(data.hasMore ?? false);
+            }
+        } catch { /* noop */ }
+        setLoadingMore(false);
+    }, [loadingMore, feedTab]);
+
+    // IntersectionObserver sentinel for infinite scroll
+    useEffect(() => {
+        const el = sentinelRef.current;
+        if (!el) return;
+        const observer = new IntersectionObserver(
+            (entries) => { if (entries[0].isIntersecting) fetchMore(); },
+            { rootMargin: "400px" }
+        );
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, [fetchMore]);
 
     const toggleLike = useCallback(async (id: string, currentlyLiked: boolean) => {
         if (likeInFlight.current[id]) return;
@@ -215,8 +280,8 @@ export default function RecruiterFeed() {
                                     onClick={() => setFeedTab(tab)}
                                     className={`px-4 py-2 rounded-xl text-[12px] font-semibold transition-all duration-200 border-none cursor-pointer whitespace-nowrap
                                         ${feedTab === tab
-                                            ? "bg-[var(--theme-card)] text-[var(--theme-text-primary)] shadow-sm"
-                                            : "bg-transparent text-[var(--theme-text-muted)] hover:text-[var(--theme-text-tertiary)] hover:bg-[var(--theme-card)]/50"
+                                            ? "bg-(--theme-card) text-(--theme-text-primary) shadow-sm"
+                                            : "bg-transparent text-(--theme-text-muted) hover:text-(--theme-text-tertiary) hover:bg-(--theme-card)/50"
                                         }`}
                                 >
                                     {tab}
@@ -226,7 +291,7 @@ export default function RecruiterFeed() {
 
                         {/* ── Posts ── */}
                         {loadingPosts ? (
-                            <div className="py-10 text-center text-[var(--theme-text-muted)] animate-pulse">Loading spill activity...</div>
+                            <>{[0, 1, 2].map(i => <PostSkeleton key={i} />)}</>
                         ) : posts.map((post) => {
                             const isLiked = likedPosts[post.id] !== undefined ? likedPosts[post.id] : post.isLiked;
                             const isSaved = savedPosts[post.id] !== undefined ? savedPosts[post.id] : post.isSaved;
@@ -245,15 +310,15 @@ export default function RecruiterFeed() {
                             const mockMatchScore = isTalent ? Math.floor(Math.random() * 20) + 80 : null;
 
                             return (
-                                <article key={post.id} className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+                                <article key={post.id} className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
                                     {/* Header */}
                                     <div className="flex items-center justify-between px-5 pt-4 pb-2">
                                         <div className="flex items-center gap-3">
                                             <Link href={userData?.id === post.userId ? "/recruiter/profile" : (post.user?.role === "TALENT" ? `/recruiter/talent/${post.user?.id}` : `/recruiter/recruiter/${post.user?.id}`)}>
                                             {post.user?.avatarUrl ? (
-                                                <img src={post.user.avatarUrl} alt={pFullName} className="w-10 h-10 rounded-full object-cover shadow-md" />
+                                                <img src={post.user.avatarUrl} alt={pFullName} loading="lazy" className="w-10 h-10 rounded-full object-cover shadow-md" />
                                             ) : (
-                                                <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${pGrad} flex items-center justify-center text-white text-[11px] font-bold shadow-md`}>
+                                                <div className={`w-10 h-10 rounded-full bg-linear-to-br ${pGrad} flex items-center justify-center text-white text-[11px] font-bold shadow-md`}>
                                                     {pInitials}
                                                 </div>
                                             )}
@@ -261,7 +326,7 @@ export default function RecruiterFeed() {
                                             <div>
                                                 <div className="flex items-center gap-1.5">
                                                     <Link href={userData?.id === post.userId ? "/recruiter/profile" : (post.user?.role === "TALENT" ? `/recruiter/talent/${post.user?.id}` : `/recruiter/recruiter/${post.user?.id}`)}
-                                                        className="text-[13px] font-bold text-[var(--theme-text-primary)] no-underline hover:underline">{pUsername}</Link>
+                                                        className="text-[13px] font-bold text-(--theme-text-primary) no-underline hover:underline">{pUsername}</Link>
                                                     {pVerified && (
                                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="#8B5CF6"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#fff" strokeWidth="2" /></svg>
                                                     )}
@@ -272,7 +337,7 @@ export default function RecruiterFeed() {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="text-[11px] text-[var(--theme-text-muted)]">
+                                                <p className="text-[11px] text-(--theme-text-muted)">
                                                     {pRole} • <span style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{pTime} ago</span>
                                                 </p>
                                             </div>
@@ -283,7 +348,7 @@ export default function RecruiterFeed() {
                                                     Connect
                                                 </button>
                                             )}
-                                            <button className="text-[var(--theme-text-muted)] hover:text-[var(--theme-text-muted)] transition-colors bg-transparent border-none cursor-pointer p-1">
+                                            <button className="text-(--theme-text-muted) hover:text-(--theme-text-muted) transition-colors bg-transparent border-none cursor-pointer p-1">
                                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" /></svg>
                                             </button>
                                         </div>
@@ -292,7 +357,7 @@ export default function RecruiterFeed() {
                                     {/* Content (Caption) */}
                                     {post.caption && (
                                         <div className="px-5 py-3">
-                                            <p className="text-[13px] text-[var(--theme-text-secondary)] leading-relaxed whitespace-pre-line">{post.caption}</p>
+                                            <p className="text-[13px] text-(--theme-text-secondary) leading-relaxed whitespace-pre-line">{post.caption}</p>
                                         </div>
                                     )}
 
@@ -301,7 +366,7 @@ export default function RecruiterFeed() {
                                         <div className="px-5 mb-3">
                                             <div className={`grid gap-1 rounded-xl overflow-hidden ${post.media.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
                                                 {post.media.map((m: any, i: number) => (
-                                                    <img key={i} src={m.url} alt="Post media" className="w-full h-auto object-cover max-h-[400px] border border-[var(--theme-border-light)]" />
+                                                    <img key={i} src={m.url} alt="Post media" loading="lazy" className="w-full h-auto object-cover max-h-100 border border-(--theme-border-light)" />
                                                 ))}
                                             </div>
                                         </div>
@@ -310,7 +375,7 @@ export default function RecruiterFeed() {
                                     {/* Video */}
                                     {post.videoUrl && (
                                         <div className="px-5 mb-3">
-                                            <video controls className="w-full rounded-xl max-h-[500px] object-cover border border-[var(--theme-border-light)]" poster={post.thumbnailUrl || undefined} preload="metadata">
+                                            <video controls className="w-full rounded-xl max-h-[500px] object-cover border border-(--theme-border-light)" poster={post.thumbnailUrl || undefined} preload="metadata">
                                                 <source src={post.videoUrl} />
                                             </video>
                                         </div>
@@ -318,19 +383,19 @@ export default function RecruiterFeed() {
 
                                     {/* Code Snippet */}
                                     {post.code && (
-                                        <div className="mx-5 mb-3 rounded-xl overflow-hidden border border-[var(--theme-border)]">
-                                            <div className="flex items-center justify-between px-3.5 py-2 bg-[var(--theme-bg-secondary)] border-b border-[var(--theme-border-light)]">
+                                        <div className="mx-5 mb-3 rounded-xl overflow-hidden border border-(--theme-border)">
+                                            <div className="flex items-center justify-between px-3.5 py-2 bg-(--theme-bg-secondary) border-b border-(--theme-border-light)">
                                                 <div className="flex items-center gap-1.5">
                                                     <div className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" />
                                                     <div className="w-2.5 h-2.5 rounded-full bg-[#FFBD2E]" />
                                                     <div className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
                                                 </div>
                                                 <div className="flex items-center gap-3">
-                                                    <span className="text-[9px] text-[var(--theme-text-muted)] uppercase tracking-wider font-bold"
+                                                    <span className="text-[9px] text-(--theme-text-muted) uppercase tracking-wider font-bold"
                                                         style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{post.codeLang}</span>
                                                     <button 
                                                         onClick={() => handleCopyCode(post.id, post.code)}
-                                                        className="flex items-center justify-center bg-transparent border-none cursor-pointer text-[var(--theme-text-muted)] hover:text-[#A855F7] transition-colors"
+                                                        className="flex items-center justify-center bg-transparent border-none cursor-pointer text-(--theme-text-muted) hover:text-[#A855F7] transition-colors"
                                                         title="Copy Code"
                                                     >
                                                         {copiedStatus[post.id] ? <Check size={14} className="text-[#A855F7]" /> : <Copy size={14} />}
@@ -347,7 +412,7 @@ export default function RecruiterFeed() {
                                     {/* Tags */}
                                     <div className="flex flex-wrap gap-1.5 px-5 pb-3">
                                         {pTags.map((tag: string) => (
-                                            <span key={tag} className="text-[10px] px-2 py-0.5 rounded-md bg-[var(--theme-bg-secondary)] border border-[var(--theme-border)] text-[var(--theme-text-muted)] font-medium cursor-pointer hover:border-[#A855F7]/40 hover:text-[#A855F7] hover:bg-[#A855F7]/10 transition-all"
+                                            <span key={tag} className="text-[10px] px-2 py-0.5 rounded-md bg-(--theme-bg-secondary) border border-(--theme-border) text-(--theme-text-muted) font-medium cursor-pointer hover:border-[#A855F7]/40 hover:text-[#A855F7] hover:bg-[#A855F7]/10 transition-all"
                                                 style={{ fontFamily: "var(--font-jetbrains-mono)" }}>
                                                 #{tag}
                                             </span>
@@ -355,22 +420,22 @@ export default function RecruiterFeed() {
                                     </div>
 
                                     {/* Actions */}
-                                    <div className="flex items-center justify-between px-5 py-3 border-t border-[var(--theme-border-light)]">
+                                    <div className="flex items-center justify-between px-5 py-3 border-t border-(--theme-border-light)">
                                         <div className="flex items-center gap-5">
                                             <button onClick={() => toggleLike(post.id, isLiked)}
-                                                className={`flex items-center gap-1.5 text-[12px] font-medium transition-all bg-transparent border-none cursor-pointer ${isLiked ? "text-red-500" : "text-[var(--theme-text-muted)] hover:text-red-500"}`}>
+                                                className={`flex items-center gap-1.5 text-[12px] font-medium transition-all bg-transparent border-none cursor-pointer ${isLiked ? "text-red-500" : "text-(--theme-text-muted) hover:text-red-500"}`}>
                                                 <HeartIcon filled={isLiked} />
                                                 <span>{post.likesCount}</span>
                                             </button>
-                                            <button onClick={() => setOpenComments(p => ({ ...p, [post.id]: !p[post.id] }))} className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--theme-text-muted)] hover:text-blue-500 transition-all bg-transparent border-none cursor-pointer">
+                                            <button onClick={() => setOpenComments(p => ({ ...p, [post.id]: !p[post.id] }))} className="flex items-center gap-1.5 text-[12px] font-medium text-(--theme-text-muted) hover:text-blue-500 transition-all bg-transparent border-none cursor-pointer">
                                                 <CommentIcon /> {(overrideCommentsCount[post.id] !== undefined ? overrideCommentsCount[post.id] : post.commentsCount) || 0}
                                             </button>
-                                            <button className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--theme-text-muted)] hover:text-[#A855F7] transition-all bg-transparent border-none cursor-pointer">
+                                            <button className="flex items-center gap-1.5 text-[12px] font-medium text-(--theme-text-muted) hover:text-[#A855F7] transition-all bg-transparent border-none cursor-pointer">
                                                 <ShareIcon /> {post.repostsCount || 0}
                                             </button>
                                         </div>
                                         <button onClick={() => toggleSave(post.id, isSaved)}
-                                            className={`transition-all bg-transparent border-none cursor-pointer ${isSaved ? "text-[#A855F7]" : "text-[var(--theme-text-muted)] hover:text-[#A855F7]"}`}>
+                                            className={`transition-all bg-transparent border-none cursor-pointer ${isSaved ? "text-[#A855F7]" : "text-(--theme-text-muted) hover:text-[#A855F7]"}`}>
                                             <BookmarkIcon filled={isSaved} />
                                         </button>
                                     </div>
@@ -390,13 +455,25 @@ export default function RecruiterFeed() {
                                 </article>
                             );
                         })}
+
+                        {/* Infinite scroll sentinel */}
+                        <div ref={sentinelRef} className="h-1" />
+                        {loadingMore && (
+                            <div className="py-6 flex items-center justify-center gap-2 text-(--theme-text-muted)">
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <span className="text-[12px]">Loading more…</span>
+                            </div>
+                        )}
+                        {!loadingPosts && !hasMore && posts.length > 0 && (
+                            <p className="py-6 text-center text-[11px] text-(--theme-text-muted)">You&apos;re all caught up</p>
+                        )}
                     </div>
 
                     {/* â•â•â•â•â•â•â•â• RIGHT SIDEBAR (hidden on mobile) â•â•â•â•â•â•â•â• */}
-                    <div className="hidden lg:block w-[300px] shrink-0 space-y-5" style={{ position: "sticky", top: "1.25rem", alignSelf: "flex-start" }}>
+                    <div className="hidden lg:block w-75 shrink-0 space-y-5" style={{ position: "sticky", top: "1.25rem", alignSelf: "flex-start" }}>
 
                         {/* ── Company Card ── */}
-                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
+                        <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm overflow-hidden">
                             <div className="h-16 relative overflow-hidden">
                                 <CoverBanner coverId={coverUrl} />
                             </div>
@@ -404,59 +481,65 @@ export default function RecruiterFeed() {
                                 {avatarUrl ? (
                                     <img src={avatarUrl} alt={companyName} className="w-12 h-12 rounded-xl object-cover shadow-lg border-2 border-white relative z-10" />
                                 ) : (
-                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-400 to-violet-600 flex items-center justify-center text-white text-[13px] font-bold shadow-lg border-2 border-white relative z-10">
+                                    <div className="w-12 h-12 rounded-xl bg-linear-to-br from-purple-400 to-violet-600 flex items-center justify-center text-white text-[13px] font-bold shadow-lg border-2 border-white relative z-10">
                                         {initials}
                                     </div>
                                 )}
-                                <h3 className="text-[14px] font-bold text-[var(--theme-text-primary)] mt-2">{companyName}</h3>
-                                <p className="text-[11px] text-[var(--theme-text-muted)] mb-3">{jobTitle} • SkillSpill</p>
+                                <h3 className="text-[14px] font-bold text-(--theme-text-primary) mt-2">{companyName}</h3>
+                                <p className="text-[11px] text-(--theme-text-muted) mb-3">{jobTitle} • SkillSpill</p>
                                 <div className="grid grid-cols-3 gap-2 text-center">
                                     <div className="bg-[#A855F7]/10 rounded-lg py-2">
                                         <p className="text-[14px] font-bold text-[#A855F7]">{fmtCount(spillsCount)}</p>
-                                        <p className="text-[8px] text-[var(--theme-text-muted)] uppercase tracking-wider font-semibold">Spills</p>
+                                        <p className="text-[8px] text-(--theme-text-muted) uppercase tracking-wider font-semibold">Spills</p>
                                     </div>
                                     <div className="bg-indigo-500/10 rounded-lg py-2">
                                         <p className="text-[14px] font-bold text-indigo-500">{fmtCount(followersCount)}</p>
-                                        <p className="text-[8px] text-[var(--theme-text-muted)] uppercase tracking-wider font-semibold">Followers</p>
+                                        <p className="text-[8px] text-(--theme-text-muted) uppercase tracking-wider font-semibold">Followers</p>
                                     </div>
                                     <div className="bg-emerald-500/10 rounded-lg py-2">
                                         <p className="text-[14px] font-bold text-emerald-500">{fmtCount(followingCount)}</p>
-                                        <p className="text-[8px] text-[var(--theme-text-muted)] uppercase tracking-wider font-semibold">Following</p>
+                                        <p className="text-[8px] text-(--theme-text-muted) uppercase tracking-wider font-semibold">Following</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* ── Active Jobs ── */}
-                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
-                            <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--theme-border-light)]">
-                                <h3 className="text-[11px] font-bold text-[var(--theme-text-muted)] uppercase tracking-[2px]"
+                        <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm overflow-hidden">
+                            <div className="flex items-center justify-between px-4 py-3 border-b border-(--theme-border-light)">
+                                <h3 className="text-[11px] font-bold text-(--theme-text-muted) uppercase tracking-[2px]"
                                     style={{ fontFamily: "var(--font-jetbrains-mono)" }}><Briefcase className="inline-block w-4 h-4 mr-1.5 align-text-bottom" />Your Jobs</h3>
                                 <Link href="/recruiter/applications"
-                                    className="block p-3 rounded-xl hover:bg-[var(--theme-bg-secondary)] transition-colors border border-transparent hover:border-[var(--theme-border-light)] no-underline">
+                                    className="block p-3 rounded-xl hover:bg-(--theme-bg-secondary) transition-colors border border-transparent hover:border-(--theme-border-light) no-underline">
                                     MANAGE <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
                                 </Link>
                             </div>
+<<<<<<< HEAD
                             <div className="divide-y divide-[var(--theme-border-light)]">
                                 {displayJobs.map((job) => (
                                     <div key={job.id} className="px-4 py-3 hover:bg-purple-500/10 transition-colors cursor-pointer group">
+=======
+                            <div className="divide-y divide-(--theme-border-light)">
+                                {activeJobs.map((job, i) => (
+                                    <div key={i} className="px-4 py-3 hover:bg-purple-500/10 transition-colors cursor-pointer group">
+>>>>>>> 7dce057f728eceb80b3b51a670744c53a4d9d2fc
                                         <div className="flex items-start justify-between mb-1">
                                             <div className="flex items-center gap-1.5">
                                                 {job.hot && <span className="w-1.5 h-1.5 rounded-full bg-orange-400" />}
-                                                <p className="text-[12px] font-semibold text-[var(--theme-text-secondary)] group-hover:text-[var(--theme-text-primary)] transition-colors">{job.title}</p>
+                                                <p className="text-[12px] font-semibold text-(--theme-text-secondary) group-hover:text-(--theme-text-primary) transition-colors">{job.title}</p>
                                             </div>
                                             <span className="text-[10px] font-bold text-emerald-500"
                                                 style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{job.budget}</span>
                                         </div>
                                         <div className="flex items-center justify-between">
-                                            <span className="text-[10px] text-[var(--theme-text-muted)]">{job.apps} applicants • {job.type}</span>
-                                            <span className={`text-[10px] ${job.days <= 3 ? "text-orange-500 font-semibold" : "text-[var(--theme-text-muted)]"}`}
+                                            <span className="text-[10px] text-(--theme-text-muted)">{job.apps} applicants • {job.type}</span>
+                                            <span className={`text-[10px] ${job.days <= 3 ? "text-orange-500 font-semibold" : "text-(--theme-text-muted)"}`}
                                                 style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{job.days}d left</span>
                                         </div>
                                     </div>
                                 ))}
                             </div>
-                            <div className="px-4 py-3 border-t border-[var(--theme-border-light)]">
+                            <div className="px-4 py-3 border-t border-(--theme-border-light)">
                                 <Link href="/recruiter/applications"
                                     className="flex items-center justify-center gap-2 w-full py-2 rounded-xl text-[11px] font-bold text-[#A855F7] bg-[#A855F7]/10 border border-[#A855F7]/20 hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all no-underline cursor-pointer">
                                     + Post New Job
@@ -465,15 +548,16 @@ export default function RecruiterFeed() {
                         </div>
 
                         {/* ── Top Candidates ── */}
-                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
-                            <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--theme-border-light)]">
-                                <h3 className="text-[11px] font-bold text-[var(--theme-text-muted)] uppercase tracking-[2px]"
+                        <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm overflow-hidden">
+                            <div className="flex items-center justify-between px-4 py-3 border-b border-(--theme-border-light)">
+                                <h3 className="text-[11px] font-bold text-(--theme-text-muted) uppercase tracking-[2px]"
                                     style={{ fontFamily: "var(--font-jetbrains-mono)" }}><Target className="inline-block w-4 h-4 mr-1.5 align-text-bottom" />Top Matches</h3>
                                 <Link href="/recruiter/search"
                                     className="text-[9px] text-[#A855F7] hover:text-[#A855F7] font-bold no-underline transition-colors flex items-center gap-0.5">
                                     SEARCH <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
                                 </Link>
                             </div>
+<<<<<<< HEAD
                             <div className="divide-y divide-[var(--theme-border-light)]">
                                 {displayCandidates.map((c) => (
                                     <div key={c.id} className="flex items-center justify-between px-4 py-3 hover:bg-[var(--theme-bg-secondary)] transition-colors">
@@ -490,6 +574,18 @@ export default function RecruiterFeed() {
                                                     {c.name}
                                                 </Link>
                                                 <p className="text-[10px] text-[var(--theme-text-muted)] truncate max-w-[120px]" title={c.role}>{c.role}</p>
+=======
+                            <div className="divide-y divide-(--theme-border-light)">
+                                {topCandidates.map((c) => (
+                                    <div key={c.name} className="flex items-center justify-between px-4 py-3 hover:bg-(--theme-bg-secondary) transition-colors">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className={`w-8 h-8 rounded-full bg-linear-to-br ${c.grad} flex items-center justify-center text-white text-[9px] font-bold shadow-sm`}>
+                                                {c.initials}
+                                            </div>
+                                            <div>
+                                                <p className="text-[12px] font-semibold text-(--theme-text-secondary)">{c.name}</p>
+                                                <p className="text-[10px] text-(--theme-text-muted)">{c.role}</p>
+>>>>>>> 7dce057f728eceb80b3b51a670744c53a4d9d2fc
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
@@ -507,10 +603,10 @@ export default function RecruiterFeed() {
 
                         {/* ── Footer links ── */}
                         <div className="px-2 text-center">
-                            <p className="text-[10px] text-[var(--theme-text-muted)] leading-relaxed">
+                            <p className="text-[10px] text-(--theme-text-muted) leading-relaxed">
                                 About • Help • Terms • Privacy
                             </p>
-                            <p className="text-[10px] text-[var(--theme-text-muted)] mt-1">© 2026 SkillSpill</p>
+                            <p className="text-[10px] text-(--theme-text-muted) mt-1">© 2026 SkillSpill</p>
                         </div>
                     </div>
                 </div>

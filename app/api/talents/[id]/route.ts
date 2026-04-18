@@ -5,8 +5,7 @@ import { getSession } from "@/lib/auth";
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const session = await getSession();
-        // Allow recruiters and admins to query talents
-        if (!session || (session.role !== "RECRUITER" && session.role !== "ADMIN")) {
+        if (!session) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
@@ -87,6 +86,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
                 followers: {
                     where: { followerId: session.userId },
                     select: { id: true }
+                },
+                _count: {
+                    select: { followers: true, following: true }
                 }
             }
         });

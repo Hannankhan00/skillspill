@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
         }
 
         // 4. Generate unique username
-        let baseUsername = email.split("@")[0];
+        const baseUsername = email.split("@")[0];
         let username = baseUsername;
         let counter = 1;
         while (await prisma.user.findUnique({ where: { username } })) {

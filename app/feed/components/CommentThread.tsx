@@ -323,7 +323,7 @@ export default function CommentThread({ postId, commentsCount, onCountChange, cu
                             onKeyDown={e => e.key === "Enter" && handleSubmit()}
                             placeholder={replyTo ? `Reply to ${replyTo.name}...` : "Add a comment..."}
                             maxLength={500}
-                            className="flex-1 px-3 py-2 rounded-xl text-[12px] bg-[var(--theme-input-bg)] border border-[var(--theme-border)] outline-none focus:border-[#3CF91A] transition-colors"
+                            className="flex-1 px-3 py-2 rounded-xl text-[12px] bg-(--theme-input-bg) border border-(--theme-border) outline-none focus:border-[#3CF91A] transition-colors"
                             style={{ color: "var(--theme-text-primary)" }}
                         />
                         <button onClick={handleSubmit} disabled={!newComment.trim() || sending}

@@ -303,7 +303,7 @@ export default function PostComposer({ userData, onClose, onPostCreated }: PostC
     // ─────────────────────────────────────────
     // Shared input style
     // ─────────────────────────────────────────
-    const inputCls = "w-full px-3 py-2.5 rounded-xl text-[13px] bg-[var(--theme-input-bg)] border border-[var(--theme-border)] outline-none text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-muted)] transition-all";
+    const inputCls = "w-full px-3 py-2.5 rounded-xl text-[13px] bg-(--theme-input-bg) border border-(--theme-border) outline-none text-(--theme-text-primary) placeholder:text-(--theme-text-muted) transition-all";
     const inputFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         (e.target as HTMLElement).style.borderColor = accent;
         (e.target as HTMLElement).style.boxShadow = `0 0 0 2px ${accentDim}`;
@@ -328,7 +328,7 @@ export default function PostComposer({ userData, onClose, onPostCreated }: PostC
                             maxLength={500}
                             rows={5}
                             placeholder="What's on your mind? Share your thoughts, wins, or knowledge..."
-                            className="w-full bg-transparent border-none outline-none text-[14px] leading-relaxed resize-none placeholder:text-[var(--theme-text-muted)] text-[var(--theme-text-primary)]"
+                            className="w-full bg-transparent border-none outline-none text-[14px] leading-relaxed resize-none placeholder:text-(--theme-text-muted) text-(--theme-text-primary)"
                         />
                         <div className="flex justify-end">
                             <span className="text-[11px]" style={{ color: caption.length > 450 ? "#ef4444" : "var(--theme-text-muted)" }}>
@@ -348,9 +348,9 @@ export default function PostComposer({ userData, onClose, onPostCreated }: PostC
                             maxLength={500}
                             rows={2}
                             placeholder="Add a caption..."
-                            className="w-full bg-transparent border-none outline-none text-[13px] resize-none placeholder:text-[var(--theme-text-muted)] text-[var(--theme-text-primary)]"
+                            className="w-full bg-transparent border-none outline-none text-[13px] resize-none placeholder:text-(--theme-text-muted) text-(--theme-text-primary)"
                         />
-                        <div className="h-px bg-[var(--theme-border)]" />
+                        <div className="h-px bg-(--theme-border)" />
 
                         {/* Image previews */}
                         {imagePreviews.length > 0 && (
@@ -386,7 +386,7 @@ export default function PostComposer({ userData, onClose, onPostCreated }: PostC
 
                         {/* Upload progress */}
                         {uploading && (
-                            <div className="h-1.5 rounded-full bg-[var(--theme-input-bg)] overflow-hidden">
+                            <div className="h-1.5 rounded-full bg-(--theme-input-bg) overflow-hidden">
                                 <div
                                     className="h-full rounded-full transition-all duration-300"
                                     style={{ width: `${uploadProgress}%`, background: accent }}
@@ -439,13 +439,13 @@ export default function PostComposer({ userData, onClose, onPostCreated }: PostC
                             maxLength={300}
                             rows={2}
                             placeholder="Describe your code snippet..."
-                            className="w-full bg-transparent border-none outline-none text-[13px] resize-none placeholder:text-[var(--theme-text-muted)] text-[var(--theme-text-primary)]"
+                            className="w-full bg-transparent border-none outline-none text-[13px] resize-none placeholder:text-(--theme-text-muted) text-(--theme-text-primary)"
                         />
-                        <div className="h-px bg-[var(--theme-border)]" />
+                        <div className="h-px bg-(--theme-border)" />
                         <select
                             value={codeLang}
                             onChange={(e) => setCodeLang(e.target.value)}
-                            className="w-full px-3 py-2 rounded-xl text-[12px] bg-[var(--theme-input-bg)] border border-[var(--theme-border)] outline-none cursor-pointer text-[var(--theme-text-primary)]"
+                            className="w-full px-3 py-2 rounded-xl text-[12px] bg-(--theme-input-bg) border border-(--theme-border) outline-none cursor-pointer text-(--theme-text-primary)"
                         >
                             {LANGUAGES.map((l) => <option key={l} value={l}>{l}</option>)}
                         </select>
@@ -479,12 +479,12 @@ export default function PostComposer({ userData, onClose, onPostCreated }: PostC
                             maxLength={300}
                             rows={2}
                             placeholder="Tell people about this repo..."
-                            className="w-full bg-transparent border-none outline-none text-[13px] resize-none placeholder:text-[var(--theme-text-muted)] text-[var(--theme-text-primary)]"
+                            className="w-full bg-transparent border-none outline-none text-[13px] resize-none placeholder:text-(--theme-text-muted) text-(--theme-text-primary)"
                         />
-                        <div className="h-px bg-[var(--theme-border)]" />
+                        <div className="h-px bg-(--theme-border)" />
                         {/* Repo card-style inputs */}
-                        <div className="rounded-xl border border-[var(--theme-border)] overflow-hidden">
-                            <div className="px-3 py-2 bg-[var(--theme-input-bg)] flex items-center gap-2 border-b border-[var(--theme-border)]">
+                        <div className="rounded-xl border border-(--theme-border) overflow-hidden">
+                            <div className="px-3 py-2 bg-(--theme-input-bg) flex items-center gap-2 border-b border-(--theme-border)">
                                 <Github size={13} color={accent} />
                                 <span className="text-[11px]" style={{ color: accent }}>Repository details</span>
                             </div>
@@ -519,11 +519,11 @@ export default function PostComposer({ userData, onClose, onPostCreated }: PostC
                             maxLength={400}
                             rows={2}
                             placeholder="Write something about this role..."
-                            className="w-full bg-transparent border-none outline-none text-[13px] resize-none placeholder:text-[var(--theme-text-muted)] text-[var(--theme-text-primary)]"
+                            className="w-full bg-transparent border-none outline-none text-[13px] resize-none placeholder:text-(--theme-text-muted) text-(--theme-text-primary)"
                         />
-                        <div className="h-px bg-[var(--theme-border)]" />
-                        <div className="rounded-xl border border-[var(--theme-border)] overflow-hidden">
-                            <div className="px-3 py-2 bg-[var(--theme-input-bg)] flex items-center gap-2 border-b border-[var(--theme-border)]">
+                        <div className="h-px bg-(--theme-border)" />
+                        <div className="rounded-xl border border-(--theme-border) overflow-hidden">
+                            <div className="px-3 py-2 bg-(--theme-input-bg) flex items-center gap-2 border-b border-(--theme-border)">
                                 <Briefcase size={13} color={accent} />
                                 <span className="text-[11px]" style={{ color: accent }}>Job details</span>
                             </div>
@@ -582,7 +582,7 @@ export default function PostComposer({ userData, onClose, onPostCreated }: PostC
                                             <select
                                                 value={locationType}
                                                 onChange={(e) => setLocationType(e.target.value)}
-                                                className="w-full px-3 py-2.5 rounded-xl text-[12px] bg-[var(--theme-input-bg)] border border-[var(--theme-border)] outline-none cursor-pointer appearance-none text-[var(--theme-text-primary)]"
+                                                className="w-full px-3 py-2.5 rounded-xl text-[12px] bg-(--theme-input-bg) border border-(--theme-border) outline-none cursor-pointer appearance-none text-(--theme-text-primary)"
                                             >
                                                 <option value="remote">Remote</option>
                                                 <option value="onsite">On-site</option>
@@ -597,7 +597,7 @@ export default function PostComposer({ userData, onClose, onPostCreated }: PostC
                                             <select
                                                 value={compType}
                                                 onChange={(e) => setCompType(e.target.value)}
-                                                className="w-full px-3 py-2.5 rounded-xl text-[12px] bg-[var(--theme-input-bg)] border border-[var(--theme-border)] outline-none cursor-pointer appearance-none text-[var(--theme-text-primary)]"
+                                                className="w-full px-3 py-2.5 rounded-xl text-[12px] bg-(--theme-input-bg) border border-(--theme-border) outline-none cursor-pointer appearance-none text-(--theme-text-primary)"
                                             >
                                                 <option value="paid">Paid</option>
                                                 <option value="unpaid">Unpaid</option>
@@ -644,20 +644,20 @@ export default function PostComposer({ userData, onClose, onPostCreated }: PostC
                         )}
                         {hashtags.length < 5 && (
                             <div className="relative">
-                                <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[var(--theme-input-bg)] border border-[var(--theme-border)]" style={{ transition: "border-color .2s" }}>
+                                <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-(--theme-input-bg) border border-(--theme-border)" style={{ transition: "border-color .2s" }}>
                                     <Hash size={13} color={accent} />
                                     <input
                                         value={hashInput}
                                         onChange={(e) => { setHashInput(e.target.value.replace("#", "")); setShowTagSugg(true); }}
                                         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); addHashtag(hashInput); } }}
                                         placeholder="Type a hashtag and press Enter"
-                                        className="flex-1 bg-transparent outline-none text-[13px] text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-muted)]"
+                                        className="flex-1 bg-transparent outline-none text-[13px] text-(--theme-text-primary) placeholder:text-(--theme-text-muted)"
                                     />
                                 </div>
                                 {showTagSugg && hashInput && tagSuggestions.length > 0 && (
                                     <div className="absolute top-full left-0 right-0 mt-1 rounded-xl shadow-xl py-1 z-20 max-h-36 overflow-y-auto" style={{ background: "var(--theme-surface)", border: "1px solid var(--theme-border)" }}>
                                         {tagSuggestions.slice(0, 8).map((t) => (
-                                            <button key={t} onClick={() => addHashtag(t)} className="w-full px-3 py-2 text-left text-[12px] bg-transparent border-none cursor-pointer hover:bg-[var(--theme-input-bg)] flex items-center gap-2" style={{ color: "var(--theme-text-tertiary)" }}>
+                                            <button key={t} onClick={() => addHashtag(t)} className="w-full px-3 py-2 text-left text-[12px] bg-transparent border-none cursor-pointer hover:bg-(--theme-input-bg) flex items-center gap-2" style={{ color: "var(--theme-text-tertiary)" }}>
                                                 <Hash size={11} /> {t}
                                             </button>
                                         ))}
@@ -874,7 +874,7 @@ export default function PostComposer({ userData, onClose, onPostCreated }: PostC
                             <select
                                 value={visibility}
                                 onChange={(e) => setVisibility(e.target.value as "public" | "followers")}
-                                className="appearance-none pl-3 pr-7 py-1.5 rounded-full text-[11px] font-semibold bg-[var(--theme-input-bg)] border border-[var(--theme-border)] outline-none cursor-pointer text-[var(--theme-text-primary)]"
+                                className="appearance-none pl-3 pr-7 py-1.5 rounded-full text-[11px] font-semibold bg-(--theme-input-bg) border border-(--theme-border) outline-none cursor-pointer text-(--theme-text-primary)"
                             >
                                 <option value="public">Public</option>
                                 <option value="followers">Followers</option>
@@ -919,7 +919,7 @@ export default function PostComposer({ userData, onClose, onPostCreated }: PostC
 
                     {/* ── Hashtag preview strip (always visible) ── */}
                     {hashtags.length > 0 && activeTab !== "hashtags" && (
-                        <div className="flex flex-wrap gap-1.5 pt-1 border-t border-[var(--theme-border)]">
+                        <div className="flex flex-wrap gap-1.5 pt-1 border-t border-(--theme-border)">
                             {hashtags.map((tag) => (
                                 <span key={tag} className="text-[11px] px-2 py-0.5 rounded-full font-medium flex items-center gap-1" style={{ background: accentDim, color: accent }}>
                                     <Hash size={9} />{tag}

@@ -1,890 +1,419 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import Logo from "@/app/components/Logo";
+import { ArrowLeft, MapPin, Building2, Wifi, Users, Clock, DollarSign, Calendar, CheckCircle2, Loader2, ExternalLink, Send } from "lucide-react";
 
-/* ═══════════════════════════════════════════════
-   ICON COMPONENTS
-   ═══════════════════════════════════════════════ */
+const accent = "#3CF91A";
 
-function ArrowRightIcon() {
-    return (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
-        </svg>
-    );
-}
-
-function MapPinIcon() {
-    return (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
-        </svg>
-    );
-}
-
-function TerminalIcon() {
-    return (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3CF91A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="4 17 10 11 4 5" /><line x1="12" y1="19" x2="20" y2="19" />
-        </svg>
-    );
-}
-
-function ChevronLeftIcon() {
-    return (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6" />
-        </svg>
-    );
-}
-
-function ChevronRightIcon() {
-    return (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="9 18 15 12 9 6" />
-        </svg>
-    );
-}
-
-/* ——— Tech Stack Icons ——— */
-
-function GolangIcon() {
-    return (
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#3CF91A" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 15l4-8h2l-4 8H3z" />
-            <circle cx="15" cy="11" r="4" />
-            <path d="M19 7v8" />
-        </svg>
-    );
-}
-
-function KubernetesIcon() {
-    return (
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#3CF91A" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 3v18" /><path d="M3 12h18" />
-            <path d="M5.636 5.636l12.728 12.728" /><path d="M18.364 5.636L5.636 18.364" />
-        </svg>
-    );
-}
-
-function PostgresIcon() {
-    return (
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#3CF91A" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-            <ellipse cx="12" cy="6" rx="8" ry="3" />
-            <path d="M4 6v6c0 1.657 3.582 3 8 3s8-1.343 8-3V6" />
-            <path d="M4 12v6c0 1.657 3.582 3 8 3s8-1.343 8-3v-6" />
-        </svg>
-    );
-}
-
-/* ═══════════════════════════════════════════════
-   MOCK JOB DATA (extended with detail info)
-   ═══════════════════════════════════════════════ */
-
-interface JobDetail {
-    id: number;
-    missionCode: string;
-    company: string;
+interface Job {
+    id: string;
     title: string;
-    location: string;
+    description: string;
+    requirements?: string | null;
+    reward?: number | null;
+    currency: string;
+    status: string;
+    deadline?: string | null;
+    maxApplicants?: number | null;
     isRemote: boolean;
-    salaryMin: number;
-    salaryMax: number;
-    equityMin: string;
-    equityMax: string;
-    spillTokens: number;
-    tokenTrend: "SURGE" | "STABLE" | "RISING";
-    compatibility: number;
-    compatSkills: string[];
-    techStack: { name: string; label: string }[];
-    objective: string;
-    objectiveDetail: string;
-    responsibilities: { cmd: string; flags: string; description: string }[];
-    teamMembers: { name: string; role: string; initials: string }[];
-    tags: string[];
+    location?: string | null;
+    createdAt: string;
+    skills: { skillName: string }[];
+    _count: { applications: number };
+    hasApplied: boolean;
+    applicationStatus?: string | null;
+    recruiterProfile: {
+        companyName: string;
+        companyWebsite?: string | null;
+        companySize?: string | null;
+        city?: string | null;
+        country?: string | null;
+        bio?: string | null;
+        user: { avatarUrl?: string | null; fullName: string };
+    };
 }
 
-const jobsData: Record<string, JobDetail> = {
-    "1": {
-        id: 1,
-        missionCode: "MISSION #0852-BACKEND",
-        company: "CYBERDYNE SYSTEMS",
-        title: "Lead Backend Architect",
-        location: "Neo-Tokyo Cluster (Remote)",
-        isRemote: true,
-        salaryMin: 180000,
-        salaryMax: 240000,
-        equityMin: "0.50%",
-        equityMax: "0.75%",
-        spillTokens: 50000,
-        tokenTrend: "SURGE",
-        compatibility: 87,
-        compatSkills: ["System Design", "Mastery"],
-        techStack: [
-            { name: "golang", label: "GOLANG" },
-            { name: "kubernetes", label: "KUBERNETES" },
-            { name: "postgresql", label: "POSTGRESQL" },
-        ],
-        objective: `CyberDyne Systems is initiating Project "Genesis"\u2014a global neural infrastructure overhaul. We are seeking a Lead Backend Architect to orchestrate the distributed systems that will power the next generation of autonomous networks.`,
-        objectiveDetail: `Your primary directive is to design, implement, and scale fault-tolerant services using Go and high-concurrency patterns. You will lead a strike team of 12 senior engineers across four continents, ensuring architectural integrity and sub-millisecond latency across our edge-node clusters.`,
-        responsibilities: [
-            { cmd: "architect", flags: "--scale --global-distribution", description: "Design and maintain ultra-high availability microservices capable of handling 10M+ req/sec." },
-            { cmd: "deploy", flags: "--env production --no-downtime", description: "Establish robust CI/CD pipelines and deployment strategies for zero-downtime updates." },
-            { cmd: "monitor", flags: "--security --integrity", description: "Implement end-to-end encryption protocols and security best practices across the entire stack." },
-        ],
-        teamMembers: [
-            { name: "Sarah Connor", role: "VP of Engineering", initials: "SC" },
-            { name: "Kyle Reese", role: "Staff Engineer", initials: "KR" },
-        ],
-        tags: ["Rust", "gRPC", "K8s"],
-    },
-    "2": {
-        id: 2,
-        missionCode: "MISSION #1204-WEB3",
-        company: "NEBULA PROTOCOL",
-        title: "Lead Smart Contract Engineer",
-        location: "Fully Remote",
-        isRemote: true,
-        salaryMin: 160000,
-        salaryMax: 210000,
-        equityMin: "0.75%",
-        equityMax: "1.25%",
-        spillTokens: 35000,
-        tokenTrend: "RISING",
-        compatibility: 72,
-        compatSkills: ["Smart Contracts", "Security"],
-        techStack: [
-            { name: "golang", label: "SOLIDITY" },
-            { name: "kubernetes", label: "HARDHAT" },
-            { name: "postgresql", label: "ETHEREUM" },
-        ],
-        objective: `Nebula Protocol is building the next generation of decentralized finance infrastructure. We need a Lead Smart Contract Engineer to architect and deploy secure, auditable smart contracts across multiple chains.`,
-        objectiveDetail: `You will lead smart contract development from concept to mainnet deployment, conducting thorough security audits and working with external auditors to ensure bulletproof contracts handling billions in TVL.`,
-        responsibilities: [
-            { cmd: "audit", flags: "--scope full --depth critical", description: "Lead comprehensive security audits of all smart contracts before deployment." },
-            { cmd: "deploy", flags: "--chain multi --gas-optimized", description: "Deploy gas-optimized contracts across Ethereum, Polygon, and Arbitrum." },
-            { cmd: "monitor", flags: "--realtime --alerts", description: "Implement real-time monitoring and alerting systems for on-chain activities." },
-        ],
-        teamMembers: [
-            { name: "Vitalik Z.", role: "Protocol Lead", initials: "VZ" },
-            { name: "Ada Chain", role: "Security Researcher", initials: "AC" },
-        ],
-        tags: ["Solidity", "Security Audit", "Web3"],
-    },
-    "3": {
-        id: 3,
-        missionCode: "MISSION #0731-BIOML",
-        company: "HELIX SYNTHESIS",
-        title: "Bio-Sim Pipeline Specialist",
-        location: "London, UK",
-        isRemote: false,
-        salaryMin: 140000,
-        salaryMax: 185000,
-        equityMin: "0.25%",
-        equityMax: "0.50%",
-        spillTokens: 28000,
-        tokenTrend: "STABLE",
-        compatibility: 65,
-        compatSkills: ["ML Pipelines", "GPU Computing"],
-        techStack: [
-            { name: "golang", label: "C++" },
-            { name: "kubernetes", label: "PYTORCH" },
-            { name: "postgresql", label: "CUDA" },
-        ],
-        objective: `Helix Synthesis is pioneering AI-driven biological simulation. We need a Bio-Sim Pipeline Specialist to build and optimize GPU-accelerated pipelines for molecular dynamics simulations.`,
-        objectiveDetail: `You will design high-performance computing pipelines that process terabytes of molecular data, implementing custom CUDA kernels and PyTorch extensions for cutting-edge protein folding simulations.`,
-        responsibilities: [
-            { cmd: "optimize", flags: "--gpu --throughput-max", description: "Build and optimize CUDA kernels for molecular dynamics computations." },
-            { cmd: "pipeline", flags: "--distributed --fault-tolerant", description: "Design distributed data pipelines for large-scale biological simulations." },
-            { cmd: "validate", flags: "--accuracy --benchmarks", description: "Validate simulation results against wet-lab experimental data." },
-        ],
-        teamMembers: [
-            { name: "Elena Rossi", role: "Chief Scientist", initials: "ER" },
-            { name: "James Wu", role: "ML Engineer", initials: "JW" },
-        ],
-        tags: ["C++", "PyTorch", "CUDA"],
-    },
-    "4": {
-        id: 4,
-        missionCode: "MISSION #0993-CLOUD",
-        company: "SKYNET EDGE",
-        title: "Distributed Cloud Architect",
-        location: "Global Remote",
-        isRemote: true,
-        salaryMin: 175000,
-        salaryMax: 225000,
-        equityMin: "0.40%",
-        equityMax: "0.80%",
-        spillTokens: 42000,
-        tokenTrend: "SURGE",
-        compatibility: 91,
-        compatSkills: ["Cloud Architecture", "IaC"],
-        techStack: [
-            { name: "golang", label: "GO" },
-            { name: "kubernetes", label: "TERRAFORM" },
-            { name: "postgresql", label: "WASM" },
-        ],
-        objective: `SkyNet Edge is deploying a global edge computing network. We are looking for a Distributed Cloud Architect to design multi-region, fault-tolerant cloud infrastructure that runs at the edge.`,
-        objectiveDetail: `You will architect cloud-native systems spanning 50+ edge locations, implementing Infrastructure as Code with Terraform and building custom Go services for edge orchestration.`,
-        responsibilities: [
-            { cmd: "provision", flags: "--multi-region --iac", description: "Design and provision multi-region infrastructure using Terraform." },
-            { cmd: "orchestrate", flags: "--edge --low-latency", description: "Build edge orchestration systems achieving sub-5ms latency globally." },
-            { cmd: "secure", flags: "--zero-trust --compliance", description: "Implement zero-trust security model across all edge nodes." },
-        ],
-        teamMembers: [
-            { name: "Max Edge", role: "CTO", initials: "ME" },
-            { name: "Nina Cloud", role: "Platform Lead", initials: "NC" },
-        ],
-        tags: ["Go", "Terraform", "WASM"],
-    },
-    "5": {
-        id: 5, missionCode: "MISSION #1122-SYSTEMS", company: "QUANTUM FORGE", title: "Senior Rust Systems Dev", location: "San Francisco, US", isRemote: false,
-        salaryMin: 200000, salaryMax: 280000, equityMin: "0.60%", equityMax: "1.00%", spillTokens: 55000, tokenTrend: "SURGE", compatibility: 94,
-        compatSkills: ["Systems Programming", "Performance"], techStack: [{ name: "golang", label: "RUST" }, { name: "kubernetes", label: "WASM" }, { name: "postgresql", label: "LINUX" }],
-        objective: "Quantum Forge is building next-gen bare-metal infrastructure tooling in Rust. We need a Senior Systems Developer to push the boundaries of performance and safety.",
-        objectiveDetail: "You will architect and implement high-performance systems software, contributing to the Rust ecosystem and mentoring a team of 8 engineers.",
-        responsibilities: [
-            { cmd: "build", flags: "--release --optimize", description: "Design and implement zero-cost abstraction systems in Rust." },
-            { cmd: "benchmark", flags: "--perf --flamegraph", description: "Profile and optimize critical hot paths for maximum throughput." },
-            { cmd: "contribute", flags: "--upstream --rfc", description: "Contribute to Rust RFCs and upstream dependencies." },
-        ],
-        teamMembers: [{ name: "Ferris Oxide", role: "Lead Architect", initials: "FO" }, { name: "Crab Walker", role: "Staff SWE", initials: "CW" }],
-        tags: ["Rust", "WASM", "Linux"],
-    },
-    "6": {
-        id: 6, missionCode: "MISSION #0667-DEVOPS", company: "ATLAS CLOUD", title: "DevOps Platform Engineer", location: "Berlin, DE", isRemote: true,
-        salaryMin: 130000, salaryMax: 170000, equityMin: "0.20%", equityMax: "0.40%", spillTokens: 20000, tokenTrend: "STABLE", compatibility: 78,
-        compatSkills: ["DevOps", "Kubernetes"], techStack: [{ name: "golang", label: "GO" }, { name: "kubernetes", label: "K8S" }, { name: "postgresql", label: "TERRAFORM" }],
-        objective: "Atlas Cloud provides managed Kubernetes infrastructure. We need a DevOps Platform Engineer to build internal developer platforms.",
-        objectiveDetail: "You will design and maintain the internal developer platform, implementing self-service infrastructure provisioning and observability tooling.",
-        responsibilities: [
-            { cmd: "platform", flags: "--self-service --dx", description: "Build developer self-service portals with excellent DX." },
-            { cmd: "observe", flags: "--metrics --traces --logs", description: "Implement comprehensive observability across all services." },
-            { cmd: "automate", flags: "--gitops --ci-cd", description: "Create GitOps-based deployment workflows." },
-        ],
-        teamMembers: [{ name: "Kai Helm", role: "Platform Lead", initials: "KH" }, { name: "Rosa Pipe", role: "SRE Manager", initials: "RP" }],
-        tags: ["Go", "K8s", "Terraform"],
-    },
-    "7": {
-        id: 7, missionCode: "MISSION #1337-MLOPS", company: "NEXUS AI LABS", title: "ML Infrastructure Lead", location: "Remote (US)", isRemote: true,
-        salaryMin: 185000, salaryMax: 250000, equityMin: "0.50%", equityMax: "1.00%", spillTokens: 48000, tokenTrend: "RISING", compatibility: 83,
-        compatSkills: ["MLOps", "GPU Infrastructure"], techStack: [{ name: "golang", label: "PYTHON" }, { name: "kubernetes", label: "PYTORCH" }, { name: "postgresql", label: "CUDA" }],
-        objective: "Nexus AI Labs is building foundation models. We need an ML Infrastructure Lead to design and scale our training infrastructure.",
-        objectiveDetail: "You will architect distributed training pipelines, manage GPU clusters, and build tooling for seamless model development and deployment.",
-        responsibilities: [
-            { cmd: "train", flags: "--distributed --multi-gpu", description: "Architect distributed training across 1000+ GPU clusters." },
-            { cmd: "serve", flags: "--low-latency --scale", description: "Build model serving infrastructure with sub-100ms inference." },
-            { cmd: "pipeline", flags: "--data --feature-store", description: "Design feature stores and data pipelines for model training." },
-        ],
-        teamMembers: [{ name: "Luna Tensor", role: "Head of ML", initials: "LT" }, { name: "Ray Batch", role: "Staff MLOps", initials: "RB" }],
-        tags: ["Python", "PyTorch", "CUDA"],
-    },
-    "8": {
-        id: 8, missionCode: "MISSION #0404-ZKP", company: "CIPHER DAO", title: "Zero-Knowledge Proof Researcher", location: "Fully Remote", isRemote: true,
-        salaryMin: 170000, salaryMax: 230000, equityMin: "1.00%", equityMax: "2.00%", spillTokens: 60000, tokenTrend: "SURGE", compatibility: 69,
-        compatSkills: ["Cryptography", "ZK Proofs"], techStack: [{ name: "golang", label: "RUST" }, { name: "kubernetes", label: "SOLIDITY" }, { name: "postgresql", label: "CIRCOM" }],
-        objective: "Cipher DAO is advancing privacy technology. We need a ZK Proof Researcher to develop novel zero-knowledge proof systems.",
-        objectiveDetail: "You will research and implement cutting-edge ZK proof constructions, focusing on prover efficiency and verification cost optimization.",
-        responsibilities: [
-            { cmd: "research", flags: "--zkp --novel-constructions", description: "Research and implement novel ZK proof systems." },
-            { cmd: "optimize", flags: "--prover --verifier", description: "Optimize proving time and on-chain verification costs." },
-            { cmd: "audit", flags: "--cryptographic --formal", description: "Formally verify cryptographic protocol security." },
-        ],
-        teamMembers: [{ name: "Zero X", role: "Research Lead", initials: "ZX" }, { name: "Proof Y", role: "Cryptographer", initials: "PY" }],
-        tags: ["Rust", "Solidity", "Cryptography"],
-    },
+function timeAgo(dateStr: string) {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const days = Math.floor(diff / 86400000);
+    if (days === 0) return "Today";
+    if (days === 1) return "Yesterday";
+    if (days < 7) return `${days} days ago`;
+    if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
+    return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function formatReward(reward: number | null | undefined, currency: string) {
+    if (!reward) return null;
+    const sym = currency === "USD" ? "$" : currency === "EUR" ? "€" : currency === "GBP" ? "£" : `${currency} `;
+    if (reward >= 1000) return `${sym}${(reward / 1000).toFixed(reward % 1000 === 0 ? 0 : 1)}k / yr`;
+    return `${sym}${reward.toLocaleString()}`;
+}
+
+function CompanyAvatar({ name, avatarUrl, size = "lg" }: { name: string; avatarUrl?: string | null; size?: "sm" | "lg" }) {
+    const dim = size === "lg" ? "w-16 h-16" : "w-10 h-10";
+    const textSize = size === "lg" ? "text-[18px]" : "text-[12px]";
+    if (avatarUrl) return <img loading="lazy" src={avatarUrl} alt={name} className={`${dim} rounded-2xl object-cover border border-(--theme-border)`} />;
+    const initials = name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+    const hue = name.charCodeAt(0) * 37 % 360;
+    return (
+        <div className={`${dim} rounded-2xl flex items-center justify-center font-black shrink-0 border ${textSize}`}
+            style={{ background: `hsl(${hue},50%,12%)`, color: `hsl(${hue},70%,60%)`, borderColor: `hsl(${hue},50%,22%)` }}>
+            {initials}
+        </div>
+    );
+}
+
+const APP_STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
+    PENDING: { label: "Application Pending", color: "#F59E0B", bg: "#F59E0B15" },
+    REVIEWED: { label: "Under Review", color: "#3B82F6", bg: "#3B82F615" },
+    SHORTLISTED: { label: "Shortlisted", color: "#A855F7", bg: "#A855F715" },
+    ACCEPTED: { label: "Accepted!", color: "#3CF91A", bg: "#3CF91A15" },
+    REJECTED: { label: "Not Selected", color: "#EF4444", bg: "#EF444415" },
 };
 
-const similarMissions = [
-    { id: "s1", code: "MISSION #0214-SEC", title: "Cloud Security Lead", company: "Sentinel Corp", salary: "$160k - $220k", tags: ["AWS", "Security"] },
-    { id: "s2", code: "MISSION #0901-MOBILE", title: "Fullstack Android Dev", company: "NovaTech", salary: "$130k - $180k", tags: ["Kotlin", "Android"] },
-    { id: "s3", code: "MISSION #0347-FE", title: "AI Frontline Engineer", company: "DataForge", salary: "$155k - $200k", tags: ["React", "ML"] },
-    { id: "s4", code: "MISSION #0589-DATA", title: "Data Integrity Lead", company: "VaultDB", salary: "$145k - $195k", tags: ["PostgreSQL", "Go"] },
-];
+/* ─── Apply Modal ─── */
+function ApplyModal({ jobId, jobTitle, onClose, onApplied }: {
+    jobId: string;
+    jobTitle: string;
+    onClose: () => void;
+    onApplied: (status: string) => void;
+}) {
+    const [coverLetter, setCoverLetter] = useState("");
+    const [submissionUrl, setSubmissionUrl] = useState("");
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState("");
 
-/* ═══════════════════════════════════════════════
-   COMPATIBILITY RING (SVG Donut)
-   ═══════════════════════════════════════════════ */
-
-function CompatibilityRing({ percent }: { percent: number }) {
-    const radius = 50;
-    const circumference = 2 * Math.PI * radius;
-    const offset = circumference - (percent / 100) * circumference;
-
-    return (
-        <div className="relative w-[130px] h-[130px] flex items-center justify-center">
-            <svg width="130" height="130" viewBox="0 0 120 120" className="transform -rotate-90">
-                {/* Background ring */}
-                <circle cx="60" cy="60" r={radius} fill="none" stroke="var(--theme-border)" strokeWidth="8" />
-                {/* Progress ring */}
-                <circle
-                    cx="60" cy="60" r={radius} fill="none"
-                    stroke="#3CF91A" strokeWidth="8"
-                    strokeLinecap="round"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={offset}
-                    style={{ transition: "stroke-dashoffset 1s ease-out", filter: "drop-shadow(0 0 6px #3CF91A60)" }}
-                />
-            </svg>
-            {/* Center text */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span
-                    className="text-3xl font-black text-[#3CF91A]"
-                    style={{ fontFamily: "var(--font-jetbrains-mono)", textShadow: "0 0 20px #3CF91A40" }}
-                >
-                    {percent}%
-                </span>
-                <span className="text-[8px] uppercase tracking-[3px] font-bold mt-0.5" style={{ color: "var(--theme-text-muted)" }}>
-                    MATCH SCORE
-                </span>
-            </div>
-        </div>
-    );
-}
-
-/* ═══════════════════════════════════════════════
-   TECH STACK ICON CARD
-   ═══════════════════════════════════════════════ */
-
-function TechIconCard({ label, index }: { label: string; index: number }) {
-    const icons = [<GolangIcon key={0} />, <KubernetesIcon key={1} />, <PostgresIcon key={2} />];
-    const sublabels = ["Core Language", "Orchestration", "Data Store"];
+    async function submit(e: React.FormEvent) {
+        e.preventDefault();
+        setSubmitting(true);
+        setError("");
+        try {
+            const res = await fetch(`/api/jobs/${jobId}/apply`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ coverLetter: coverLetter.trim() || null, submissionUrl: submissionUrl.trim() || null }),
+            });
+            const data = await res.json();
+            if (!res.ok) { setError(data.error || "Failed to submit application"); setSubmitting(false); return; }
+            onApplied("PENDING");
+        } catch {
+            setError("Network error. Please try again.");
+            setSubmitting(false);
+        }
+    }
 
     return (
-        <div className="flex flex-col items-center gap-2.5 group">
-            <div
-                className="w-[80px] h-[80px] rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-105"
-                style={{
-                    background: "rgba(60,249,26,0.05)",
-                    border: "1px solid rgba(60,249,26,0.15)",
-                    boxShadow: "0 0 20px rgba(60,249,26,0.05)",
-                }}
-            >
-                {icons[index % 3]}
-            </div>
-            <div className="text-center">
-                <p
-                    className="text-[10px] font-bold uppercase tracking-wider"
-                    style={{ fontFamily: "var(--font-jetbrains-mono)", color: "var(--theme-text-secondary)" }}
-                >
-                    {label}
-                </p>
-                <p className="text-[8px] mt-0.5" style={{ color: "var(--theme-text-muted)" }}>{sublabels[index % 3]}</p>
-            </div>
-        </div>
-    );
-}
-
-/* ═══════════════════════════════════════════════
-   JOB DETAIL PAGE COMPONENT
-   ═══════════════════════════════════════════════ */
-
-export default function JobDetailPage() {
-    const params = useParams();
-    const jobId = params.id as string;
-    const job = jobsData[jobId];
-    const [activeTab, setActiveTab] = useState("brief");
-
-    if (!job) {
-        return (
-            <div className="min-h-full flex items-center justify-center" style={{ background: "var(--theme-bg)" }}>
-                <div className="text-center">
-                    <p className="text-[60px] font-black" style={{ fontFamily: "var(--font-jetbrains-mono)", color: "var(--theme-border)" }}>404</p>
-                    <p className="text-[14px] mt-2" style={{ color: "var(--theme-text-muted)" }}>Mission not found in the database.</p>
-                    <Link
-                        href="/talent/jobs"
-                        className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-lg text-[12px] font-bold bg-[#3CF91A] text-black no-underline hover:scale-[1.02] transition-transform"
-                    >
-                        <ChevronLeftIcon /> Return to Missions
-                    </Link>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" }}>
+            <div className="w-full max-w-lg rounded-2xl border border-(--theme-border) shadow-2xl overflow-hidden" style={{ background: "var(--theme-card)" }}>
+                <div className="px-6 py-5 border-b border-(--theme-border)">
+                    <h2 className="text-[16px] font-bold text-(--theme-text-primary)">Apply for this role</h2>
+                    <p className="text-[12px] text-(--theme-text-muted) mt-1 truncate">{jobTitle}</p>
                 </div>
+                <form onSubmit={submit} className="p-6 space-y-4">
+                    <div>
+                        <label className="block text-[11px] font-bold uppercase tracking-wider text-(--theme-text-muted) mb-1.5">Cover Letter</label>
+                        <textarea value={coverLetter} onChange={e => setCoverLetter(e.target.value)}
+                            placeholder="Tell them why you're the right fit for this role…"
+                            rows={5}
+                            className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none resize-none transition-all border border-(--theme-border)"
+                            style={{ background: "var(--theme-input-bg)", color: "var(--theme-text-primary)" }} />
+                    </div>
+                    <div>
+                        <label className="block text-[11px] font-bold uppercase tracking-wider text-(--theme-text-muted) mb-1.5">Portfolio / Submission URL <span className="normal-case text-[10px] opacity-60">(optional)</span></label>
+                        <input type="url" value={submissionUrl} onChange={e => setSubmissionUrl(e.target.value)}
+                            placeholder="https://github.com/you/project"
+                            className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all border border-(--theme-border)"
+                            style={{ background: "var(--theme-input-bg)", color: "var(--theme-text-primary)" }} />
+                    </div>
+                    {error && <p className="text-[12px] text-red-400 bg-red-400/10 rounded-xl px-3 py-2">{error}</p>}
+                    <div className="flex gap-3 pt-1">
+                        <button type="button" onClick={onClose}
+                            className="flex-1 px-4 py-2.5 rounded-xl text-[12px] font-bold text-(--theme-text-secondary) bg-(--theme-input-bg) hover:bg-(--theme-bg-secondary) border border-(--theme-border) transition-all cursor-pointer">
+                            Cancel
+                        </button>
+                        <button type="submit" disabled={submitting}
+                            className="flex-1 px-4 py-2.5 rounded-xl text-[12px] font-bold text-black transition-all cursor-pointer border-none flex items-center justify-center gap-2 disabled:opacity-60"
+                            style={{ background: submitting ? "#3CF91A80" : accent, boxShadow: submitting ? "none" : `0 0 20px ${accent}40` }}>
+                            {submitting ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Submitting…</> : <><Send className="w-3.5 h-3.5" /> Submit Application</>}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
+/* ─── Main Page ─── */
+export default function TalentJobDetailPage() {
+    const { id } = useParams<{ id: string }>();
+    const [job, setJob] = useState<Job | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [notFound, setNotFound] = useState(false);
+    const [showApply, setShowApply] = useState(false);
+    const [hasApplied, setHasApplied] = useState(false);
+    const [appStatus, setAppStatus] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!id) return;
+        fetch(`/api/jobs/${id}`)
+            .then(r => r.json())
+            .then(d => {
+                if (d.error) { setNotFound(true); setLoading(false); return; }
+                setJob(d.job);
+                setHasApplied(d.job.hasApplied);
+                setAppStatus(d.job.applicationStatus ?? null);
+                setLoading(false);
+            })
+            .catch(() => { setNotFound(true); setLoading(false); });
+    }, [id]);
+
+    function handleApplied(status: string) {
+        setHasApplied(true);
+        setAppStatus(status);
+        setShowApply(false);
+    }
+
+    if (loading) {
+        return (
+            <div style={{ background: "var(--theme-bg)" }} className="min-h-full flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
         );
     }
 
-    const tabs = [
-        { key: "brief", label: "MISSION BRIEF" },
-        { key: "stack", label: "THE STACK" },
-        { key: "team", label: "TEAM INTEL" },
-        { key: "network", label: "NETWORK MAP" },
-    ];
+    if (notFound || !job) {
+        return (
+            <div style={{ background: "var(--theme-bg)" }} className="min-h-full flex flex-col items-center justify-center gap-4 p-8">
+                <p className="text-[16px] font-bold text-(--theme-text-secondary)">Job not found</p>
+                <Link href="/talent/jobs" className="text-[13px] text-primary hover:underline flex items-center gap-1">
+                    <ArrowLeft className="w-4 h-4" /> Back to jobs
+                </Link>
+            </div>
+        );
+    }
 
-    const formatCurrency = (v: number) => `$${v.toLocaleString()}`;
+    const statusMeta = hasApplied && appStatus ? APP_STATUS_META[appStatus] : null;
+    const isClosed = job.status !== "OPEN";
 
     return (
-        <div className="min-h-full" style={{ background: "var(--theme-bg)" }}>
+        <div style={{ background: "var(--theme-bg)" }} className="min-h-full">
+            <div className="max-w-275 mx-auto px-4 sm:px-6 py-5 pb-24 lg:pb-8">
 
-            {/* ═══════ HERO BANNER ═══════ */}
-            <div className="relative overflow-hidden">
-                {/* Background gradient/pattern */}
-                <div
-                    className="absolute inset-0"
-                    style={{
-                        background: "linear-gradient(135deg, rgba(60,249,26,0.05) 0%, var(--theme-bg) 30%, var(--theme-bg) 60%, var(--theme-bg) 100%)",
-                    }}
-                />
-                {/* Scan lines effect */}
-                <div
-                    className="absolute inset-0 opacity-[0.03]"
-                    style={{
-                        backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(60,249,26,0.1) 2px, rgba(60,249,26,0.1) 4px)",
-                    }}
-                />
-                {/* Grid pattern */}
-                <div
-                    className="absolute inset-0 opacity-[0.04]"
-                    style={{
-                        backgroundImage: "linear-gradient(rgba(60,249,26,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(60,249,26,0.3) 1px, transparent 1px)",
-                        backgroundSize: "60px 60px",
-                    }}
-                />
-                {/* Glowing orb */}
-                <div
-                    className="absolute top-1/2 right-[20%] w-[300px] h-[300px] rounded-full -translate-y-1/2 opacity-20"
-                    style={{
-                        background: "radial-gradient(circle, #3CF91A20 0%, transparent 70%)",
-                        filter: "blur(60px)",
-                    }}
-                />
+                {/* Back */}
+                <Link href="/talent/jobs"
+                    className="inline-flex items-center gap-1.5 text-[12px] font-medium text-(--theme-text-muted) hover:text-primary transition-colors mb-5 no-underline">
+                    <ArrowLeft className="w-4 h-4" /> Back to jobs
+                </Link>
 
-                {/* Content */}
-                <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 py-12 lg:py-16">
-                    {/* Back button */}
-                    <Link
-                        href="/talent/jobs"
-                        className="inline-flex items-center gap-1.5 text-[11px] hover:text-[#3CF91A] transition-colors no-underline mb-6"
-                        style={{ color: "var(--theme-text-muted)" }}
-                    >
-                        <ChevronLeftIcon /> Back to Missions
-                    </Link>
-
-                    {/* Mission code badge */}
-                    <div className="mb-3">
-                        <span
-                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded text-[9px] font-bold uppercase tracking-[2px]"
-                            style={{
-                                fontFamily: "var(--font-jetbrains-mono)",
-                                background: "#3CF91A15",
-                                color: "#3CF91A",
-                                border: "1px solid #3CF91A30",
-                            }}
-                        >
-                            <TerminalIcon />
-                            {job.missionCode}
-                        </span>
-                    </div>
-
-                    {/* Company name */}
-                    <h1
-                        className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight mb-2"
-                        style={{ fontFamily: "var(--font-space-grotesk)", color: "var(--theme-text-primary)" }}
-                    >
-                        {job.company}
-                    </h1>
-
-                    {/* Job title */}
-                    <p className="text-[16px] lg:text-[18px] font-medium mb-1" style={{ color: "var(--theme-text-secondary)" }}>
-                        {job.title}
-                    </p>
-
-                    {/* Location */}
-                    <div className="flex items-center gap-1.5 mb-6" style={{ color: "var(--theme-text-muted)" }}>
-                        <MapPinIcon />
-                        <span className="text-[12px]">{job.location}</span>
-                    </div>
-
-                    {/* Apply Button */}
-                    <button
-                        className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-[12px] font-bold uppercase tracking-wider border-none cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-lg"
-                        style={{
-                            background: "#3CF91A",
-                            color: "#000",
-                            boxShadow: "0 0 25px #3CF91A40, 0 0 50px #3CF91A15",
-                        }}
-                    >
-                        APPLY NOW <ArrowRightIcon />
-                    </button>
-                </div>
-            </div>
-
-            {/* ═══════ TAB NAVIGATION ═══════ */}
-            <div className="border-b border-[var(--theme-border)] sticky top-0 z-20" style={{ background: "var(--theme-surface)" }}>
-                <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
-                    <div className="flex items-center gap-1 overflow-x-auto">
-                        {tabs.map((tab) => (
-                            <button
-                                key={tab.key}
-                                onClick={() => setActiveTab(tab.key)}
-                                className="relative px-4 py-3.5 text-[10px] font-bold uppercase tracking-[2px] transition-all duration-200 border-none bg-transparent cursor-pointer whitespace-nowrap"
-                                style={{
-                                    fontFamily: "var(--font-jetbrains-mono)",
-                                    color: activeTab === tab.key ? "#3CF91A" : "var(--theme-text-muted)",
-                                }}
-                            >
-                                {tab.label}
-                                {activeTab === tab.key && (
-                                    <span
-                                        className="absolute bottom-0 left-0 right-0 h-[2px]"
-                                        style={{
-                                            background: "#3CF91A",
-                                            boxShadow: "0 0 10px #3CF91A60",
-                                        }}
-                                    />
-                                )}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* ═══════ MAIN CONTENT AREA ═══════ */}
-            <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8">
                 <div className="flex flex-col lg:flex-row gap-6">
 
-                    {/* ———— LEFT COLUMN ———— */}
-                    <div className="flex-1 min-w-0 space-y-4">
+                    {/* ════════ MAIN ════════ */}
+                    <div className="flex-1 min-w-0 space-y-5">
 
-                        {/* —— Mission Objective —— */}
-                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-5 sm:p-6">
-                            <div className="flex items-center gap-2.5 mb-4">
-                                <TerminalIcon />
-                                <h2
-                                    className="text-[11px] font-bold uppercase tracking-[2px] text-[#3CF91A]"
-                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}
-                                >
-                                    MISSION OBJECTIVE
-                                </h2>
-                            </div>
-                            <p className="text-[13px] leading-relaxed mb-4" style={{ color: "var(--theme-text-secondary)" }}>
-                                {job.objective}
-                            </p>
-                            <p className="text-[13px] leading-relaxed" style={{ color: "var(--theme-text-muted)" }}>
-                                {job.objectiveDetail}
-                            </p>
-                        </div>
+                        {/* Job header card */}
+                        <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) p-5 sm:p-6">
+                            <div className="flex items-start gap-4">
+                                <CompanyAvatar name={job.recruiterProfile.companyName} avatarUrl={job.recruiterProfile.user.avatarUrl} size="lg" />
+                                <div className="flex-1 min-w-0">
+                                    <h1 className="text-[20px] sm:text-[22px] font-bold text-(--theme-text-primary) leading-snug"
+                                        style={{ fontFamily: "var(--font-space-grotesk)" }}>
+                                        {job.title}
+                                    </h1>
+                                    <p className="text-[13px] text-(--theme-text-muted) mt-1">
+                                        {job.recruiterProfile.companyName}
+                                        {job.recruiterProfile.companySize && <> &bull; {job.recruiterProfile.companySize}</>}
+                                    </p>
 
-                        {/* —— The Tech Stack —— */}
-                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-5 sm:p-6">
-                            <h2
-                                className="text-[11px] font-bold uppercase tracking-[2px] text-[#3CF91A] mb-6"
-                                style={{ fontFamily: "var(--font-jetbrains-mono)" }}
-                            >
-                                THE TECH STACK
-                            </h2>
-
-                            <div className="flex items-center justify-center gap-8 lg:gap-12 py-4">
-                                {job.techStack.map((tech, i) => (
-                                    <TechIconCard key={tech.name + i} label={tech.label} index={i} />
-                                ))}
-                            </div>
-
-                            {/* Carousel dots */}
-                            <div className="flex items-center justify-center gap-2 mt-5">
-                                <span className="w-2 h-2 rounded-full bg-[#3CF91A]" style={{ boxShadow: "0 0 6px #3CF91A80" }} />
-                                <span className="w-2 h-2 rounded-full" style={{ background: "var(--theme-input-bg)" }} />
-                                <span className="w-2 h-2 rounded-full" style={{ background: "var(--theme-input-bg)" }} />
-                            </div>
-                        </div>
-
-                        {/* —— Key Responsibilities —— */}
-                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-5 sm:p-6">
-                            <h2
-                                className="text-[11px] font-bold uppercase tracking-[2px] mb-5"
-                                style={{ fontFamily: "var(--font-jetbrains-mono)", color: "var(--theme-text-muted)" }}
-                            >
-                                KEY RESPONSIBILITIES v1.0
-                            </h2>
-
-                            <div className="space-y-5">
-                                {job.responsibilities.map((resp, i) => (
-                                    <div key={i} className="space-y-2">
-                                        {/* Terminal command */}
-                                        <div className="flex items-center gap-2">
-                                            <span
-                                                className="text-[11px]"
-                                                style={{ fontFamily: "var(--font-jetbrains-mono)", color: "var(--theme-text-muted)" }}
-                                            >
-                                                $
+                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-3 text-[12px] text-(--theme-text-muted)">
+                                        <span className="flex items-center gap-1.5">
+                                            {job.isRemote ? <Wifi className="w-3.5 h-3.5 text-primary" /> : <Building2 className="w-3.5 h-3.5" />}
+                                            {job.isRemote ? "Remote" : job.location || "On-site"}
+                                        </span>
+                                        <span className="flex items-center gap-1.5">
+                                            <Users className="w-3.5 h-3.5" />
+                                            {job._count.applications} applicant{job._count.applications !== 1 ? "s" : ""}
+                                        </span>
+                                        <span className="flex items-center gap-1.5">
+                                            <Clock className="w-3.5 h-3.5" />
+                                            Posted {timeAgo(job.createdAt)}
+                                        </span>
+                                        {job.reward && (
+                                            <span className="flex items-center gap-1.5 text-green-500 font-semibold">
+                                                <DollarSign className="w-3.5 h-3.5" />
+                                                {formatReward(job.reward, job.currency)}
                                             </span>
-                                            <span
-                                                className="text-[12px] font-bold"
-                                                style={{ fontFamily: "var(--font-jetbrains-mono)", color: "var(--theme-text-primary)" }}
-                                            >
-                                                {resp.cmd}
+                                        )}
+                                        {job.deadline && (
+                                            <span className="flex items-center gap-1.5 text-orange-500">
+                                                <Calendar className="w-3.5 h-3.5" />
+                                                Closes {new Date(job.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                                             </span>
-                                            <span
-                                                className="text-[11px] text-[#3CF91A]/70"
-                                                style={{ fontFamily: "var(--font-jetbrains-mono)" }}
-                                            >
-                                                {resp.flags}
-                                            </span>
-                                        </div>
-                                        {/* Description */}
-                                        <p className="text-[12px] leading-relaxed pl-5" style={{ color: "var(--theme-text-muted)" }}>
-                                            {resp.description}
-                                        </p>
-                                        {i < job.responsibilities.length - 1 && (
-                                            <div className="pt-2" style={{ borderBottom: "1px solid var(--theme-border-light)" }} />
                                         )}
                                     </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
 
-                    {/* ———— RIGHT COLUMN (Sidebar) ———— */}
-                    <div className="w-full lg:w-[320px] shrink-0 space-y-4">
-
-                        {/* —— The Reward —— */}
-                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
-                            <div className="px-5 py-3.5" style={{ borderBottom: "1px solid var(--theme-border-light)" }}>
-                                <h3
-                                    className="text-[10px] font-bold uppercase tracking-[2px] text-[#3CF91A]"
-                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}
-                                >
-                                    THE REWARD
-                                </h3>
-                            </div>
-                            <div className="p-5 space-y-4">
-                                {/* Annual Salary */}
-                                <div>
-                                    <p className="text-[9px] uppercase tracking-widest font-semibold mb-1" style={{ color: "var(--theme-text-muted)" }}>
-                                        ANNUAL SALARY
-                                    </p>
-                                    <p
-                                        className="text-[18px] font-black"
-                                        style={{ fontFamily: "var(--font-jetbrains-mono)", color: "var(--theme-text-primary)" }}
-                                    >
-                                        {formatCurrency(job.salaryMin)}
-                                        <span className="mx-2" style={{ color: "var(--theme-text-muted)" }}>&mdash;</span>
-                                        {formatCurrency(job.salaryMax)}
-                                    </p>
-                                </div>
-
-                                {/* Equity */}
-                                <div>
-                                    <p className="text-[9px] uppercase tracking-widest font-semibold mb-1" style={{ color: "var(--theme-text-muted)" }}>
-                                        EQUITY
-                                    </p>
-                                    <p
-                                        className="text-[16px] font-bold"
-                                        style={{ fontFamily: "var(--font-jetbrains-mono)", color: "var(--theme-text-secondary)" }}
-                                    >
-                                        {job.equityMin}
-                                        <span className="mx-2" style={{ color: "var(--theme-text-muted)" }}>&mdash;</span>
-                                        {job.equityMax}
-                                    </p>
-                                </div>
-
-                                {/* Spill Tokens */}
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-[9px] uppercase tracking-widest font-semibold mb-1" style={{ color: "var(--theme-text-muted)" }}>
-                                            SPILL TOKENS
-                                        </p>
-                                        <p
-                                            className="text-[22px] font-black"
-                                            style={{ fontFamily: "var(--font-jetbrains-mono)", color: "var(--theme-text-primary)" }}
-                                        >
-                                            {job.spillTokens.toLocaleString()}
-                                        </p>
-                                    </div>
-                                    <span
-                                        className="text-[8px] px-2.5 py-1 rounded font-black uppercase tracking-wider"
-                                        style={{
-                                            fontFamily: "var(--font-jetbrains-mono)",
-                                            background: job.tokenTrend === "SURGE" ? "#3CF91A" : job.tokenTrend === "RISING" ? "#3CF91A20" : "var(--theme-input-bg)",
-                                            color: job.tokenTrend === "SURGE" ? "#000" : job.tokenTrend === "RISING" ? "#3CF91A" : "var(--theme-text-muted)",
-                                            border: job.tokenTrend === "RISING" ? "1px solid #3CF91A30" : "none",
-                                            boxShadow: job.tokenTrend === "SURGE" ? "0 0 12px #3CF91A40" : "none",
-                                        }}
-                                    >
-                                        {job.tokenTrend}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* —— Your Compatibility —— */}
-                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
-                            <div className="px-5 py-3.5" style={{ borderBottom: "1px solid var(--theme-border-light)" }}>
-                                <h3
-                                    className="text-[10px] font-bold uppercase tracking-[2px] text-[#3CF91A]"
-                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}
-                                >
-                                    YOUR COMPATIBILITY
-                                </h3>
-                            </div>
-                            <div className="p-5 flex flex-col items-center">
-                                <CompatibilityRing percent={job.compatibility} />
-
-                                {/* Skill badges */}
-                                <div className="flex items-center gap-2 mt-4">
-                                    {job.compatSkills.map((skill) => (
-                                        <span
-                                            key={skill}
-                                            className="text-[9px] px-3 py-1.5 rounded-full font-bold uppercase tracking-wider"
-                                            style={{
-                                                fontFamily: "var(--font-jetbrains-mono)",
-                                                background: "rgba(60,249,26,0.08)",
-                                                color: "#3CF91A",
-                                                border: "1px solid rgba(60,249,26,0.2)",
-                                            }}
-                                        >
-                                            {skill}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* —— Team Insights —— */}
-                        <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm overflow-hidden">
-                            <div className="px-5 py-3.5" style={{ borderBottom: "1px solid var(--theme-border-light)" }}>
-                                <h3
-                                    className="text-[10px] font-bold uppercase tracking-[2px]"
-                                    style={{ fontFamily: "var(--font-jetbrains-mono)", color: "var(--theme-text-muted)" }}
-                                >
-                                    TEAM INSIGHTS
-                                </h3>
-                            </div>
-                            <div className="p-5 space-y-3">
-                                {job.teamMembers.map((member) => (
-                                    <div key={member.name} className="flex items-center gap-3">
-                                        <div
-                                            className="w-10 h-10 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
-                                            style={{
-                                                background: "linear-gradient(135deg, #3CF91A20, #3CF91A08)",
-                                                border: "1px solid #3CF91A30",
-                                                color: "#3CF91A",
-                                            }}
-                                        >
-                                            {member.initials}
+                                    {job.skills.length > 0 && (
+                                        <div className="flex flex-wrap gap-1.5 mt-4">
+                                            {job.skills.map(s => (
+                                                <span key={s.skillName}
+                                                    className="text-[10px] px-2.5 py-1 rounded-full font-semibold"
+                                                    style={{
+                                                        fontFamily: "var(--font-jetbrains-mono)",
+                                                        background: "var(--theme-bg-secondary)",
+                                                        color: "var(--theme-text-muted)",
+                                                        border: "1px solid var(--theme-border)",
+                                                    }}>
+                                                    {s.skillName}
+                                                </span>
+                                            ))}
                                         </div>
-                                        <div>
-                                            <p className="text-[12px] font-semibold" style={{ color: "var(--theme-text-primary)" }}>{member.name}</p>
-                                            <p className="text-[10px]" style={{ color: "var(--theme-text-muted)" }}>{member.role}</p>
-                                        </div>
-                                    </div>
-                                ))}
+                                    )}
+                                </div>
+                            </div>
 
-                                {/* View full team button */}
-                                <button
-                                    className="w-full mt-3 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-[2px] cursor-pointer transition-all duration-200 hover:bg-[#3CF91A]/10 hover:border-[#3CF91A]/30"
-                                    style={{
-                                        fontFamily: "var(--font-jetbrains-mono)",
-                                        background: "transparent",
-                                        color: "#3CF91A",
-                                        border: "1px solid rgba(60,249,26,0.2)",
-                                    }}
-                                >
-                                    VIEW FULL TEAM MAP
+                            {/* Status banner / CTA */}
+                            {isClosed ? (
+                                <div className="mt-5 px-4 py-3 rounded-xl text-[13px] font-medium text-center text-(--theme-text-muted) border border-(--theme-border)"
+                                    style={{ background: "var(--theme-bg-secondary)" }}>
+                                    This position is no longer accepting applications
+                                </div>
+                            ) : statusMeta ? (
+                                <div className="mt-5 px-4 py-3 rounded-xl border flex items-center justify-center gap-2"
+                                    style={{ background: statusMeta.bg, borderColor: `${statusMeta.color}30`, color: statusMeta.color }}>
+                                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                                    <span className="text-[13px] font-bold">{statusMeta.label}</span>
+                                </div>
+                            ) : (
+                                <button onClick={() => setShowApply(true)}
+                                    className="mt-5 w-full py-3 rounded-xl text-[14px] font-bold text-black border-none cursor-pointer transition-all hover:scale-[1.01] flex items-center justify-center gap-2"
+                                    style={{ background: accent, boxShadow: `0 0 24px ${accent}40` }}>
+                                    <Send className="w-4 h-4" />
+                                    Apply Now
                                 </button>
+                            )}
+                        </div>
+
+                        {/* Description */}
+                        <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) p-5 sm:p-6">
+                            <h2 className="text-[14px] font-bold text-(--theme-text-primary) mb-4 pb-3 border-b border-(--theme-border)"
+                                style={{ fontFamily: "var(--font-space-grotesk)" }}>
+                                About the Role
+                            </h2>
+                            <div className="text-[13px] text-(--theme-text-secondary) leading-relaxed whitespace-pre-wrap">
+                                {job.description}
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
 
-            {/* ═══════ SIMILAR MISSIONS SECTION ═══════ */}
-            <div style={{ borderTop: "1px solid var(--theme-border)", background: "var(--theme-bg)" }}>
-                <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-10">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2
-                            className="text-[16px] font-bold tracking-tight"
-                            style={{ fontFamily: "var(--font-space-grotesk)", color: "var(--theme-text-primary)" }}
-                        >
-                            SIMILAR MISSIONS
-                        </h2>
-                        <div className="flex items-center gap-2">
-                            <button
-                                className="w-8 h-8 rounded-full flex items-center justify-center border border-[var(--theme-border)] transition-all cursor-pointer"
-                                style={{ background: "var(--theme-input-bg)", color: "var(--theme-text-muted)" }}
-                            >
-                                <ChevronLeftIcon />
-                            </button>
-                            <button
-                                className="w-8 h-8 rounded-full flex items-center justify-center border border-[#3CF91A]/30 bg-[#3CF91A]/10 text-[#3CF91A] hover:bg-[#3CF91A]/20 transition-all cursor-pointer"
-                                style={{ boxShadow: "0 0 10px #3CF91A20" }}
-                            >
-                                <ChevronRightIcon />
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {similarMissions.map((mission) => (
-                            <div
-                                key={mission.id}
-                                className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-sm p-4 hover:border-[#3CF91A]/20 transition-all duration-300 cursor-pointer group"
-                            >
-                                <p
-                                    className="text-[8px] font-bold uppercase tracking-[2px] text-[#3CF91A]/50 mb-2"
-                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}
-                                >
-                                    {mission.code}
-                                </p>
-                                <h3
-                                    className="text-[13px] font-bold transition-colors mb-0.5"
-                                    style={{ fontFamily: "var(--font-space-grotesk)", color: "var(--theme-text-primary)" }}
-                                >
-                                    {mission.title}
-                                </h3>
-                                <p className="text-[10px] mb-2" style={{ color: "var(--theme-text-muted)" }}>{mission.company}</p>
-                                <div className="flex items-center gap-1.5 mb-3 flex-wrap">
-                                    {mission.tags.map((tag) => (
-                                        <span
-                                            key={tag}
-                                            className="text-[8px] px-2 py-[2px] rounded-full border border-[var(--theme-border)]"
-                                            style={{ fontFamily: "var(--font-jetbrains-mono)", color: "var(--theme-text-muted)" }}
-                                        >
-                                            {tag}
-                                        </span>
-                                    ))}
+                        {/* Requirements */}
+                        {job.requirements && (
+                            <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) p-5 sm:p-6">
+                                <h2 className="text-[14px] font-bold text-(--theme-text-primary) mb-4 pb-3 border-b border-(--theme-border)"
+                                    style={{ fontFamily: "var(--font-space-grotesk)" }}>
+                                    Requirements
+                                </h2>
+                                <div className="text-[13px] text-(--theme-text-secondary) leading-relaxed whitespace-pre-wrap">
+                                    {job.requirements}
                                 </div>
-                                <p
-                                    className="text-[12px] font-bold text-[#3CF91A]"
-                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}
-                                >
-                                    {mission.salary}
-                                </p>
                             </div>
-                        ))}
+                        )}
+                    </div>
+
+                    {/* ════════ SIDEBAR ════════ */}
+                    <div className="w-full lg:w-72 shrink-0 space-y-4">
+
+                        {/* Quick apply (desktop) */}
+                        {!isClosed && !hasApplied && (
+                            <button onClick={() => setShowApply(true)}
+                                className="hidden lg:flex w-full py-3 rounded-2xl text-[13px] font-bold text-black border-none cursor-pointer transition-all hover:scale-[1.02] items-center justify-center gap-2"
+                                style={{ background: accent, boxShadow: `0 0 24px ${accent}40` }}>
+                                <Send className="w-4 h-4" />
+                                Apply Now
+                            </button>
+                        )}
+                        {hasApplied && statusMeta && (
+                            <div className="hidden lg:flex items-center justify-center gap-2 w-full py-3 rounded-2xl border text-[13px] font-bold"
+                                style={{ background: statusMeta.bg, borderColor: `${statusMeta.color}30`, color: statusMeta.color }}>
+                                <CheckCircle2 className="w-4 h-4" />
+                                {statusMeta.label}
+                            </div>
+                        )}
+
+                        {/* Job details */}
+                        <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) overflow-hidden">
+                            <div className="px-4 py-3 border-b border-(--theme-border-light)">
+                                <h3 className="text-[11px] font-bold uppercase tracking-[2px] text-(--theme-text-muted)"
+                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}>
+                                    Job Details
+                                </h3>
+                            </div>
+                            <div className="divide-y divide-(--theme-border-light)">
+                                {[
+                                    { icon: <MapPin className="w-3.5 h-3.5" />, label: "Location", value: job.isRemote ? "Remote" : job.location || "On-site" },
+                                    { icon: <DollarSign className="w-3.5 h-3.5" />, label: "Compensation", value: formatReward(job.reward, job.currency) || "Not specified" },
+                                    { icon: <Users className="w-3.5 h-3.5" />, label: "Applicants", value: String(job._count.applications) },
+                                    ...(job.maxApplicants ? [{ icon: <Users className="w-3.5 h-3.5" />, label: "Max Applicants", value: String(job.maxApplicants) }] : []),
+                                    { icon: <Calendar className="w-3.5 h-3.5" />, label: "Posted", value: timeAgo(job.createdAt) },
+                                    ...(job.deadline ? [{ icon: <Calendar className="w-3.5 h-3.5" />, label: "Deadline", value: new Date(job.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) }] : []),
+                                ].map(row => (
+                                    <div key={row.label} className="flex items-center justify-between px-4 py-2.5 gap-3">
+                                        <div className="flex items-center gap-2 text-(--theme-text-muted) shrink-0">
+                                            {row.icon}
+                                            <span className="text-[11px]">{row.label}</span>
+                                        </div>
+                                        <span className="text-[12px] font-semibold text-(--theme-text-primary) text-right">{row.value}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Company card */}
+                        <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) overflow-hidden">
+                            <div className="px-4 py-3 border-b border-(--theme-border-light)">
+                                <h3 className="text-[11px] font-bold uppercase tracking-[2px] text-(--theme-text-muted)"
+                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}>
+                                    About the Company
+                                </h3>
+                            </div>
+                            <div className="p-4 space-y-3">
+                                <div className="flex items-center gap-3">
+                                    <CompanyAvatar name={job.recruiterProfile.companyName} avatarUrl={job.recruiterProfile.user.avatarUrl} size="sm" />
+                                    <div>
+                                        <p className="text-[13px] font-bold text-(--theme-text-primary)">{job.recruiterProfile.companyName}</p>
+                                        {(job.recruiterProfile.city || job.recruiterProfile.country) && (
+                                            <p className="text-[11px] text-(--theme-text-muted)">
+                                                {[job.recruiterProfile.city, job.recruiterProfile.country].filter(Boolean).join(", ")}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                                {job.recruiterProfile.bio && (
+                                    <p className="text-[12px] text-(--theme-text-secondary) leading-relaxed line-clamp-4">
+                                        {job.recruiterProfile.bio}
+                                    </p>
+                                )}
+                                {job.recruiterProfile.companyWebsite && (
+                                    <a href={job.recruiterProfile.companyWebsite} target="_blank" rel="noopener noreferrer"
+                                        className="flex items-center gap-1.5 text-[12px] text-primary hover:underline no-underline">
+                                        <ExternalLink className="w-3.5 h-3.5" />
+                                        Visit website
+                                    </a>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* ═══════ FOOTER ═══════ */}
-            <footer style={{ borderTop: "1px solid var(--theme-border)", background: "var(--theme-bg)" }}>
-                <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-5">
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-                        <div className="flex items-center gap-2">
-                            <span className="opacity-40"><Logo height={20} /></span>
-                            <span
-                                className="text-[9px] uppercase tracking-[2px]"
-                                style={{ fontFamily: "var(--font-jetbrains-mono)", color: "var(--theme-text-muted)" }}
-                            >
-                                SKILLSPILL &copy; 2077
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-6">
-                            {["PRIVACY PROTOCOLS", "TERMS OF SERVICE", "SYSTEM STATUS"].map((item) => (
-                                <span
-                                    key={item}
-                                    className="text-[8px] uppercase tracking-[2px] hover:text-[var(--theme-text-secondary)] transition-colors cursor-pointer"
-                                    style={{ fontFamily: "var(--font-jetbrains-mono)", color: "var(--theme-text-muted)" }}
-                                >
-                                    {item}
-                                </span>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </footer>
+            {showApply && (
+                <ApplyModal
+                    jobId={job.id}
+                    jobTitle={job.title}
+                    onClose={() => setShowApply(false)}
+                    onApplied={handleApplied}
+                />
+            )}
         </div>
     );
 }

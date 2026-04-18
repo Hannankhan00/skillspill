@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /d/uniworsty/FYP/skillspill -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\) -exec grep -l \"matching\\\\|similarity\\\\|score\\\\|ranking\\\\|recommend\" {} \\\\;)",
+      "Bash(find /d/uniworsty/FYP/skillspill/app/api -type f \\\\\\( -name \"*.ts\" \\\\\\) -exec basename {} \\\\;)",
+      "Bash(npx next *)",
+      "Bash(npx eslint *)",
+      "Bash(ls d:/uniworsty/FYP/skillspill/.eslint*)",
+      "Bash(ls d:/uniworsty/FYP/skillspill/eslint*)",
+      "Bash(npx prisma *)",
+      "Bash(grep -E \"^[A-Z]:\\\\\\\\\\\\\\\\|^D:\\\\\\\\\\\\\\\\|^/\")",
+      "Bash(xargs sed *)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
+      "Bash(npm install *)",
+      "Bash(node -e \"require\\('socket.io'\\); console.log\\('socket.io ok'\\)\")",
+      "Bash(node -e \"require\\('socket.io-client'\\); console.log\\('socket.io-client ok'\\)\")",
+      "Bash(find \"d:/uniworsty/FYP/skillspill\" -type f \\\\\\( -name \"*.ts\" -o -name \"*.js\" \\\\\\) ! -path \"*/.next/*\" ! -path \"*/node_modules/*\" ! -path \"*/prisma/*\" ! -path \"*/public/*\" -exec grep -l \"new Server\\\\|io\\(\\)\" {} \\\\;)"
+    ]
+  }
+}

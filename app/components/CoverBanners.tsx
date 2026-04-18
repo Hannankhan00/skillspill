@@ -3,8 +3,8 @@ import React from 'react';
 // Centralised definition of animated cover banners
 // Slots 1-2: Purple & Green theme colours. Slot 3: Binary code. Rest: animations.
 export const coverPresets = [
-    { id: "1", name: "Purple Nebula", type: "css", className: "bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 animate-[gradient_8s_ease_infinite] bg-[length:200%_200%]" },
-    { id: "2", name: "Green Pulse", type: "css", className: "bg-gradient-to-r from-[#3CF91A] via-teal-500 to-[#3CF91A] animate-[gradient_5s_linear_infinite] bg-[length:200%_auto]" },
+    { id: "1", name: "Purple Nebula", type: "css", className: "bg-linear-to-r from-violet-600 via-purple-600 to-indigo-600 animate-[gradient_8s_ease_infinite] bg-[length:200%_200%]" },
+    { id: "2", name: "Green Pulse", type: "css", className: "bg-linear-to-r from-[#3CF91A] via-teal-500 to-[#3CF91A] animate-[gradient_5s_linear_infinite] bg-[length:200%_auto]" },
     { id: "3", name: "Binary Matrix", type: "css", className: "bg-[#050B14] relative overflow-hidden", isMatrix: true },
     { id: "4", name: "Neon Particles", type: "css", className: "bg-[#110e1a] relative overflow-hidden", isParticles: true },
     { id: "5", name: "Starfield", type: "css", className: "bg-[#060312] relative overflow-hidden", isStars: true },
@@ -86,7 +86,7 @@ export function CoverBanner({ coverId, children }: { coverId?: string, children?
                         backgroundSize: '30px 30px',
                         animation: 'gridPulse 4s ease-in-out infinite alternate',
                     }} />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-black" />
                 </div>
             )}
 
@@ -149,8 +149,8 @@ export function CoverBanner({ coverId, children }: { coverId?: string, children?
 
 export function CoverBannerSelector({ selectedId, onSelect, onSave, onCancel, accent = "#3CF91A" }: { selectedId: string, onSelect: (id: string) => void, onSave: () => void, onCancel: () => void, accent?: string }) {
     return (
-        <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 bg-[var(--theme-card)] p-4 rounded-2xl border border-[var(--theme-border)] shadow-2xl z-[100] w-[300px] animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
-            <h3 className="text-[13px] font-bold text-[var(--theme-text-primary)] mb-3">Edit Cover Art</h3>
+        <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 bg-(--theme-card) p-4 rounded-2xl border border-(--theme-border) shadow-2xl z-100 w-[300px] animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+            <h3 className="text-[13px] font-bold text-(--theme-text-primary) mb-3">Edit Cover Art</h3>
             <div className="grid grid-cols-4 gap-2 mb-4">
                 {coverPresets.map(preset => {
                     const isSelected = selectedId === preset.id || selectedId === preset.className;
@@ -177,7 +177,7 @@ export function CoverBannerSelector({ selectedId, onSelect, onSave, onCancel, ac
                 })}
             </div>
             <div className="flex gap-2">
-                <button onClick={onCancel} className="flex-1 py-2 rounded-xl text-[11px] font-bold text-[var(--theme-text-primary)] bg-[var(--theme-input-bg)] hover:bg-[var(--theme-border)] border-none cursor-pointer transition-colors">Cancel</button>
+                <button onClick={onCancel} className="flex-1 py-2 rounded-xl text-[11px] font-bold text-(--theme-text-primary) bg-(--theme-input-bg) hover:bg-(--theme-border) border-none cursor-pointer transition-colors">Cancel</button>
                 <button onClick={onSave} className="flex-1 py-2 rounded-xl text-[11px] font-bold text-black border-none cursor-pointer transition-transform hover:scale-105" style={{ background: accent }}>Save</button>
             </div>
         </div>

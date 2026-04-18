@@ -142,14 +142,14 @@ export default function ShareModal({ postId, postCaption, onClose }: ShareModalP
                     style={{ borderBottom: "1px solid var(--theme-border)" }}
                 >
                     <div>
-                        <h2 className="text-[15px] font-bold text-[var(--theme-text-primary)]">Share Spill</h2>
-                        <p className="text-[11px] text-[var(--theme-text-muted)] mt-0.5">
+                        <h2 className="text-[15px] font-bold text-(--theme-text-primary)">Share Spill</h2>
+                        <p className="text-[11px] text-(--theme-text-muted) mt-0.5">
                             Send to one of your followers
                         </p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="w-8 h-8 rounded-full flex items-center justify-center bg-transparent border border-[var(--theme-border)] text-[var(--theme-text-muted)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-secondary)] transition-all cursor-pointer"
+                        className="w-8 h-8 rounded-full flex items-center justify-center bg-transparent border border-(--theme-border) text-(--theme-text-muted) hover:text-(--theme-text-primary) hover:bg-(--theme-bg-secondary) transition-all cursor-pointer"
                     >
                         <X className="w-4 h-4" />
                     </button>
@@ -161,19 +161,19 @@ export default function ShareModal({ postId, postCaption, onClose }: ShareModalP
                         className="flex items-center gap-2 px-3 py-2 rounded-xl"
                         style={{ background: "var(--theme-input-bg)", border: "1px solid var(--theme-border)" }}
                     >
-                        <Search className="w-3.5 h-3.5 shrink-0 text-[var(--theme-text-muted)]" />
+                        <Search className="w-3.5 h-3.5 shrink-0 text-(--theme-text-muted)" />
                         <input
                             type="text"
                             placeholder="Search followers..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="flex-1 bg-transparent border-none outline-none text-[13px] text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-muted)]"
+                            className="flex-1 bg-transparent border-none outline-none text-[13px] text-(--theme-text-primary) placeholder:text-(--theme-text-muted)"
                             autoFocus
                         />
                         {search && (
                             <button
                                 onClick={() => setSearch("")}
-                                className="text-[var(--theme-text-muted)] hover:text-[var(--theme-text-primary)] bg-transparent border-none cursor-pointer p-0 flex items-center"
+                                className="text-(--theme-text-muted) hover:text-(--theme-text-primary) bg-transparent border-none cursor-pointer p-0 flex items-center"
                             >
                                 <X className="w-3 h-3" />
                             </button>
@@ -188,16 +188,16 @@ export default function ShareModal({ postId, postCaption, onClose }: ShareModalP
                 >
                     {loading ? (
                         <div className="flex items-center justify-center py-16">
-                            <Loader2 className="w-6 h-6 animate-spin text-[var(--theme-text-muted)]" />
+                            <Loader2 className="w-6 h-6 animate-spin text-(--theme-text-muted)" />
                         </div>
                     ) : error ? (
                         <p className="text-center text-[13px] text-red-400 py-10">{error}</p>
                     ) : filtered.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-14 gap-2">
-                            <div className="w-12 h-12 rounded-full bg-[var(--theme-bg-secondary)] flex items-center justify-center">
-                                <Search className="w-5 h-5 text-[var(--theme-text-muted)]" />
+                            <div className="w-12 h-12 rounded-full bg-(--theme-bg-secondary) flex items-center justify-center">
+                                <Search className="w-5 h-5 text-(--theme-text-muted)" />
                             </div>
-                            <p className="text-[13px] font-medium text-[var(--theme-text-muted)]">
+                            <p className="text-[13px] font-medium text-(--theme-text-muted)">
                                 {search ? "No followers match your search" : "You have no followers yet"}
                             </p>
                         </div>
@@ -217,7 +217,7 @@ export default function ShareModal({ postId, postCaption, onClose }: ShareModalP
                                 return (
                                     <li
                                         key={f.id}
-                                        className="flex items-center gap-3 px-4 py-3 hover:bg-[var(--theme-bg-secondary)] transition-colors"
+                                        className="flex items-center gap-3 px-4 py-3 hover:bg-(--theme-bg-secondary) transition-colors"
                                     >
                                         {/* Avatar */}
                                         {f.avatarUrl ? (
@@ -228,7 +228,7 @@ export default function ShareModal({ postId, postCaption, onClose }: ShareModalP
                                             />
                                         ) : (
                                             <div
-                                                className={`w-10 h-10 rounded-full bg-gradient-to-br ${grad} flex items-center justify-center text-white text-[11px] font-bold shrink-0`}
+                                                className={`w-10 h-10 rounded-full bg-linear-to-br ${grad} flex items-center justify-center text-white text-[11px] font-bold shrink-0`}
                                             >
                                                 {initials}
                                             </div>
@@ -236,10 +236,10 @@ export default function ShareModal({ postId, postCaption, onClose }: ShareModalP
 
                                         {/* Name */}
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-[13px] font-semibold text-[var(--theme-text-primary)] truncate">
+                                            <p className="text-[13px] font-semibold text-(--theme-text-primary) truncate">
                                                 {f.fullName}
                                             </p>
-                                            <p className="text-[11px] text-[var(--theme-text-muted)] truncate">
+                                            <p className="text-[11px] text-(--theme-text-muted) truncate">
                                                 @{f.username} · {subtitleFor(f)}
                                             </p>
                                         </div>
@@ -282,7 +282,7 @@ export default function ShareModal({ postId, postCaption, onClose }: ShareModalP
                         className="px-5 py-3 shrink-0 text-center"
                         style={{ borderTop: "1px solid var(--theme-border)" }}
                     >
-                        <p className="text-[10px] text-[var(--theme-text-muted)]">
+                        <p className="text-[10px] text-(--theme-text-muted)">
                             {filtered.length} follower{filtered.length !== 1 ? "s" : ""}
                             {search && ` matching "${search}"`}
                         </p>

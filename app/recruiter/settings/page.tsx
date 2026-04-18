@@ -438,7 +438,7 @@ export default function RecruiterSettingsPage() {
                                                 </div>
 
                                                 {/* Save */}
-                                                <div className="pt-4 border-t border-[var(--theme-border-light)] flex justify-end">
+                                                <div className="pt-4 border-t border-(--theme-border-light) flex justify-end">
                                                     <button onClick={saveCompany} disabled={savingCompany}
                                                         className="px-6 py-2.5 rounded-xl text-[12px] font-bold text-white border-none cursor-pointer transition-all hover:scale-105 disabled:opacity-60"
                                                         style={{ background: accent, boxShadow: savingCompany ? 'none' : `0 4px 15px ${accent}50` }}>

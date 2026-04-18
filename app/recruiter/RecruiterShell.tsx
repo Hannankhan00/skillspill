@@ -248,7 +248,7 @@ export default function RecruiterShell({
                     <div className="p-3 rounded-xl border border-orange-500/30 bg-orange-500/5 flex flex-col gap-2 relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-12 h-12 bg-orange-500/10 rounded-bl-full pointer-events-none" />
                         <h4 className="text-[11px] font-bold text-orange-500">Incomplete Profile</h4>
-                        <p className="text-[9px] text-[var(--theme-text-muted)] leading-relaxed">
+                        <p className="text-[9px] text-(--theme-text-muted) leading-relaxed">
                             A complete profile attracts more top candidates.
                         </p>
                         <Link href="/recruiter/profile" className="mt-1 flex items-center gap-1 text-[10px] font-bold text-[#A855F7] hover:underline">
@@ -491,7 +491,7 @@ export default function RecruiterShell({
                         return (
                             <Link key={item.label} href={item.href}
                                 className={`flex flex-col items-center justify-center gap-0.5 py-1 px-2 no-underline transition-colors
-                                    ${active ? "text-[#A855F7]" : "text-[var(--theme-text-muted)]"}`}>
+                                    ${active ? "text-[#A855F7]" : "text-(--theme-text-muted)"}`}>
                                 {active ? item.iconFilled : item.icon}
                                 <span className="text-[9px] font-medium">{item.label}</span>
                                 {item.label === "Alerts" && (

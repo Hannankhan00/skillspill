@@ -316,8 +316,8 @@ export default function RecruiterSignup() {
                 </div>
             </header>
 
-            <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-br from-[#A855F7]/10 via-transparent to-transparent opacity-40 pointer-events-none" />
-            <div className="absolute bottom-0 right-0 w-full h-[500px] bg-gradient-to-tl from-[#00D2FF]/10 via-transparent to-transparent opacity-30 pointer-events-none" />
+            <div className="absolute top-0 left-0 w-full h-[500px] bg-linear-to-br from-[#A855F7]/10 via-transparent to-transparent opacity-40 pointer-events-none" />
+            <div className="absolute bottom-0 right-0 w-full h-[500px] bg-linear-to-tl from-[#00D2FF]/10 via-transparent to-transparent opacity-30 pointer-events-none" />
 
             {/* Background Gradients */}
             <div className="fixed top-[-20%] right-[-10%] w-[600px] h-[600px] bg-[#A855F7]/[0.03] rounded-full blur-[100px] pointer-events-none" />
@@ -365,7 +365,7 @@ export default function RecruiterSignup() {
 
                 {/* 3. Main Form Panel */}
                 <div className="border border-white/10 bg-[#0A0A0A]/90 backdrop-blur-xl rounded-2xl p-6 sm:p-8 min-h-[460px] relative shadow-2xl">
-                    <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#A855F7]/30 to-transparent"></div>
+                    <div className="absolute top-0 left-0 w-full h-[1px] bg-linear-to-r from-transparent via-[#A855F7]/30 to-transparent"></div>
                     {stepRenderers[currentStep]()}
                 </div>
 
@@ -412,7 +412,7 @@ export default function RecruiterSignup() {
                             )}
                         </span>
                         {/* Shine effect */}
-                        <div className="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent group-hover:left-[100%] transition-all duration-700 ease-in-out"></div>
+                        <div className="absolute top-0 -left-[100%] w-full h-full bg-linear-to-r from-transparent via-white/40 to-transparent group-hover:left-[100%] transition-all duration-700 ease-in-out"></div>
                     </button>
 
                     <button
