@@ -542,15 +542,9 @@ export default function TalentFeed() {
                                     ALL →
                                 </Link>
                             </div>
-<<<<<<< HEAD
-                            <div className="divide-y divide-[var(--theme-border-light)]">
-                                {displayJobs.map((job) => (
-                                    <div key={job.id} className="px-4 py-3 hover:bg-[#3CF91A]/10 transition-colors cursor-pointer group" style={{ borderColor: "var(--theme-border-light)" }}>
-=======
                             <div className="divide-y divide-(--theme-border-light)">
-                                {jobSuggestions.map((job) => (
+                                {displayJobs.map((job: any) => (
                                     <div key={job.title} className="px-4 py-3 hover:bg-primary/10 transition-colors cursor-pointer group" style={{ borderColor: "var(--theme-border-light)" }}>
->>>>>>> 7dce057f728eceb80b3b51a670744c53a4d9d2fc
                                         <div className="flex items-start justify-between">
                                             <div>
                                                 <p className="text-[12px] font-semibold text-(--theme-text-secondary) group-hover:text-(--theme-text-primary) transition-colors">{job.title}</p>
@@ -570,26 +564,8 @@ export default function TalentFeed() {
                                 <h3 className="text-[11px] font-bold text-(--theme-text-muted) uppercase tracking-[2px]"
                                     style={{ fontFamily: "var(--font-jetbrains-mono)" }}>👥 People to Follow</h3>
                             </div>
-<<<<<<< HEAD
-                            <div className="divide-y divide-[var(--theme-border-light)]">
-                                {displayUsers.map((user) => (
-                                    <div key={user.id} className="flex items-center justify-between px-4 py-3" style={{ borderColor: "var(--theme-border-light)" }}>
-                                        <div className="flex items-center gap-2.5">
-                                            {user.avatarUrl ? (
-                                                <img src={user.avatarUrl} alt={user.name} className="w-8 h-8 rounded-full object-cover shadow-sm border border-[var(--theme-border)]" />
-                                            ) : (
-                                                <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${user.grad || getGrad(user.name)} flex items-center justify-center text-white text-[9px] font-bold shadow-sm`}>
-                                                    {user.initials}
-                                                </div>
-                                            )}
-                                            <div className="flex flex-col justify-center">
-                                                <Link href={`/talent/${user.role?.includes("Recruiter") ? "recruiter" : "talent"}/${user.id}`} className="text-[12px] font-semibold text-[var(--theme-text-secondary)] hover:text-[#3CF91A] no-underline transition-colors block max-w-[120px] truncate" title={user.name}>
-                                                    {user.name}
-                                                </Link>
-                                                <p className="text-[10px] text-[var(--theme-text-muted)] truncate max-w-[120px]" title={user.role}>{user.role}</p>
-=======
                             <div className="divide-y divide-(--theme-border-light)">
-                                {suggestedUsers.map((user) => (
+                                {displayUsers.map((user: any) => (
                                     <div key={user.name} className="flex items-center justify-between px-4 py-3" style={{ borderColor: "var(--theme-border-light)" }}>
                                         <div className="flex items-center gap-2.5">
                                             <div className={`w-8 h-8 rounded-full bg-linear-to-br ${user.grad} flex items-center justify-center text-white text-[9px] font-bold shadow-sm`}>
@@ -598,7 +574,6 @@ export default function TalentFeed() {
                                             <div>
                                                 <p className="text-[12px] font-semibold text-(--theme-text-secondary)">{user.name}</p>
                                                 <p className="text-[10px] text-(--theme-text-muted)">{user.role}</p>
->>>>>>> 7dce057f728eceb80b3b51a670744c53a4d9d2fc
                                             </div>
                                         </div>
                                         <button className="px-3 py-1 rounded-lg text-[10px] font-bold text-[#2edb13] border border-primary/20 bg-primary/10 cursor-pointer hover:bg-[#2edb13] hover:text-white hover:border-[#2edb13] transition-all">

@@ -514,15 +514,9 @@ export default function RecruiterFeed() {
                                     MANAGE <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
                                 </Link>
                             </div>
-<<<<<<< HEAD
-                            <div className="divide-y divide-[var(--theme-border-light)]">
-                                {displayJobs.map((job) => (
-                                    <div key={job.id} className="px-4 py-3 hover:bg-purple-500/10 transition-colors cursor-pointer group">
-=======
                             <div className="divide-y divide-(--theme-border-light)">
-                                {activeJobs.map((job, i) => (
+                                {displayJobs.map((job: any, i: number) => (
                                     <div key={i} className="px-4 py-3 hover:bg-purple-500/10 transition-colors cursor-pointer group">
->>>>>>> 7dce057f728eceb80b3b51a670744c53a4d9d2fc
                                         <div className="flex items-start justify-between mb-1">
                                             <div className="flex items-center gap-1.5">
                                                 {job.hot && <span className="w-1.5 h-1.5 rounded-full bg-orange-400" />}
@@ -557,26 +551,8 @@ export default function RecruiterFeed() {
                                     SEARCH <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
                                 </Link>
                             </div>
-<<<<<<< HEAD
-                            <div className="divide-y divide-[var(--theme-border-light)]">
-                                {displayCandidates.map((c) => (
-                                    <div key={c.id} className="flex items-center justify-between px-4 py-3 hover:bg-[var(--theme-bg-secondary)] transition-colors">
-                                        <div className="flex items-center gap-2.5">
-                                            {c.avatarUrl ? (
-                                                <img src={c.avatarUrl} alt={c.name} className="w-8 h-8 rounded-full object-cover shadow-sm border border-[var(--theme-border)]" />
-                                            ) : (
-                                                <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${c.grad || getGrad(c.name)} flex items-center justify-center text-white text-[9px] font-bold shadow-sm`}>
-                                                    {c.initials}
-                                                </div>
-                                            )}
-                                            <div className="flex flex-col justify-center">
-                                                <Link href={`/recruiter/${c.role?.includes("Recruiter") ? "recruiter" : "talent"}/${c.id}`} className="text-[12px] font-semibold text-[var(--theme-text-secondary)] hover:text-[#A855F7] no-underline transition-colors block max-w-[120px] truncate" title={c.name}>
-                                                    {c.name}
-                                                </Link>
-                                                <p className="text-[10px] text-[var(--theme-text-muted)] truncate max-w-[120px]" title={c.role}>{c.role}</p>
-=======
                             <div className="divide-y divide-(--theme-border-light)">
-                                {topCandidates.map((c) => (
+                                {displayCandidates.map((c: any) => (
                                     <div key={c.name} className="flex items-center justify-between px-4 py-3 hover:bg-(--theme-bg-secondary) transition-colors">
                                         <div className="flex items-center gap-2.5">
                                             <div className={`w-8 h-8 rounded-full bg-linear-to-br ${c.grad} flex items-center justify-center text-white text-[9px] font-bold shadow-sm`}>
@@ -585,7 +561,6 @@ export default function RecruiterFeed() {
                                             <div>
                                                 <p className="text-[12px] font-semibold text-(--theme-text-secondary)">{c.name}</p>
                                                 <p className="text-[10px] text-(--theme-text-muted)">{c.role}</p>
->>>>>>> 7dce057f728eceb80b3b51a670744c53a4d9d2fc
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
