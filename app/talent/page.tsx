@@ -52,16 +52,16 @@ function getGrad(str: string) {
     for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
     return grads[Math.abs(hash) % grads.length];
 }
-const suggestedUsers = [
-    { name: "Alex_Kernel", role: "Kernel Dev", initials: "AK", grad: "from-red-400 to-rose-600" },
-    { name: "Cloud_Nine", role: "DevOps Lead", initials: "C9", grad: "from-sky-400 to-indigo-500" },
-    { name: "Bit_Wizard", role: "Security Eng", initials: "BW", grad: "from-amber-400 to-orange-500" },
+const defaultSuggestedUsers = [
+    { id: "1", name: "Alex_Kernel", role: "Kernel Dev", initials: "AK", grad: "from-red-400 to-rose-600" },
+    { id: "2", name: "Cloud_Nine", role: "DevOps Lead", initials: "C9", grad: "from-sky-400 to-indigo-500" },
+    { id: "3", name: "Bit_Wizard", role: "Security Eng", initials: "BW", grad: "from-amber-400 to-orange-500" },
 ];
 
-const jobSuggestions = [
-    { title: "Senior React Engineer", company: "CryptoVault", budget: "$8k", match: "94%" },
-    { title: "Rust Systems Dev", company: "Nebula OS", budget: "$12k", match: "89%" },
-    { title: "Full-Stack Lead", company: "SkillDAO", budget: "$10k", match: "87%" },
+const defaultJobSuggestions = [
+    { id: "j1", title: "Senior React Engineer", company: "CryptoVault", budget: "$8k", match: "94%" },
+    { id: "j2", title: "Rust Systems Dev", company: "Nebula OS", budget: "$12k", match: "89%" },
+    { id: "j3", title: "Full-Stack Lead", company: "SkillDAO", budget: "$10k", match: "87%" },
 ];
 
 /* ═══════════════ MAIN FEED ═══════════════ */
@@ -86,6 +86,8 @@ export default function TalentFeed() {
 
     // Fetch live user data for the mini profile card
     const [userData, setUserData] = useState<any>(null);
+    const [sidebarData, setSidebarData] = useState<{ suggestedUsers: any[], jobSuggestions: any[] } | null>(null);
+
     useEffect(() => {
         fetch("/api/user/profile")
             .then(res => res.json())
@@ -93,6 +95,13 @@ export default function TalentFeed() {
                 if (data.user) {
                     setUserData(data.user);
                 }
+            })
+            .catch(console.error);
+            
+        fetch("/api/sidebar")
+            .then(res => res.json())
+            .then(data => {
+                if (data.suggestedUsers) setSidebarData(data);
             })
             .catch(console.error);
     }, []);
@@ -203,6 +212,9 @@ export default function TalentFeed() {
         if (n >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, '') + 'k';
         return String(n);
     };
+
+    const displayJobs = sidebarData?.jobSuggestions?.length ? sidebarData.jobSuggestions : defaultJobSuggestions;
+    const displayUsers = sidebarData?.suggestedUsers?.length ? sidebarData.suggestedUsers : defaultSuggestedUsers;
 
     return (
         <div style={{ background: "var(--theme-bg)" }} className="min-h-full">
@@ -454,8 +466,8 @@ export default function TalentFeed() {
                                 </Link>
                             </div>
                             <div className="divide-y divide-[var(--theme-border-light)]">
-                                {jobSuggestions.map((job) => (
-                                    <div key={job.title} className="px-4 py-3 hover:bg-[#3CF91A]/10 transition-colors cursor-pointer group" style={{ borderColor: "var(--theme-border-light)" }}>
+                                {displayJobs.map((job) => (
+                                    <div key={job.id} className="px-4 py-3 hover:bg-[#3CF91A]/10 transition-colors cursor-pointer group" style={{ borderColor: "var(--theme-border-light)" }}>
                                         <div className="flex items-start justify-between">
                                             <div>
                                                 <p className="text-[12px] font-semibold text-[var(--theme-text-secondary)] group-hover:text-[var(--theme-text-primary)] transition-colors">{job.title}</p>
@@ -476,15 +488,21 @@ export default function TalentFeed() {
                                     style={{ fontFamily: "var(--font-jetbrains-mono)" }}>👥 People to Follow</h3>
                             </div>
                             <div className="divide-y divide-[var(--theme-border-light)]">
-                                {suggestedUsers.map((user) => (
-                                    <div key={user.name} className="flex items-center justify-between px-4 py-3" style={{ borderColor: "var(--theme-border-light)" }}>
+                                {displayUsers.map((user) => (
+                                    <div key={user.id} className="flex items-center justify-between px-4 py-3" style={{ borderColor: "var(--theme-border-light)" }}>
                                         <div className="flex items-center gap-2.5">
-                                            <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${user.grad} flex items-center justify-center text-white text-[9px] font-bold shadow-sm`}>
-                                                {user.initials}
-                                            </div>
-                                            <div>
-                                                <p className="text-[12px] font-semibold text-[var(--theme-text-secondary)]">{user.name}</p>
-                                                <p className="text-[10px] text-[var(--theme-text-muted)]">{user.role}</p>
+                                            {user.avatarUrl ? (
+                                                <img src={user.avatarUrl} alt={user.name} className="w-8 h-8 rounded-full object-cover shadow-sm border border-[var(--theme-border)]" />
+                                            ) : (
+                                                <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${user.grad || getGrad(user.name)} flex items-center justify-center text-white text-[9px] font-bold shadow-sm`}>
+                                                    {user.initials}
+                                                </div>
+                                            )}
+                                            <div className="flex flex-col justify-center">
+                                                <Link href={`/talent/${user.role?.includes("Recruiter") ? "recruiter" : "talent"}/${user.id}`} className="text-[12px] font-semibold text-[var(--theme-text-secondary)] hover:text-[#3CF91A] no-underline transition-colors block max-w-[120px] truncate" title={user.name}>
+                                                    {user.name}
+                                                </Link>
+                                                <p className="text-[10px] text-[var(--theme-text-muted)] truncate max-w-[120px]" title={user.role}>{user.role}</p>
                                             </div>
                                         </div>
                                         <button className="px-3 py-1 rounded-lg text-[10px] font-bold text-[#2edb13] border border-[#3CF91A]/20 bg-[#3CF91A]/10 cursor-pointer hover:bg-[#2edb13] hover:text-white hover:border-[#2edb13] transition-all">

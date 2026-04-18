@@ -51,16 +51,16 @@ function getGrad(str: string) {
     return grads[Math.abs(hash) % grads.length];
 }
 
-const activeJobs = [
-    { title: "Senior React Developer", type: "Full-time", apps: 12, budget: "$8k", days: 5, hot: true },
-    { title: "Rust Systems Engineer", type: "Contract", apps: 7, budget: "$12k", days: 12, hot: false },
-    { title: "DevOps Lead", type: "Full-time", apps: 19, budget: "$10k", days: 2, hot: true },
+const defaultActiveJobs = [
+    { id: "j1", title: "Senior React Developer", type: "Full-time", apps: 12, budget: "$8k", days: 5, hot: true },
+    { id: "j2", title: "Rust Systems Engineer", type: "Contract", apps: 7, budget: "$12k", days: 12, hot: false },
+    { id: "j3", title: "DevOps Lead", type: "Full-time", apps: 19, budget: "$10k", days: 2, hot: true },
 ];
 
-const topCandidates = [
-    { name: "Sarah Chen", role: "Full-Stack", initials: "SC", grad: "from-violet-500 to-purple-600", score: 94 },
-    { name: "Marcus Johnson", role: "Backend", initials: "MJ", grad: "from-sky-400 to-blue-500", score: 91 },
-    { name: "Aisha Patel", role: "ML Eng", initials: "AP", grad: "from-emerald-400 to-teal-500", score: 89 },
+const defaultTopCandidates = [
+    { id: "u1", name: "Sarah Chen", role: "Full-Stack", initials: "SC", grad: "from-violet-500 to-purple-600", score: 94 },
+    { id: "u2", name: "Marcus Johnson", role: "Backend", initials: "MJ", grad: "from-sky-400 to-blue-500", score: 91 },
+    { id: "u3", name: "Aisha Patel", role: "ML Eng", initials: "AP", grad: "from-emerald-400 to-teal-500", score: 89 },
 ];
 
 
@@ -83,6 +83,7 @@ export default function RecruiterFeed() {
     const [loadingPosts, setLoadingPosts] = useState(true);
 
     const [userData, setUserData] = useState<any>(null);
+    const [sidebarData, setSidebarData] = useState<{ suggestedUsers: any[], jobSuggestions: any[] } | null>(null);
 
     useEffect(() => {
         fetch("/api/user/profile")
@@ -93,6 +94,13 @@ export default function RecruiterFeed() {
                 }
             })
             .catch(() => {});
+            
+        fetch("/api/sidebar")
+            .then(res => res.json())
+            .then(data => {
+                if (data.suggestedUsers) setSidebarData(data);
+            })
+            .catch(console.error);
     }, []);
 
     // Fetch the Feed Posts
@@ -185,6 +193,9 @@ export default function RecruiterFeed() {
         if (n >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, '') + 'k';
         return String(n);
     };
+
+    const displayJobs = sidebarData?.jobSuggestions?.length ? sidebarData.jobSuggestions : defaultActiveJobs;
+    const displayCandidates = sidebarData?.suggestedUsers?.length ? sidebarData.suggestedUsers : defaultTopCandidates;
 
 
     return (
@@ -427,8 +438,8 @@ export default function RecruiterFeed() {
                                 </Link>
                             </div>
                             <div className="divide-y divide-[var(--theme-border-light)]">
-                                {activeJobs.map((job, i) => (
-                                    <div key={i} className="px-4 py-3 hover:bg-purple-500/10 transition-colors cursor-pointer group">
+                                {displayJobs.map((job) => (
+                                    <div key={job.id} className="px-4 py-3 hover:bg-purple-500/10 transition-colors cursor-pointer group">
                                         <div className="flex items-start justify-between mb-1">
                                             <div className="flex items-center gap-1.5">
                                                 {job.hot && <span className="w-1.5 h-1.5 rounded-full bg-orange-400" />}
@@ -464,15 +475,21 @@ export default function RecruiterFeed() {
                                 </Link>
                             </div>
                             <div className="divide-y divide-[var(--theme-border-light)]">
-                                {topCandidates.map((c) => (
-                                    <div key={c.name} className="flex items-center justify-between px-4 py-3 hover:bg-[var(--theme-bg-secondary)] transition-colors">
+                                {displayCandidates.map((c) => (
+                                    <div key={c.id} className="flex items-center justify-between px-4 py-3 hover:bg-[var(--theme-bg-secondary)] transition-colors">
                                         <div className="flex items-center gap-2.5">
-                                            <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${c.grad} flex items-center justify-center text-white text-[9px] font-bold shadow-sm`}>
-                                                {c.initials}
-                                            </div>
-                                            <div>
-                                                <p className="text-[12px] font-semibold text-[var(--theme-text-secondary)]">{c.name}</p>
-                                                <p className="text-[10px] text-[var(--theme-text-muted)]">{c.role}</p>
+                                            {c.avatarUrl ? (
+                                                <img src={c.avatarUrl} alt={c.name} className="w-8 h-8 rounded-full object-cover shadow-sm border border-[var(--theme-border)]" />
+                                            ) : (
+                                                <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${c.grad || getGrad(c.name)} flex items-center justify-center text-white text-[9px] font-bold shadow-sm`}>
+                                                    {c.initials}
+                                                </div>
+                                            )}
+                                            <div className="flex flex-col justify-center">
+                                                <Link href={`/recruiter/${c.role?.includes("Recruiter") ? "recruiter" : "talent"}/${c.id}`} className="text-[12px] font-semibold text-[var(--theme-text-secondary)] hover:text-[#A855F7] no-underline transition-colors block max-w-[120px] truncate" title={c.name}>
+                                                    {c.name}
+                                                </Link>
+                                                <p className="text-[10px] text-[var(--theme-text-muted)] truncate max-w-[120px]" title={c.role}>{c.role}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">

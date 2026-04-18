@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { MessageSquare, Send, ArrowLeft, Loader2 } from "lucide-react";
+import { MessageSquare, Send, ArrowLeft, Loader2, Wifi, WifiOff } from "lucide-react";
+import { useSocket } from "@/lib/use-socket";
 
 interface OtherUser {
     id: string;
@@ -57,21 +58,15 @@ function formatTime(iso: string) {
 }
 
 // ── Tick icons ─────────────────────────────────────────────────────────────────
-// Single grey tick  → sent (not yet delivered/read)
-// Double grey ticks → delivered
-// Double green ticks → read
 function TickIcon({ isRead, isOptimistic }: { isRead: boolean; isOptimistic: boolean }) {
     if (isOptimistic) {
-        // Clock / sending indicator
         return (
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ opacity: 0.5 }}>
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12 6 12 12 16 14" />
+                <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
             </svg>
         );
     }
     if (isRead) {
-        // Double green ticks
         return (
             <svg width="16" height="12" viewBox="0 0 28 16" fill="none">
                 <polyline points="1 8 5 12 12 4" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -79,7 +74,6 @@ function TickIcon({ isRead, isOptimistic }: { isRead: boolean; isOptimistic: boo
             </svg>
         );
     }
-    // Double grey ticks (sent)
     return (
         <svg width="16" height="12" viewBox="0 0 28 16" fill="none">
             <polyline points="1 8 5 12 12 4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" strokeOpacity="0.5" />
@@ -91,6 +85,7 @@ function TickIcon({ isRead, isOptimistic }: { isRead: boolean; isOptimistic: boo
 export default function MessagesUI({ accent }: { accent: string }) {
     const searchParams = useSearchParams();
     const router = useRouter();
+    const { socket, connected } = useSocket();
 
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [activeConvoId, setActiveConvoId] = useState<string | null>(null);
@@ -99,8 +94,8 @@ export default function MessagesUI({ accent }: { accent: string }) {
     const [loadingConvos, setLoadingConvos] = useState(true);
     const [loadingMessages, setLoadingMessages] = useState(false);
     const [sending, setSending] = useState(false);
-    const [sseConnected, setSseConnected] = useState(false);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+    const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
 
     // Attachment State
     const [attachment, setAttachment] = useState<{ url: string; type: string } | null>(null);
@@ -112,56 +107,45 @@ export default function MessagesUI({ accent }: { accent: string }) {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-    const messagesRef = useRef<Message[]>([]);
-    const eventSourceRef = useRef<EventSource | null>(null);
     const activeConvoIdRef = useRef<string | null>(null);
+    const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const isTypingRef = useRef(false);
 
-    // Sync refs with state
-    useEffect(() => { messagesRef.current = messages; }, [messages]);
     useEffect(() => { activeConvoIdRef.current = activeConvoId; }, [activeConvoId]);
 
-    // ── Mobile keyboard: use visualViewport to shrink the chat area ───────────
+    // ── Mobile keyboard ───────────────────────────────────────────────────────
     useEffect(() => {
         const vv = window.visualViewport;
         if (!vv) return;
-
         const onResize = () => {
-            // The difference between layout height and visual height = keyboard height
             const keyboardH = window.innerHeight - vv.height;
             document.documentElement.style.setProperty("--keyboard-h", `${keyboardH}px`);
         };
-
         vv.addEventListener("resize", onResize);
         vv.addEventListener("scroll", onResize);
-        onResize(); // init
-
-        return () => {
-            vv.removeEventListener("resize", onResize);
-            vv.removeEventListener("scroll", onResize);
-        };
+        onResize();
+        return () => { vv.removeEventListener("resize", onResize); vv.removeEventListener("scroll", onResize); };
     }, []);
 
-    // Close attach dropdown on outside click
+    // ── Close attach dropdown on outside click ────────────────────────────────
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (attachMenuRef.current && !attachMenuRef.current.contains(e.target as Node)) {
                 setShowAttachMenu(false);
             }
         };
-        if (showAttachMenu) {
-            document.addEventListener("mousedown", handleClickOutside);
-        }
+        if (showAttachMenu) document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [showAttachMenu]);
 
-    // Fetch current user ID once
+    // ── Fetch current user ────────────────────────────────────────────────────
     useEffect(() => {
         fetch("/api/user/profile")
             .then(r => r.json())
             .then(d => setCurrentUserId(d.user?.id ?? null));
     }, []);
 
-    // Load conversation list
+    // ── Load conversation list ────────────────────────────────────────────────
     const loadConversations = useCallback(async () => {
         try {
             const res = await fetch("/api/conversations");
@@ -174,7 +158,7 @@ export default function MessagesUI({ accent }: { accent: string }) {
 
     useEffect(() => { loadConversations(); }, [loadConversations]);
 
-    // Handle ?with=userId param to auto-start a conversation
+    // ── Handle ?with=userId param ─────────────────────────────────────────────
     useEffect(() => {
         const withUserId = searchParams.get("with");
         if (!withUserId) return;
@@ -194,116 +178,131 @@ export default function MessagesUI({ accent }: { accent: string }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
 
-    // ── SSE connection management ──────────────────────────────────────────────
+    // ── Socket.io event listeners ─────────────────────────────────────────────
     useEffect(() => {
-        if (eventSourceRef.current) {
-            eventSourceRef.current.close();
-            eventSourceRef.current = null;
-            setSseConnected(false);
-        }
+        if (!socket) return;
 
-        if (!activeConvoId) {
-            setMessages([]);
-            return;
-        }
-
-        let cancelled = false;
-
-        setLoadingMessages(true);
-        fetch(`/api/conversations/${activeConvoId}/messages`)
-            .then(r => r.json())
-            .then(d => {
-                if (cancelled) return;
-                const initial: Message[] = d.messages ?? [];
-                setMessages(initial);
-                messagesRef.current = initial;
-
-                // Open SSE starting AFTER the last message we already have
-                const lastId = initial[initial.length - 1]?.id ?? null;
-                openSSEFor(activeConvoId, lastId);
-            })
-            .finally(() => { if (!cancelled) setLoadingMessages(false); });
-
-        // Mark conversations as read when we open them
-        setConversations(prev => prev.map(c => c.id === activeConvoId ? { ...c, unread: 0 } : c));
-
-        return () => {
-            cancelled = true;
-            if (eventSourceRef.current) {
-                eventSourceRef.current.close();
-                eventSourceRef.current = null;
-            }
-            setSseConnected(false);
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [activeConvoId]);
-
-    // ── SSE opener (also used for reconnect) ──────────────────────────────────
-    function openSSEFor(convoId: string, afterId: string | null) {
-        const param = afterId ? `?afterId=${afterId}` : "";
-        const es = new EventSource(`/api/conversations/${convoId}/stream${param}`);
-        eventSourceRef.current = es;
-
-        es.addEventListener("connected", () => setSseConnected(true));
-
-        es.addEventListener("messages", (e: MessageEvent) => {
-            const newMsgs: Message[] = JSON.parse(e.data);
-            if (!newMsgs.length) return;
+        // New message received (from the conversation room broadcast)
+        const onNewMessage = (msg: Message) => {
+            // Only process if it belongs to the active conversation
+            if (msg.conversationId !== activeConvoIdRef.current) return;
 
             setMessages(prev => {
-                const existingIds = new Set(prev.map(m => m.id));
-                // Only add messages from OTHER users (ours come via optimistic path)
-                const incoming = newMsgs.filter(m =>
-                    m.senderId !== currentUserId && !existingIds.has(m.id)
-                );
-                if (!incoming.length) return prev;
-                return [...prev, ...incoming];
+                // If it's our own message replacing an optimistic one, skip (handled in sendMessage)
+                const exists = prev.some(m => m.id === msg.id);
+                if (exists) return prev;
+                return [...prev, msg];
             });
 
-            // Update sidebar preview for this conversation
-            const last = newMsgs[newMsgs.length - 1];
-            setConversations(prev => prev.map(c =>
-                c.id === convoId
-                    ? { ...c, lastMessage: last.content, lastAt: last.createdAt, unread: c.id === activeConvoIdRef.current ? 0 : c.unread + newMsgs.length }
-                    : c
-            ));
-        });
-
-        // ── Read receipts: update isRead on our sent messages ─────────────────
-        es.addEventListener("read_receipts", (e: MessageEvent) => {
-            const { readIds } = JSON.parse(e.data) as { readIds: string[] };
-            if (!readIds?.length) return;
-            const readSet = new Set(readIds);
-            setMessages(prev => prev.map(m => readSet.has(m.id) ? { ...m, isRead: true } : m));
-            // Also update the sidebar's last message tick
-            setConversations(prev => prev.map(c => {
-                if (c.id !== convoId) return c;
-                return c.lastSenderId === currentUserId ? { ...c, lastIsRead: true } : c;
-            }));
-        });
-
-        // Reconnect when server sends planned-close event
-        es.addEventListener("reconnect", (e: MessageEvent) => {
-            const { lastSeenId } = JSON.parse(e.data) as { lastSeenId: string | null };
-            es.close();
-            setSseConnected(false);
-            if (activeConvoIdRef.current === convoId) {
-                const latestId = messagesRef.current[messagesRef.current.length - 1]?.id ?? lastSeenId;
-                openSSEFor(convoId, latestId);
-            }
-        });
-
-        es.onerror = () => {
-            es.close();
-            setSseConnected(false);
-            if (activeConvoIdRef.current === convoId) {
-                const lastId = messagesRef.current[messagesRef.current.length - 1]?.id ?? null;
-                setTimeout(() => openSSEFor(convoId, lastId), 2000);
+            // Mark as read immediately (we are in the conversation)
+            if (msg.senderId !== currentUserId) {
+                socket.emit("mark_read", msg.conversationId);
             }
         };
-    }
 
-    // Scroll to bottom when messages change (smooth, but instant on first load)
+        // Sidebar update from personal room (notifies us about other conversations)
+        const onConvoUpdated = (data: {
+            conversationId: string;
+            lastMessage: string;
+            lastAt: string;
+            lastSenderId: string;
+            lastIsRead: boolean;
+        }) => {
+            setConversations(prev => prev.map(c => {
+                if (c.id !== data.conversationId) return c;
+                const isActive = data.conversationId === activeConvoIdRef.current;
+                return {
+                    ...c,
+                    lastMessage: data.lastMessage,
+                    lastAt: data.lastAt,
+                    lastSenderId: data.lastSenderId,
+                    lastIsRead: data.lastIsRead,
+                    unread: isActive ? 0 : c.unread + 1,
+                };
+            }));
+        };
+
+        // Read receipts — our messages were read by the other person
+        const onMessagesRead = (data: { conversationId: string; readIds: string[] }) => {
+            const readSet = new Set(data.readIds);
+            setMessages(prev => prev.map(m => readSet.has(m.id) ? { ...m, isRead: true } : m));
+            setConversations(prev => prev.map(c => {
+                if (c.id !== data.conversationId) return c;
+                return c.lastSenderId === currentUserId ? { ...c, lastIsRead: true } : c;
+            }));
+        };
+
+        // Typing indicators
+        const onUserTyping = (data: { userId: string; conversationId: string }) => {
+            if (data.conversationId !== activeConvoIdRef.current) return;
+            if (data.userId === currentUserId) return;
+            setTypingUsers(prev => new Set([...prev, data.userId]));
+        };
+
+        const onUserStopTyping = (data: { userId: string; conversationId: string }) => {
+            setTypingUsers(prev => {
+                const next = new Set(prev);
+                next.delete(data.userId);
+                return next;
+            });
+        };
+
+        socket.on("new_message", onNewMessage);
+        socket.on("conversation_updated", onConvoUpdated);
+        socket.on("messages_read", onMessagesRead);
+        socket.on("user_typing", onUserTyping);
+        socket.on("user_stop_typing", onUserStopTyping);
+
+        return () => {
+            socket.off("new_message", onNewMessage);
+            socket.off("conversation_updated", onConvoUpdated);
+            socket.off("messages_read", onMessagesRead);
+            socket.off("user_typing", onUserTyping);
+            socket.off("user_stop_typing", onUserStopTyping);
+        };
+    }, [socket, currentUserId]);
+
+    // ── Join / leave conversation room ────────────────────────────────────────
+    useEffect(() => {
+        if (!socket) return;
+
+        // Leave previous room handled implicitly by joining new one,
+        // but we explicitly track to leave on cleanup
+        let prevConvoId: string | null = null;
+
+        if (activeConvoId) {
+            // Load messages from REST
+            setLoadingMessages(true);
+            setMessages([]);
+            fetch(`/api/conversations/${activeConvoId}/messages`)
+                .then(r => r.json())
+                .then(d => {
+                    setMessages(d.messages ?? []);
+                    // Mark incoming as read
+                    socket.emit("mark_read", activeConvoId);
+                })
+                .finally(() => setLoadingMessages(false));
+
+            // Join the Socket.io room
+            socket.emit("join_conversation", activeConvoId);
+            prevConvoId = activeConvoId;
+
+            // Clear unread badge for this convo
+            setConversations(prev => prev.map(c => c.id === activeConvoId ? { ...c, unread: 0 } : c));
+        } else {
+            setMessages([]);
+        }
+
+        return () => {
+            if (prevConvoId) {
+                socket.emit("leave_conversation", prevConvoId);
+            }
+            setTypingUsers(new Set());
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeConvoId, socket]);
+
+    // ── Scroll to bottom ──────────────────────────────────────────────────────
     const isFirstLoad = useRef(true);
     useEffect(() => {
         if (!messagesEndRef.current) return;
@@ -311,12 +310,11 @@ export default function MessagesUI({ accent }: { accent: string }) {
         isFirstLoad.current = false;
     }, [messages]);
 
-    // Reset first-load flag on conversation change
     useEffect(() => { isFirstLoad.current = true; }, [activeConvoId]);
 
     // ── Send message ──────────────────────────────────────────────────────────
     const sendMessage = async () => {
-        if ((!draft.trim() && !attachment) || !activeConvoId || sending) return;
+        if ((!draft.trim() && !attachment) || !activeConvoId || sending || !socket) return;
         const content = draft.trim();
         const finalAttachment = attachment;
 
@@ -324,7 +322,13 @@ export default function MessagesUI({ accent }: { accent: string }) {
         setDraft("");
         setAttachment(null);
 
-        // Optimistic — id starts with "tmp-" so we know it's not real
+        // Stop typing signal
+        if (isTypingRef.current) {
+            socket.emit("stop_typing", activeConvoId);
+            isTypingRef.current = false;
+        }
+
+        // Optimistic message (local only, will be replaced by server echo)
         const optimisticId = `tmp-${Date.now()}`;
         const optimistic: Message = {
             id: optimisticId,
@@ -339,30 +343,61 @@ export default function MessagesUI({ accent }: { accent: string }) {
         };
         setMessages(prev => [...prev, optimistic]);
 
-        try {
-            const res = await fetch(`/api/conversations/${activeConvoId}/messages`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ content, attachmentUrl: finalAttachment?.url, attachmentType: finalAttachment?.type }),
+        // Update sidebar instantly
+        setConversations(prev => prev.map(c =>
+            c.id === activeConvoId
+                ? { ...c, lastMessage: content || "Sent an attachment", lastAt: optimistic.createdAt, lastSenderId: currentUserId, lastIsRead: false }
+                : c
+        ));
+
+        // Emit via socket — server will broadcast new_message to all in room
+        socket.emit("send_message", {
+            conversationId: activeConvoId,
+            content,
+            attachmentUrl: finalAttachment?.url,
+            attachmentType: finalAttachment?.type,
+        });
+
+        // Listen once for the server-confirmed message to replace optimistic
+        const onNewMessage = (msg: Message) => {
+            if (msg.conversationId !== activeConvoId || msg.senderId !== currentUserId) return;
+            setMessages(prev => {
+                // Replace the optimistic entry with real one
+                const idx = prev.findIndex(m => m.id === optimisticId);
+                if (idx === -1) return prev;
+                const next = [...prev];
+                next[idx] = msg;
+                return next;
             });
-            const data = await res.json();
-            if (data.message) {
-                setMessages(prev => prev.map(m => m.id === optimisticId ? data.message : m));
-                setConversations(prev => prev.map(c =>
-                    c.id === activeConvoId
-                        ? { ...c, lastMessage: content || "Sent an attachment", lastAt: data.message.createdAt, lastSenderId: currentUserId, lastIsRead: false }
-                        : c
-                ));
-            }
-        } catch {
-            setMessages(prev => prev.filter(m => m.id !== optimisticId));
-            setDraft(content);
-            setAttachment(finalAttachment);
-        }
+            socket.off("new_message", onNewMessage);
+        };
+        socket.on("new_message", onNewMessage);
+
+        // Fallback: remove optimistic listener after 10s to avoid leaks
+        setTimeout(() => socket.off("new_message", onNewMessage), 10000);
+
         setSending(false);
         inputRef.current?.focus();
     };
 
+    // ── Typing indicator ──────────────────────────────────────────────────────
+    const handleDraftChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setDraft(e.target.value);
+        if (!socket || !activeConvoId) return;
+
+        if (!isTypingRef.current) {
+            socket.emit("typing", activeConvoId);
+            isTypingRef.current = true;
+        }
+
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = setTimeout(() => {
+            socket.emit("stop_typing", activeConvoId);
+            isTypingRef.current = false;
+        }, 2000);
+    };
+
+    // ── File upload ───────────────────────────────────────────────────────────
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -413,9 +448,7 @@ export default function MessagesUI({ accent }: { accent: string }) {
 
     const activeConvo = conversations.find(c => c.id === activeConvoId);
 
-
     return (
-        // Use padding-bottom = keyboard height so the chat moves up with the keyboard on mobile
         <div
             className="h-full flex"
             style={{
@@ -430,8 +463,18 @@ export default function MessagesUI({ accent }: { accent: string }) {
                 style={{ background: "var(--theme-surface)" }}
             >
                 <div className="p-4 border-b border-[var(--theme-border)] shrink-0">
-                    <h2 className="text-[17px] font-bold text-[var(--theme-text-primary)]">Messages</h2>
-                    <div className="mt-2.5 relative">
+                    <div className="flex items-center justify-between mb-2.5">
+                        <h2 className="text-[17px] font-bold text-[var(--theme-text-primary)]">Messages</h2>
+                        {/* Connection status pill */}
+                        <div className="flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-semibold"
+                            style={{ background: connected ? "rgba(34,197,94,0.12)" : "rgba(234,179,8,0.12)", color: connected ? "#22c55e" : "#eab308" }}>
+                            {connected
+                                ? <><Wifi className="w-3 h-3" /> Live</>
+                                : <><WifiOff className="w-3 h-3" /> Connecting…</>
+                            }
+                        </div>
+                    </div>
+                    <div className="relative">
                         <svg className="absolute left-3 top-1/2 -translate-y-1/2" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2">
                             <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                         </svg>
@@ -469,7 +512,6 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                             {getInitials(c.other.fullName)}
                                         </div>
                                     )}
-                                    {/* Unread badge on avatar */}
                                     {c.unread > 0 && (
                                         <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 rounded-full text-[9px] font-bold text-white flex items-center justify-center px-1"
                                             style={{ background: accent }}>
@@ -486,7 +528,6 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                         <span className="text-[10px] text-[var(--theme-text-muted)] shrink-0 ml-2">{formatTime(c.lastAt)}</span>
                                     </div>
                                     <div className="flex items-center gap-1">
-                                        {/* Mini tick for last sent message */}
                                         {c.lastSenderId === currentUserId && c.lastMessage && (
                                             <span className="shrink-0 flex items-center" style={{ color: "var(--theme-text-muted)" }}>
                                                 <TickIcon isRead={c.lastIsRead} isOptimistic={false} />
@@ -533,8 +574,16 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                     <p className="text-[13px] font-bold text-[var(--theme-text-primary)]">{activeConvo.other.fullName}</p>
                                     <div className="flex items-center gap-1.5">
                                         <p className="text-[10px] text-[var(--theme-text-muted)]">@{activeConvo.other.username}</p>
-                                        <span className={`w-1.5 h-1.5 rounded-full transition-colors ${sseConnected ? "bg-green-500" : "bg-yellow-500 animate-pulse"}`} />
-                                        <p className="text-[10px] text-[var(--theme-text-muted)]">{sseConnected ? "Online" : "Connecting…"}</p>
+                                        {typingUsers.size > 0 ? (
+                                            <span className="text-[10px] italic" style={{ color: accent }}>
+                                                typing…
+                                            </span>
+                                        ) : (
+                                            <>
+                                                <span className={`w-1.5 h-1.5 rounded-full transition-colors ${connected ? "bg-green-500" : "bg-yellow-500 animate-pulse"}`} />
+                                                <p className="text-[10px] text-[var(--theme-text-muted)]">{connected ? "Connected" : "Reconnecting…"}</p>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -563,7 +612,6 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                     const isMine = msg.senderId === currentUserId;
                                     const isOptimistic = msg.id.startsWith("tmp-");
 
-                                    // Group consecutive messages from same sender (bubble grouping)
                                     const prevMsg = messages[i - 1];
                                     const nextMsg = messages[i + 1];
                                     const showDate = i === 0 || new Date(msg.createdAt).toDateString() !== new Date(messages[i - 1].createdAt).toDateString();
@@ -571,13 +619,12 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                     const sameAsNext = nextMsg && nextMsg.senderId === msg.senderId &&
                                         new Date(nextMsg.createdAt).toDateString() === new Date(msg.createdAt).toDateString();
 
-                                    // Bubble border radius based on grouping
                                     const getBubbleRadius = () => {
                                         if (isMine) {
-                                            if (!sameAsPrev && sameAsNext) return "20px 20px 6px 20px"; // top of group
-                                            if (sameAsPrev && sameAsNext) return "20px 6px 6px 20px";   // middle
-                                            if (sameAsPrev && !sameAsNext) return "20px 6px 20px 20px"; // bottom
-                                            return "20px 20px 6px 20px";                                // solo
+                                            if (!sameAsPrev && sameAsNext) return "20px 20px 6px 20px";
+                                            if (sameAsPrev && sameAsNext) return "20px 6px 6px 20px";
+                                            if (sameAsPrev && !sameAsNext) return "20px 6px 20px 20px";
+                                            return "20px 20px 6px 20px";
                                         } else {
                                             if (!sameAsPrev && sameAsNext) return "20px 20px 20px 6px";
                                             if (sameAsPrev && sameAsNext) return "6px 20px 20px 6px";
@@ -597,7 +644,6 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                                 </div>
                                             )}
                                             <div className={`flex items-end gap-2 ${isMine ? "justify-end" : "justify-start"} ${sameAsPrev && !showDate ? "mt-0.5" : "mt-2"}`}>
-                                                {/* Avatar — only show on last message of a group */}
                                                 {!isMine && (
                                                     <div className="w-7 shrink-0 mb-1">
                                                         {!sameAsNext ? (
@@ -622,7 +668,6 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                                             ),
                                                         }}
                                                     >
-                                                        {/* Attachment renderer */}
                                                         {msg.attachmentUrl && (
                                                             <div className="mb-2 max-w-full rounded-lg overflow-hidden border border-black/10">
                                                                 {msg.attachmentType === "image" ? (
@@ -643,7 +688,6 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                                         {msg.content}
                                                     </div>
 
-                                                    {/* Timestamp + tick — only on last msg of group or last overall */}
                                                     {(!sameAsNext || i === messages.length - 1) && (
                                                         <div className={`flex items-center gap-1 mt-0.5 px-1 ${isMine ? "flex-row-reverse" : "flex-row"}`}>
                                                             <span className="text-[9px] text-[var(--theme-text-muted)]">
@@ -660,18 +704,39 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                     );
                                 })
                             )}
+                            {/* Typing bubble */}
+                            {typingUsers.size > 0 && (
+                                <div className="flex items-end gap-2 justify-start mt-2">
+                                    <div className="w-7 shrink-0 mb-1">
+                                        {activeConvo.other.avatarUrl ? (
+                                            <img src={activeConvo.other.avatarUrl} alt={activeConvo.other.fullName} className="w-7 h-7 rounded-full object-cover" />
+                                        ) : (
+                                            <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${gradientFor(activeConvo.other.role)} flex items-center justify-center text-white text-[9px] font-bold`}>
+                                                {getInitials(activeConvo.other.fullName)}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="px-4 py-3 rounded-[20px_20px_20px_6px] flex items-center gap-1"
+                                        style={{ background: "var(--theme-card)", border: "1px solid var(--theme-border)" }}>
+                                        {[0, 1, 2].map(i => (
+                                            <span key={i} className="w-1.5 h-1.5 rounded-full animate-bounce"
+                                                style={{ background: "var(--theme-text-muted)", animationDelay: `${i * 0.15}s` }} />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                             <div ref={messagesEndRef} style={{ overflowAnchor: "auto" }} />
                         </div>
 
-                        {/* Input bar — sticky at bottom, moves with keyboard */}
+                        {/* Input bar */}
                         <div
                             className="shrink-0 border-t border-[var(--theme-border)] relative"
                             style={{ background: "var(--theme-surface)" }}
                         >
-                            {/* WhatsApp-Style Attach Menu */}
+                            {/* Attach Menu */}
                             {showAttachMenu && (
                                 <div ref={attachMenuRef}
-                                    className="absolute bottom-full left-0 right-0 sm:left-4 sm:right-auto mb-1 z-50 rounded-2xl shadow-2xl p-2 sm:w-[220px] animate-in slide-in-from-bottom-2 fade-in duration-200"
+                                    className="absolute bottom-full left-0 right-0 sm:left-4 sm:right-auto mb-1 z-50 rounded-2xl shadow-2xl p-2 sm:w-[220px]"
                                     style={{ background: "#20232b", border: "1px solid rgba(255,255,255,0.05)", marginBottom: "8px" }}>
                                     <div className="flex flex-col gap-1">
                                         {[
@@ -681,7 +746,7 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                             { type: "audio", label: "Audio", color: "#FF9500", icon: <><path d="M3 18v-6a9 9 0 0 1 18 0v6" /><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" /></> },
                                         ].map(item => (
                                             <button key={item.type} onClick={() => handleAttachClick(item.type)}
-                                                className="flex items-center gap-3 w-full p-2.5 rounded-xl border-none cursor-pointer bg-transparent hover:bg-white/5 transition-colors text-left group">
+                                                className="flex items-center gap-3 w-full p-2.5 rounded-xl border-none cursor-pointer bg-transparent hover:bg-white/5 transition-colors text-left">
                                                 <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ background: item.color }}>
                                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                                         {item.icon}
@@ -694,7 +759,7 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                 </div>
                             )}
 
-                            {/* Staged Attachment Preview */}
+                            {/* Attachment Preview */}
                             {attachment && (
                                 <div className="mx-3 mt-3 px-3 py-2 rounded-xl flex items-center justify-between border"
                                     style={{ background: "var(--theme-card)", borderColor: "var(--theme-border)" }}>
@@ -736,20 +801,18 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                     ref={inputRef}
                                     type="text"
                                     value={draft}
-                                    onChange={e => setDraft(e.target.value)}
+                                    onChange={handleDraftChange}
                                     onFocus={() => {
-                                        // Small delay — let the keyboard appear, then scroll to bottom
                                         setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 350);
                                     }}
-                                    // 16px minimum font on mobile prevents iOS auto-zoom on focus
                                     className="flex-1 bg-transparent border-none outline-none text-[16px] sm:text-[13px] placeholder:text-[var(--theme-text-muted)] py-1"
                                     placeholder="Type a message…"
                                     autoComplete="off"
                                     style={{ color: "var(--theme-text-primary)" }}
                                 />
-                                <button type="submit" disabled={(!draft.trim() && !attachment) || sending}
+                                <button type="submit" disabled={(!draft.trim() && !attachment) || sending || !connected}
                                     className="w-8 h-8 rounded-full flex items-center justify-center text-white border-none cursor-pointer transition-all hover:scale-105 active:scale-95 disabled:opacity-40 shrink-0"
-                                    style={{ background: draft.trim() || attachment ? `linear-gradient(135deg, ${accent}, ${accent}aa)` : "var(--theme-border)" }}>
+                                    style={{ background: (draft.trim() || attachment) && connected ? `linear-gradient(135deg, ${accent}, ${accent}aa)` : "var(--theme-border)" }}>
                                     {sending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
                                 </button>
                             </form>
@@ -764,6 +827,12 @@ export default function MessagesUI({ accent }: { accent: string }) {
                         <p className="text-[12px] text-[var(--theme-text-muted)] max-w-[240px] leading-relaxed">
                             Select a conversation or start a new one from any profile or search page.
                         </p>
+                        {/* Live indicator */}
+                        <div className="mt-4 flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-medium"
+                            style={{ background: connected ? "rgba(34,197,94,0.1)" : "rgba(234,179,8,0.1)", color: connected ? "#22c55e" : "#eab308" }}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${connected ? "bg-green-500" : "bg-yellow-500 animate-pulse"}`} />
+                            {connected ? "Socket.io Connected" : "Connecting to server…"}
+                        </div>
                     </div>
                 )}
             </div>
