@@ -41,6 +41,7 @@ export async function GET(req: Request) {
                 id: u.id,
                 name: u.fullName || u.username || "User",
                 role: roleStr,
+                type: u.role,
                 initials: (u.fullName || "??").split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2),
                 avatarUrl: u.avatarUrl,
                 grad: "from-violet-500 to-purple-600", // We can apply this dynamically on frontend too

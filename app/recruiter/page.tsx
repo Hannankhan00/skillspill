@@ -58,9 +58,9 @@ const defaultActiveJobs = [
 ];
 
 const defaultTopCandidates = [
-    { id: "u1", name: "Sarah Chen", role: "Full-Stack", initials: "SC", grad: "from-violet-500 to-purple-600", score: 94 },
-    { id: "u2", name: "Marcus Johnson", role: "Backend", initials: "MJ", grad: "from-sky-400 to-blue-500", score: 91 },
-    { id: "u3", name: "Aisha Patel", role: "ML Eng", initials: "AP", grad: "from-emerald-400 to-teal-500", score: 89 },
+    { id: "u1", name: "Sarah Chen", role: "Full-Stack", type: "TALENT", initials: "SC", grad: "from-violet-500 to-purple-600", score: 94, avatarUrl: null },
+    { id: "u2", name: "Marcus Johnson", role: "Backend", type: "TALENT", initials: "MJ", grad: "from-sky-400 to-blue-500", score: 91, avatarUrl: null },
+    { id: "u3", name: "Aisha Patel", role: "ML Eng", type: "TALENT", initials: "AP", grad: "from-emerald-400 to-teal-500", score: 89, avatarUrl: null },
 ];
 
 
@@ -554,15 +554,19 @@ export default function RecruiterFeed() {
                             <div className="divide-y divide-(--theme-border-light)">
                                 {displayCandidates.map((c: any) => (
                                     <div key={c.name} className="flex items-center justify-between px-4 py-3 hover:bg-(--theme-bg-secondary) transition-colors">
-                                        <div className="flex items-center gap-2.5">
-                                            <div className={`w-8 h-8 rounded-full bg-linear-to-br ${c.grad} flex items-center justify-center text-white text-[9px] font-bold shadow-sm`}>
-                                                {c.initials}
-                                            </div>
+                                        <Link href={`/recruiter/${c.type === 'RECRUITER' ? 'recruiter' : 'talent'}/${c.id || 'u1'}`} className="flex items-center gap-2.5 no-underline">
+                                            {c.avatarUrl ? (
+                                                <img src={c.avatarUrl} alt={c.name} className="w-8 h-8 rounded-full object-cover shadow-sm border border-(--theme-border-light)" />
+                                            ) : (
+                                                <div className={`w-8 h-8 rounded-full bg-linear-to-br ${c.grad} flex items-center justify-center text-white text-[9px] font-bold shadow-sm`}>
+                                                    {c.initials}
+                                                </div>
+                                            )}
                                             <div>
-                                                <p className="text-[12px] font-semibold text-(--theme-text-secondary)">{c.name}</p>
+                                                <p className="text-[12px] font-semibold text-(--theme-text-secondary) hover:text-[#A855F7] transition-colors">{c.name}</p>
                                                 <p className="text-[10px] text-(--theme-text-muted)">{c.role}</p>
                                             </div>
-                                        </div>
+                                        </Link>
                                         <div className="flex items-center gap-2">
                                             <span className="text-[10px] font-bold text-[#A855F7]"
                                                 style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{c.score}%</span>

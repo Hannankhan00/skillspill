@@ -53,9 +53,9 @@ function getGrad(str: string) {
     return grads[Math.abs(hash) % grads.length];
 }
 const defaultSuggestedUsers = [
-    { id: "1", name: "Alex_Kernel", role: "Kernel Dev", initials: "AK", grad: "from-red-400 to-rose-600" },
-    { id: "2", name: "Cloud_Nine", role: "DevOps Lead", initials: "C9", grad: "from-sky-400 to-indigo-500" },
-    { id: "3", name: "Bit_Wizard", role: "Security Eng", initials: "BW", grad: "from-amber-400 to-orange-500" },
+    { id: "1", name: "Alex_Kernel", role: "Kernel Dev", type: "TALENT", initials: "AK", grad: "from-red-400 to-rose-600", avatarUrl: null },
+    { id: "2", name: "Cloud_Nine", role: "DevOps Lead", type: "TALENT", initials: "C9", grad: "from-sky-400 to-indigo-500", avatarUrl: null },
+    { id: "3", name: "Bit_Wizard", role: "Security Eng", type: "TALENT", initials: "BW", grad: "from-amber-400 to-orange-500", avatarUrl: null },
 ];
 
 const defaultJobSuggestions = [
@@ -567,15 +567,19 @@ export default function TalentFeed() {
                             <div className="divide-y divide-(--theme-border-light)">
                                 {displayUsers.map((user: any) => (
                                     <div key={user.name} className="flex items-center justify-between px-4 py-3" style={{ borderColor: "var(--theme-border-light)" }}>
-                                        <div className="flex items-center gap-2.5">
-                                            <div className={`w-8 h-8 rounded-full bg-linear-to-br ${user.grad} flex items-center justify-center text-white text-[9px] font-bold shadow-sm`}>
-                                                {user.initials}
-                                            </div>
+                                        <Link href={`/talent/${user.type === 'RECRUITER' ? 'recruiter' : 'talent'}/${user.id || '1'}`} className="flex items-center gap-2.5 no-underline">
+                                            {user.avatarUrl ? (
+                                                <img src={user.avatarUrl} alt={user.name} className="w-8 h-8 rounded-full object-cover shadow-sm border border-(--theme-border-light)" />
+                                            ) : (
+                                                <div className={`w-8 h-8 rounded-full bg-linear-to-br ${user.grad} flex items-center justify-center text-white text-[9px] font-bold shadow-sm`}>
+                                                    {user.initials}
+                                                </div>
+                                            )}
                                             <div>
-                                                <p className="text-[12px] font-semibold text-(--theme-text-secondary)">{user.name}</p>
+                                                <p className="text-[12px] font-semibold text-(--theme-text-secondary) hover:text-primary transition-colors">{user.name}</p>
                                                 <p className="text-[10px] text-(--theme-text-muted)">{user.role}</p>
                                             </div>
-                                        </div>
+                                        </Link>
                                         <button className="px-3 py-1 rounded-lg text-[10px] font-bold text-[#2edb13] border border-primary/20 bg-primary/10 cursor-pointer hover:bg-[#2edb13] hover:text-white hover:border-[#2edb13] transition-all">
                                             Follow
                                         </button>
