@@ -91,6 +91,41 @@ function PostSkeleton() {
     );
 }
 
+function SidebarJobSkeleton() {
+    return (
+        <div className="px-4 py-3 animate-pulse border-b border-(--theme-border-light) last:border-0 hover:bg-transparent cursor-default">
+            <div className="flex items-start justify-between mb-1">
+                <div className="flex items-center gap-1.5 w-full">
+                    <div className="h-3 bg-(--theme-border) rounded w-3/4" />
+                </div>
+                <div className="h-2 bg-(--theme-border) rounded w-8 shrink-0 ml-4" />
+            </div>
+            <div className="flex items-center justify-between">
+                <div className="h-2 bg-(--theme-border) rounded w-1/2" />
+                <div className="h-2 bg-(--theme-border) rounded w-8 shrink-0" />
+            </div>
+        </div>
+    );
+}
+
+function SidebarUserSkeleton() {
+    return (
+        <div className="flex items-center justify-between px-4 py-3 animate-pulse border-b border-(--theme-border-light) last:border-0 hover:bg-transparent cursor-default">
+            <div className="flex items-center gap-2.5 w-full">
+                <div className="w-8 h-8 rounded-full bg-(--theme-border) shrink-0" />
+                <div className="space-y-1.5 flex-1">
+                    <div className="h-3 bg-(--theme-border) rounded w-1/2" />
+                    <div className="h-2 bg-(--theme-border) rounded w-1/3" />
+                </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0 ml-4">
+                <div className="h-2 bg-(--theme-border) rounded w-6" />
+                <div className="h-6 bg-(--theme-border) rounded w-12" />
+            </div>
+        </div>
+    );
+}
+
 export default function RecruiterFeed() {
     const [feedTab, setFeedTab] = useState("Discover");
     const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
@@ -113,6 +148,7 @@ export default function RecruiterFeed() {
 
     const [userData, setUserData] = useState<any>(null);
     const [sidebarData, setSidebarData] = useState<{ suggestedUsers: any[], jobSuggestions: any[] } | null>(null);
+    const [sidebarLoading, setSidebarLoading] = useState(true);
 
     useEffect(() => {
         fetch("/api/user/profile")
@@ -128,8 +164,9 @@ export default function RecruiterFeed() {
             .then(res => res.json())
             .then(data => {
                 if (data.suggestedUsers) setSidebarData(data);
+                setSidebarLoading(false);
             })
-            .catch(console.error);
+            .catch(() => setSidebarLoading(false));
     }, []);
 
     // Fetch the Feed Posts (initial / tab change)
@@ -515,23 +552,27 @@ export default function RecruiterFeed() {
                                 </Link>
                             </div>
                             <div className="divide-y divide-(--theme-border-light)">
-                                {displayJobs.map((job: any, i: number) => (
-                                    <div key={i} className="px-4 py-3 hover:bg-purple-500/10 transition-colors cursor-pointer group">
-                                        <div className="flex items-start justify-between mb-1">
-                                            <div className="flex items-center gap-1.5">
-                                                {job.hot && <span className="w-1.5 h-1.5 rounded-full bg-orange-400" />}
-                                                <p className="text-[12px] font-semibold text-(--theme-text-secondary) group-hover:text-(--theme-text-primary) transition-colors">{job.title}</p>
+                                {sidebarLoading ? (
+                                    [...Array(3)].map((_, i) => <SidebarJobSkeleton key={i} />)
+                                ) : (
+                                    displayJobs.map((job: any, i: number) => (
+                                        <div key={i} className="px-4 py-3 hover:bg-purple-500/10 transition-colors cursor-pointer group">
+                                            <div className="flex items-start justify-between mb-1">
+                                                <div className="flex items-center gap-1.5">
+                                                    {job.hot && <span className="w-1.5 h-1.5 rounded-full bg-orange-400" />}
+                                                    <p className="text-[12px] font-semibold text-(--theme-text-secondary) group-hover:text-(--theme-text-primary) transition-colors">{job.title}</p>
+                                                </div>
+                                                <span className="text-[10px] font-bold text-emerald-500"
+                                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{job.budget}</span>
                                             </div>
-                                            <span className="text-[10px] font-bold text-emerald-500"
-                                                style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{job.budget}</span>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-[10px] text-(--theme-text-muted)">{job.apps} applicants • {job.type}</span>
+                                                <span className={`text-[10px] ${job.days <= 3 ? "text-orange-500 font-semibold" : "text-(--theme-text-muted)"}`}
+                                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{job.days}d left</span>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-[10px] text-(--theme-text-muted)">{job.apps} applicants • {job.type}</span>
-                                            <span className={`text-[10px] ${job.days <= 3 ? "text-orange-500 font-semibold" : "text-(--theme-text-muted)"}`}
-                                                style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{job.days}d left</span>
-                                        </div>
-                                    </div>
-                                ))}
+                                    ))
+                                )}
                             </div>
                             <div className="px-4 py-3 border-t border-(--theme-border-light)">
                                 <Link href="/recruiter/applications"
@@ -552,30 +593,34 @@ export default function RecruiterFeed() {
                                 </Link>
                             </div>
                             <div className="divide-y divide-(--theme-border-light)">
-                                {displayCandidates.map((c: any) => (
-                                    <div key={c.name} className="flex items-center justify-between px-4 py-3 hover:bg-(--theme-bg-secondary) transition-colors">
-                                        <Link href={`/recruiter/${c.type === 'RECRUITER' ? 'recruiter' : 'talent'}/${c.id || 'u1'}`} className="flex items-center gap-2.5 no-underline">
-                                            {c.avatarUrl ? (
-                                                <img src={c.avatarUrl} alt={c.name} className="w-8 h-8 rounded-full object-cover shadow-sm border border-(--theme-border-light)" />
-                                            ) : (
-                                                <div className={`w-8 h-8 rounded-full bg-linear-to-br ${c.grad} flex items-center justify-center text-white text-[9px] font-bold shadow-sm`}>
-                                                    {c.initials}
+                                {sidebarLoading ? (
+                                    [...Array(3)].map((_, i) => <SidebarUserSkeleton key={i} />)
+                                ) : (
+                                    displayCandidates.map((c: any) => (
+                                        <div key={c.name} className="flex items-center justify-between px-4 py-3 hover:bg-(--theme-bg-secondary) transition-colors">
+                                            <Link href={`/recruiter/${c.type === 'RECRUITER' ? 'recruiter' : 'talent'}/${c.id || 'u1'}`} className="flex items-center gap-2.5 no-underline">
+                                                {c.avatarUrl ? (
+                                                    <img src={c.avatarUrl} alt={c.name} className="w-8 h-8 rounded-full object-cover shadow-sm border border-(--theme-border-light)" />
+                                                ) : (
+                                                    <div className={`w-8 h-8 rounded-full bg-linear-to-br ${c.grad} flex items-center justify-center text-white text-[9px] font-bold shadow-sm`}>
+                                                        {c.initials}
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <p className="text-[12px] font-semibold text-(--theme-text-secondary) hover:text-[#A855F7] transition-colors">{c.name}</p>
+                                                    <p className="text-[10px] text-(--theme-text-muted)">{c.role}</p>
                                                 </div>
-                                            )}
-                                            <div>
-                                                <p className="text-[12px] font-semibold text-(--theme-text-secondary) hover:text-[#A855F7] transition-colors">{c.name}</p>
-                                                <p className="text-[10px] text-(--theme-text-muted)">{c.role}</p>
+                                            </Link>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[10px] font-bold text-[#A855F7]"
+                                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{c.score}%</span>
+                                                <button className="px-2.5 py-1 rounded-md text-[9px] font-bold text-[#A855F7] border border-[#A855F7]/30 bg-[#A855F7]/10 cursor-pointer hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all">
+                                                    View
+                                                </button>
                                             </div>
-                                        </Link>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[10px] font-bold text-[#A855F7]"
-                                                style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{c.score}%</span>
-                                            <button className="px-2.5 py-1 rounded-md text-[9px] font-bold text-[#A855F7] border border-[#A855F7]/30 bg-[#A855F7]/10 cursor-pointer hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all">
-                                                View
-                                            </button>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))
+                                )}
                             </div>
                         </div>
 

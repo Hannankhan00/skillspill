@@ -89,6 +89,35 @@ function PostSkeleton() {
     );
 }
 
+function SidebarJobSkeleton() {
+    return (
+        <div className="px-4 py-3 animate-pulse border-b border-(--theme-border-light) last:border-0">
+            <div className="flex items-start justify-between">
+                <div className="space-y-1.5 w-full">
+                    <div className="h-3 bg-(--theme-border) rounded w-3/4" />
+                    <div className="h-2 bg-(--theme-border) rounded w-1/2" />
+                </div>
+                <div className="h-3 bg-(--theme-border) rounded w-10 shrink-0 ml-4" />
+            </div>
+        </div>
+    );
+}
+
+function SidebarUserSkeleton() {
+    return (
+        <div className="flex items-center justify-between px-4 py-3 animate-pulse border-b border-(--theme-border-light) last:border-0">
+            <div className="flex items-center gap-2.5 w-full">
+                <div className="w-8 h-8 rounded-full bg-(--theme-border) shrink-0" />
+                <div className="space-y-1.5 flex-1">
+                    <div className="h-3 bg-(--theme-border) rounded w-1/2" />
+                    <div className="h-2 bg-(--theme-border) rounded w-1/3" />
+                </div>
+            </div>
+            <div className="h-6 bg-(--theme-border) rounded w-14 shrink-0 ml-4" />
+        </div>
+    );
+}
+
 /* ═══════════════ MAIN FEED ═══════════════ */
 export default function TalentFeed() {
     const [feedTab, setFeedTab] = useState("For You");
@@ -116,6 +145,7 @@ export default function TalentFeed() {
     // Fetch live user data for the mini profile card
     const [userData, setUserData] = useState<any>(null);
     const [sidebarData, setSidebarData] = useState<{ suggestedUsers: any[], jobSuggestions: any[] } | null>(null);
+    const [sidebarLoading, setSidebarLoading] = useState(true);
 
     useEffect(() => {
         fetch("/api/user/profile")
@@ -131,8 +161,9 @@ export default function TalentFeed() {
             .then(res => res.json())
             .then(data => {
                 if (data.suggestedUsers) setSidebarData(data);
+                setSidebarLoading(false);
             })
-            .catch(console.error);
+            .catch(() => setSidebarLoading(false));
     }, []);
 
     // Fetch the Feed Posts (initial / tab change)
@@ -543,18 +574,22 @@ export default function TalentFeed() {
                                 </Link>
                             </div>
                             <div className="divide-y divide-(--theme-border-light)">
-                                {displayJobs.map((job: any) => (
-                                    <div key={job.title} className="px-4 py-3 hover:bg-primary/10 transition-colors cursor-pointer group" style={{ borderColor: "var(--theme-border-light)" }}>
-                                        <div className="flex items-start justify-between">
-                                            <div>
-                                                <p className="text-[12px] font-semibold text-(--theme-text-secondary) group-hover:text-(--theme-text-primary) transition-colors">{job.title}</p>
-                                                <p className="text-[10px] text-(--theme-text-muted)">{job.company} &bull; {job.budget}</p>
+                                {sidebarLoading ? (
+                                    [...Array(3)].map((_, i) => <SidebarJobSkeleton key={i} />)
+                                ) : (
+                                    displayJobs.map((job: any) => (
+                                        <div key={job.title} className="px-4 py-3 hover:bg-primary/10 transition-colors cursor-pointer group" style={{ borderColor: "var(--theme-border-light)" }}>
+                                            <div className="flex items-start justify-between">
+                                                <div>
+                                                    <p className="text-[12px] font-semibold text-(--theme-text-secondary) group-hover:text-(--theme-text-primary) transition-colors">{job.title}</p>
+                                                    <p className="text-[10px] text-(--theme-text-muted)">{job.company} &bull; {job.budget}</p>
+                                                </div>
+                                                <span className="text-[10px] font-bold text-primary px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20"
+                                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{job.match}</span>
                                             </div>
-                                            <span className="text-[10px] font-bold text-primary px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20"
-                                                style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{job.match}</span>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))
+                                )}
                             </div>
                         </div>
 
@@ -565,26 +600,30 @@ export default function TalentFeed() {
                                     style={{ fontFamily: "var(--font-jetbrains-mono)" }}>👥 People to Follow</h3>
                             </div>
                             <div className="divide-y divide-(--theme-border-light)">
-                                {displayUsers.map((user: any) => (
-                                    <div key={user.name} className="flex items-center justify-between px-4 py-3" style={{ borderColor: "var(--theme-border-light)" }}>
-                                        <Link href={`/talent/${user.type === 'RECRUITER' ? 'recruiter' : 'talent'}/${user.id || '1'}`} className="flex items-center gap-2.5 no-underline">
-                                            {user.avatarUrl ? (
-                                                <img src={user.avatarUrl} alt={user.name} className="w-8 h-8 rounded-full object-cover shadow-sm border border-(--theme-border-light)" />
-                                            ) : (
-                                                <div className={`w-8 h-8 rounded-full bg-linear-to-br ${user.grad} flex items-center justify-center text-white text-[9px] font-bold shadow-sm`}>
-                                                    {user.initials}
+                                {sidebarLoading ? (
+                                    [...Array(3)].map((_, i) => <SidebarUserSkeleton key={i} />)
+                                ) : (
+                                    displayUsers.map((user: any) => (
+                                        <div key={user.name} className="flex items-center justify-between px-4 py-3" style={{ borderColor: "var(--theme-border-light)" }}>
+                                            <Link href={`/talent/${user.type === 'RECRUITER' ? 'recruiter' : 'talent'}/${user.id || '1'}`} className="flex items-center gap-2.5 no-underline">
+                                                {user.avatarUrl ? (
+                                                    <img src={user.avatarUrl} alt={user.name} className="w-8 h-8 rounded-full object-cover shadow-sm border border-(--theme-border-light)" />
+                                                ) : (
+                                                    <div className={`w-8 h-8 rounded-full bg-linear-to-br ${user.grad} flex items-center justify-center text-white text-[9px] font-bold shadow-sm`}>
+                                                        {user.initials}
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <p className="text-[12px] font-semibold text-(--theme-text-secondary) hover:text-primary transition-colors">{user.name}</p>
+                                                    <p className="text-[10px] text-(--theme-text-muted)">{user.role}</p>
                                                 </div>
-                                            )}
-                                            <div>
-                                                <p className="text-[12px] font-semibold text-(--theme-text-secondary) hover:text-primary transition-colors">{user.name}</p>
-                                                <p className="text-[10px] text-(--theme-text-muted)">{user.role}</p>
-                                            </div>
-                                        </Link>
-                                        <button className="px-3 py-1 rounded-lg text-[10px] font-bold text-[#2edb13] border border-primary/20 bg-primary/10 cursor-pointer hover:bg-[#2edb13] hover:text-white hover:border-[#2edb13] transition-all">
-                                            Follow
-                                        </button>
-                                    </div>
-                                ))}
+                                            </Link>
+                                            <button className="px-3 py-1 rounded-lg text-[10px] font-bold text-[#2edb13] border border-primary/20 bg-primary/10 cursor-pointer hover:bg-[#2edb13] hover:text-white hover:border-[#2edb13] transition-all">
+                                                Follow
+                                            </button>
+                                        </div>
+                                    ))
+                                )}
                             </div>
                         </div>
 
