@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import pusher from "@/lib/pusher";
 
 // GET /api/conversations/[id]/messages
 export async function GET(req: Request, context: { params: Promise<{ id: string }> }) {
@@ -68,6 +69,19 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
             where: { id },
             data: { lastMessage: content?.trim() || "Sent an attachment", lastAt: new Date() },
         });
+
+        // Determine the recipient (the other participant in this conversation)
+        const recipientId = convo.userAId === session.userId ? convo.userBId : convo.userAId;
+
+        // Trigger real-time delivery via Pusher — fire-and-forget, never block the response.
+        // Two channels:
+        //   1. conversation channel  → updates the open chat window for the recipient
+        //   2. personal user channel → notifies the recipient's sidebar (even if they haven't opened this chat)
+        pusher.trigger(
+            [`conversation-${id}`, `user-${recipientId}`],
+            "new-message",
+            message
+        ).catch(() => {/* non-critical — client will see message on next fetch */});
 
         return NextResponse.json({ message });
     } catch (err) {

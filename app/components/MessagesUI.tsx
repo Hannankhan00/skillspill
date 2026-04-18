@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { MessageSquare, Send, ArrowLeft, Loader2 } from "lucide-react";
-import { io, Socket } from "socket.io-client";
+import Pusher, { Channel } from "pusher-js";
 
 interface OtherUser {
     id: string;
@@ -100,7 +100,7 @@ export default function MessagesUI({ accent }: { accent: string }) {
     const [loadingConvos, setLoadingConvos] = useState(true);
     const [loadingMessages, setLoadingMessages] = useState(false);
     const [sending, setSending] = useState(false);
-    const [socketConnected, setSocketConnected] = useState(false);
+    const [pusherConnected, setPusherConnected] = useState(false);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
     const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
 
@@ -115,7 +115,8 @@ export default function MessagesUI({ accent }: { accent: string }) {
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const messagesRef = useRef<Message[]>([]);
-    const socketRef = useRef<Socket | null>(null);
+    const pusherRef = useRef<Pusher | null>(null);
+    const convoChannelRef = useRef<Channel | null>(null);
     const activeConvoIdRef = useRef<string | null>(null);
     const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -157,97 +158,76 @@ export default function MessagesUI({ accent }: { accent: string }) {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [showAttachMenu]);
 
-    // Fetch current user ID and initialise socket once
+    // Shared message handler — used by both the conversation channel and the personal user channel
+    const handleIncomingMessage = useCallback((msg: Message) => {
+        // Append to visible messages only if this conversation is currently open
+        if (msg.conversationId === activeConvoIdRef.current) {
+            setMessages(prev => {
+                if (prev.some(m => m.id === msg.id)) return prev; // deduplicate
+                return [...prev, msg];
+            });
+            // Mark as read immediately via API (fire-and-forget)
+            fetch(`/api/conversations/${msg.conversationId}/messages/read`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ messageIds: [msg.id] }),
+            }).catch(() => {});
+        }
+
+        // Always update the sidebar — unread count + last message preview + re-sort to top
+        setConversations(prev => {
+            const exists = prev.some(c => c.id === msg.conversationId);
+            if (!exists) {
+                // First-ever message from this person — reload full list for complete metadata
+                fetch("/api/conversations")
+                    .then(r => r.json())
+                    .then(d => { if (d.conversations) setConversations(d.conversations); })
+                    .catch(() => {});
+                return prev;
+            }
+            const updated = prev.map(c =>
+                c.id === msg.conversationId
+                    ? {
+                        ...c,
+                        lastMessage: msg.content || (msg.attachmentUrl ? "Sent an attachment" : ""),
+                        lastAt: msg.createdAt,
+                        unread: c.id === activeConvoIdRef.current ? 0 : c.unread + 1,
+                    }
+                    : c
+            );
+            return [...updated].sort(
+                (a, b) => new Date(b.lastAt).getTime() - new Date(a.lastAt).getTime()
+            );
+        });
+    }, []);
+
+    // Fetch current user ID and initialise Pusher once
     useEffect(() => {
         fetch("/api/user/profile")
             .then(r => r.json())
             .then(d => {
                 const uid = d.user?.id ?? null;
                 setCurrentUserId(uid);
+                if (!uid) return;
 
-                // Connect socket
-                const socket = io({ path: "/socket.io", transports: ["websocket", "polling"] });
-                socketRef.current = socket;
-
-                socket.on("connect", () => {
-                    setSocketConnected(true);
-                    if (uid) socket.emit("identify", uid);
-                    // Re-join active conversation room if any
-                    if (activeConvoIdRef.current) {
-                        socket.emit("join-conversation", activeConvoIdRef.current);
-                    }
+                const client = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+                    cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
                 });
+                pusherRef.current = client;
 
-                socket.on("disconnect", () => setSocketConnected(false));
+                client.connection.bind("connected", () => setPusherConnected(true));
+                client.connection.bind("disconnected", () => setPusherConnected(false));
+                client.connection.bind("unavailable", () => setPusherConnected(false));
 
-                // Incoming message from another user
-                socket.on("message", (msg: Message) => {
-                    // Only append to the visible messages list if this conversation is active.
-                    // (We receive events via both convo room and personal user room; deduplicate by id.)
-                    if (msg.conversationId === activeConvoIdRef.current) {
-                        setMessages(prev => {
-                            if (prev.some(m => m.id === msg.id)) return prev;
-                            return [...prev, msg];
-                        });
-                        // Acknowledge read immediately
-                        socket.emit("read-receipt", { conversationId: msg.conversationId, readIds: [msg.id] });
-                    }
-
-                    // Always update the sidebar conversation list
-                    setConversations(prev => {
-                        const exists = prev.some(c => c.id === msg.conversationId);
-                        if (!exists) {
-                            // First-ever message from this person — reload the full list
-                            // so the new conversation row appears with complete metadata.
-                            fetch("/api/conversations")
-                                .then(r => r.json())
-                                .then(d => {
-                                    if (d.conversations) setConversations(d.conversations);
-                                })
-                                .catch(() => {/* ignore */});
-                            return prev;
-                        }
-                        const updated = prev.map(c =>
-                            c.id === msg.conversationId
-                                ? {
-                                    ...c,
-                                    lastMessage: msg.content || (msg.attachmentUrl ? "Sent an attachment" : ""),
-                                    lastAt: msg.createdAt,
-                                    unread: c.id === activeConvoIdRef.current ? 0 : c.unread + 1,
-                                }
-                                : c
-                        );
-                        // Bubble the updated conversation to the top (like WhatsApp/Instagram)
-                        return [...updated].sort(
-                            (a, b) => new Date(b.lastAt).getTime() - new Date(a.lastAt).getTime()
-                        );
-                    });
-                });
-
-                // Read receipts — mark our sent messages as read
-                socket.on("read-receipt", ({ readIds }: { readIds: string[] }) => {
-                    const readSet = new Set(readIds);
-                    setMessages(prev => prev.map(m => readSet.has(m.id) ? { ...m, isRead: true } : m));
-                    setConversations(prev => prev.map(c =>
-                        c.id === activeConvoIdRef.current && c.lastSenderId === uid
-                            ? { ...c, lastIsRead: true }
-                            : c
-                    ));
-                });
-
-                // Typing indicator
-                socket.on("typing", ({ userId, isTyping }: { userId: string; isTyping: boolean }) => {
-                    setTypingUsers(prev => {
-                        const next = new Set(prev);
-                        if (isTyping) next.add(userId); else next.delete(userId);
-                        return next;
-                    });
-                });
+                // Personal channel — receives new messages for ANY conversation,
+                // so the sidebar updates even when a chat isn't open.
+                const userChannel = client.subscribe(`user-${uid}`);
+                userChannel.bind("new-message", handleIncomingMessage);
             });
 
         return () => {
-            socketRef.current?.disconnect();
-            socketRef.current = null;
+            pusherRef.current?.disconnect();
+            pusherRef.current = null;
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -285,7 +265,7 @@ export default function MessagesUI({ accent }: { accent: string }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
 
-    // ── Conversation switch: load messages + join socket room ─────────────────
+    // ── Conversation switch: load messages + subscribe to Pusher channel ──────
     useEffect(() => {
         if (!activeConvoId) {
             setMessages([]);
@@ -306,17 +286,24 @@ export default function MessagesUI({ accent }: { accent: string }) {
             })
             .finally(() => { if (!cancelled) setLoadingMessages(false); });
 
-        // Join socket room for real-time delivery
-        socketRef.current?.emit("join-conversation", activeConvoId);
+        // Subscribe to the conversation-specific Pusher channel.
+        // This gives instant delivery when both users have the same chat open
+        // (deduplication with the personal user channel is handled in handleIncomingMessage).
+        if (pusherRef.current) {
+            const ch = pusherRef.current.subscribe(`conversation-${activeConvoId}`);
+            ch.bind("new-message", handleIncomingMessage);
+            convoChannelRef.current = ch;
+        }
 
         // Mark as read in sidebar
         setConversations(prev => prev.map(c => c.id === activeConvoId ? { ...c, unread: 0 } : c));
 
         return () => {
             cancelled = true;
-            if (activeConvoId) {
-                socketRef.current?.emit("leave-conversation", activeConvoId);
+            if (pusherRef.current && activeConvoId) {
+                pusherRef.current.unsubscribe(`conversation-${activeConvoId}`);
             }
+            convoChannelRef.current = null;
             setTypingUsers(new Set());
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -378,11 +365,9 @@ export default function MessagesUI({ accent }: { accent: string }) {
                         (a, b) => new Date(b.lastAt).getTime() - new Date(a.lastAt).getTime()
                     );
                 });
-                // Notify recipient via socket — include recipientId so the server
-                // can deliver to their personal user room even if they haven't
-                // opened this conversation yet.
-                const recipientId = conversations.find(c => c.id === activeConvoId)?.other.id;
-                socketRef.current?.emit("new-message", { conversationId: activeConvoId, message: data.message, recipientId });
+                // Real-time delivery is now handled server-side via Pusher
+                // (triggered inside POST /api/conversations/[id]/messages).
+                // Nothing to emit from the client.
             }
         } catch {
             setMessages(prev => prev.filter(m => m.id !== optimisticId));
@@ -563,9 +548,9 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                     <p className="text-[13px] font-bold text-(--theme-text-primary)">{activeConvo.other.fullName}</p>
                                     <div className="flex items-center gap-1.5">
                                         <p className="text-[10px] text-(--theme-text-muted)">@{activeConvo.other.username}</p>
-                                        <span className={`w-1.5 h-1.5 rounded-full transition-colors ${socketConnected ? "bg-green-500" : "bg-yellow-500 animate-pulse"}`} />
+                                        <span className={`w-1.5 h-1.5 rounded-full transition-colors ${pusherConnected ? "bg-green-500" : "bg-yellow-500 animate-pulse"}`} />
                                         <p className="text-[10px] text-(--theme-text-muted)">
-                                            {typingUsers.size > 0 ? "Typing…" : socketConnected ? "Online" : "Connecting…"}
+                                            {typingUsers.size > 0 ? "Typing…" : pusherConnected ? "Online" : "Connecting…"}
                                         </p>
                                     </div>
                                 </div>
@@ -770,12 +755,6 @@ export default function MessagesUI({ accent }: { accent: string }) {
                                     value={draft}
                                     onChange={e => {
                                         setDraft(e.target.value);
-                                        if (!activeConvoId) return;
-                                        socketRef.current?.emit("typing", { conversationId: activeConvoId, isTyping: true });
-                                        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-                                        typingTimeoutRef.current = setTimeout(() => {
-                                            socketRef.current?.emit("typing", { conversationId: activeConvoId, isTyping: false });
-                                        }, 1500);
                                     }}
                                     onFocus={() => {
                                         // Small delay — let the keyboard appear, then scroll to bottom
