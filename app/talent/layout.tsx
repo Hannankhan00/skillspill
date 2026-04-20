@@ -21,14 +21,17 @@ export default async function TalentLayout({
         redirect("/login");
     }
 
-    // Check if user is suspended
-    const user = await prisma.user.findUnique({
-        where: { id: session.userId },
-        select: { isActive: true },
-    });
-
-    if (user && !user.isActive) {
-        redirect("/suspended");
+    // Check if user is suspended — if DB is unreachable, allow access rather than crashing
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: session.userId },
+            select: { isActive: true },
+        });
+        if (user && !user.isActive) {
+            redirect("/suspended");
+        }
+    } catch {
+        // DB unreachable — proceed rather than show a white screen
     }
 
     // Not a talent → redirect to appropriate dashboard
