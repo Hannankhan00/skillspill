@@ -84,11 +84,15 @@ function LoginPageInner() {
     const [showPw, setShowPw] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
 
     // Read error from URL (e.g. from GitHub OAuth redirect)
     useEffect(() => {
         const urlError = searchParams.get("error");
         if (urlError) setError(urlError);
+
+        const urlVerified = searchParams.get("verified");
+        if (urlVerified === "true") setSuccess("Email verified successfully! You can now log in.");
     }, [searchParams]);
 
     const mono: React.CSSProperties = { fontFamily: "var(--font-jetbrains-mono, 'JetBrains Mono', monospace)" };
@@ -169,6 +173,13 @@ function LoginPageInner() {
                                             </button>
                                         </div>
                                     </div>
+
+                                    {/* Success */}
+                                    {success && (
+                                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#3CF91A]/[0.06] border border-[#3CF91A]/[0.12] text-[#3CF91A] text-[0.72rem]" style={mono}>
+                                            <span className="w-1.5 h-1.5 rounded-full bg-[#3CF91A] shrink-0" />{success}
+                                        </div>
+                                    )}
 
                                     {/* Error */}
                                     {error && (

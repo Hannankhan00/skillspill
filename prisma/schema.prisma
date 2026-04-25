@@ -64,6 +64,8 @@ model User {
   avatarUrl     String?
   coverUrl      String?
   emailVerified    Boolean   @default(false)
+  verificationToken String?  @unique
+  verificationExpiresAt DateTime?
   isActive         Boolean   @default(true)
   suspensionReason String?   @db.Text
   lastLoginAt      DateTime?

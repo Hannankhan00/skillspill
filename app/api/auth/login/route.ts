@@ -44,6 +44,11 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: true, redirectTo: "/suspended" }, { status: 200 });
         }
 
+        // 3.5 Check if email is verified
+        if (!user.emailVerified) {
+            return NextResponse.json({ error: "Please verify your email before logging in." }, { status: 403 });
+        }
+
         // 4. Create Session
         await createSession(user.id, user.role);
 
