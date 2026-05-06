@@ -2,69 +2,75 @@
 
 This document contains a comprehensive State Chart Diagram (also known as a State Machine Diagram) but focused on the broader system behavior, specifically the **User Journey and Session Lifecycle**.
 
-While the earlier `State-Machine-Diagram.md` focused on individual record entities (like a single Bounty or Application), this State Chart Diagram illustrates the complex, composite states a User traverses when interacting with the application.
+While a standard State Machine focuses on individual records (like the status of a Bounty), this State Chart Diagram illustrates the complex, composite states a User traverses when interacting with the application.
 
 ## 1. User Journey & Session State Chart
 
-This diagram illustrates the login, onboarding, and dashboard interactions for both Talent and Recruiter users, showing hierarchical states.
+This diagram illustrates the login, onboarding, and dashboard interactions for both Talent and Recruiter users, showing hierarchical states beautifully color-coded by their phase.
 
 ```mermaid
 %%{init: {
   'theme': 'base',
   'themeVariables': {
     'primaryColor': '#ffffff',
-    'primaryTextColor': '#000000',
-    'primaryBorderColor': '#000000',
-    'lineColor': '#000000',
-    'secondaryColor': '#ffffff',
-    'tertiaryColor': '#ffffff',
-    'nodeBorder': '#000000',
-    'mainBkg': '#ffffff',
-    'fontFamily': 'arial'
+    'primaryTextColor': '#1e293b',
+    'primaryBorderColor': '#e2e8f0',
+    'lineColor': '#64748b',
+    'fontFamily': 'inter, sans-serif'
   }
-} }%%
+}}%%
 stateDiagram-v2
-    [*] --> Unauthenticated
+    %% Premium color styling definitions
+    classDef unauth fill:#f1f5f9,color:#334155,stroke:#94a3b8,stroke-width:2px,font-weight:bold
+    classDef auth fill:#eff6ff,color:#1e40af,stroke:#3b82f6,stroke-width:2px,font-weight:bold
+    classDef onboard fill:#f5f3ff,color:#5b21b6,stroke:#8b5cf6,stroke-width:2px,font-weight:bold
+    classDef active fill:#f0fdf4,color:#166534,stroke:#22c55e,stroke-width:2px,font-weight:bold
     
-    Unauthenticated --> Authenticating : User initiates Log In / Sign Up
+    [*] --> Unauthenticated
+    class Unauthenticated unauth
+
+    Unauthenticated --> Authenticating : Initiates Auth Flow
     
     state Authenticating {
-        [*] --> EnteringCredentials : Input Email/Password
+        [*] --> EnteringCredentials : Input Details
         EnteringCredentials --> ValidatingAuth : Submit
-        ValidatingAuth --> EnteringCredentials : Bad Credentials (Error)
-        ValidatingAuth --> Authenticated : Success (Session Created)
+        ValidatingAuth --> EnteringCredentials : Bad Credentials
+        ValidatingAuth --> Authenticated : Success (Session Active)
     }
+    class Authenticating auth
     
-    Authenticated --> Onboarding : First Login (Profile Incomplete)
-    Authenticated --> DashboardSession : Returning User (Profile Complete)
+    Authenticated --> Onboarding : First Login (No Profile)
+    Authenticated --> DashboardSession : Returning User
     
     state Onboarding {
         [*] --> SelectingRole : Choose Path
         SelectingRole --> TalentSetup : Selects 'Talent'
         SelectingRole --> RecruiterSetup : Selects 'Recruiter'
         
-        TalentSetup --> ProfileComplete : Fills Bio & Connects GitHub
-        RecruiterSetup --> ProfileComplete : Fills Company & Job Details
+        TalentSetup --> ProfileComplete : Adds Bio & GitHub
+        RecruiterSetup --> ProfileComplete : Adds Company Info
     }
+    class Onboarding onboard
     
-    ProfileComplete --> DashboardSession : Onboarding Finished
+    ProfileComplete --> DashboardSession : Finishes Setup
     
     state DashboardSession {
         [*] --> Idle
         
-        %% Talent Flow
-        Idle --> BrowsingBounties : Talent Views Feed
-        BrowsingBounties --> ApplyingToBounty : Clicks 'Apply'
-        ApplyingToBounty --> BrowsingBounties : Submit Application / Cancel
+        %% Talent Flow Interactions
+        Idle --> BrowsingJobs : Talent Views Feed
+        BrowsingJobs --> ApplyingToJob : Clicks 'Apply'
+        ApplyingToJob --> BrowsingJobs : Completes Application
         
-        %% Recruiter Flow
-        Idle --> ManagingBounties : Recruiter Views Dashboard
-        ManagingBounties --> CreatingBounty : Clicks 'Post Job'
-        CreatingBounty --> ManagingBounties : Publish Bounty / Cancel
+        %% Recruiter Flow Interactions
+        Idle --> ManagingJobs : Recruiter Views Dash
+        ManagingJobs --> CreatingJob : Clicks 'Post Job'
+        CreatingJob --> ManagingJobs : Publishes Job
         
-        ManagingBounties --> ReviewingApplications : Opens Applicants List
-        ReviewingApplications --> ManagingBounties : Accepts/Rejects
+        ManagingJobs --> ReviewingApplications : Opens Applicants
+        ReviewingApplications --> ManagingJobs : Accepts / Rejects
     }
+    class DashboardSession active
     
     DashboardSession --> Unauthenticated : User Logs Out
     Onboarding --> Unauthenticated : User Logs Out / Aborts
@@ -72,9 +78,9 @@ stateDiagram-v2
 
 ### State Chart Explanations
 
-1. **Unauthenticated / Authenticating:** The user starts here. An internal sub-state machine validates their credentials against the Prisma database. If authentication fails, they are returned to the input state; if it succeeds, they become `Authenticated`.
-2. **Onboarding:** A critical fork in the state. If the Prisma user record lacks a related `TalentProfile` or `RecruiterProfile`, they must pass through this state. It splits into two mutually exclusive sub-states (`TalentSetup` and `RecruiterSetup`) before converging at `ProfileComplete`.
-3. **DashboardSession:** Once inside, the user enters an `Idle` state on their dashboard. From here, depending on their role, they branch into different activity states:
-    *   **Talent:** Transition into `BrowsingBounties` and `ApplyingToBounty`.
-    *   **Recruiter:** Transition into `ManagingBounties`, `CreatingBounty`, and `ReviewingApplications`.
-4. **Logout:** From any active, authenticated major state (Dashboard or Onboarding), triggering a Log Out action transitions the user immediately back to the initial `Unauthenticated` state, terminating the session.
+1. **Unauthenticated / Authenticating (Blue):** The user starts here. An internal sub-state validates their credentials against the database. If authentication fails, they return to the input state; if it succeeds, they become `Authenticated`.
+2. **Onboarding (Purple):** A critical fork in the state. If the user record lacks a related `TalentProfile` or `RecruiterProfile`, they must pass through this state. It splits into two mutually exclusive sub-states (`TalentSetup` and `RecruiterSetup`) before converging at `ProfileComplete`.
+3. **DashboardSession (Green):** Once inside, the user enters an `Idle` state on their dashboard. From here, depending on their role, they branch into different activity states:
+    *   **Talent:** Transition into `BrowsingJobs` and `ApplyingToJob`.
+    *   **Recruiter:** Transition into `ManagingJobs`, `CreatingJob`, and `ReviewingApplications`.
+4. **Logout:** From any active, authenticated major state (Dashboard or Onboarding), triggering a Log Out action transitions the user immediately back to the initial `Unauthenticated` state (Gray), terminating the session securely.

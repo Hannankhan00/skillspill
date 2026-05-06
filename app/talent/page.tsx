@@ -1,12 +1,56 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { Copy, Check, Loader2 } from "lucide-react";
 import CommentThread from "@/app/feed/components/CommentThread";
 import ReportModal from "@/app/components/ReportModal";
 import ShareModal from "@/app/components/ShareModal";
 import { CoverBanner } from "@/app/components/CoverBanners";
+
+/* —— Types —— */
+interface PostUser {
+    id: string;
+    fullName?: string;
+    username?: string;
+    avatarUrl?: string;
+    role?: string;
+    recruiterProfile?: { companyName?: string };
+    talentProfile?: { githubConnected?: boolean };
+}
+interface Post {
+    id: string;
+    userId: string;
+    user?: PostUser;
+    caption?: string;
+    code?: string;
+    codeLang?: string;
+    videoUrl?: string;
+    thumbnailUrl?: string;
+    media?: { url: string }[];
+    hashtags?: string[];
+    isLiked: boolean;
+    isSaved: boolean;
+    likesCount: number;
+    commentsCount: number;
+    repostsCount: number;
+    createdAt: string;
+}
+interface WorkExperience { role: string; companyName?: string; isCurrent?: boolean; }
+interface UserData {
+    id: string;
+    username?: string;
+    fullName?: string;
+    avatarUrl?: string;
+    coverUrl?: string;
+    _count?: { followers: number; following: number };
+    spillPosts?: unknown[];
+    spills?: unknown[];
+    talentProfile?: { experienceLevel?: string; workExperience?: WorkExperience[] };
+}
+interface SidebarUser { id: string; name: string; role: string; type: string; initials: string; grad: string; avatarUrl?: string; }
+interface SidebarJob { id: string; title: string; company?: string; budget: string; match: string; }
 
 /* ═══════════════════════════════════════════════
    S K I L L S P I L L  —  T A L E N T  F E E D
@@ -23,8 +67,6 @@ const ShareIcon = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="no
 const BookmarkIcon = ({ filled }: { filled?: boolean }) => filled
     ? <svg width="18" height="18" viewBox="0 0 24 24" fill="#8B5CF6" stroke="#8B5CF6" strokeWidth="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>
     : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>;
-const CodeIcon = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg>;
-const ImageIcon = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>;
 
 /* —— Helper Functions —— */
 function timeAgo(dateString: string) {
@@ -135,7 +177,7 @@ export default function TalentFeed() {
     const saveInFlight = useRef<Record<string, boolean>>({});
 
     // Real feed data
-    const [posts, setPosts] = useState<any[]>([]);
+    const [posts, setPosts] = useState<Post[]>([]);
     const [loadingPosts, setLoadingPosts] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(false);
@@ -143,8 +185,8 @@ export default function TalentFeed() {
     const sentinelRef = useRef<HTMLDivElement>(null);
 
     // Fetch live user data for the mini profile card
-    const [userData, setUserData] = useState<any>(null);
-    const [sidebarData, setSidebarData] = useState<{ suggestedUsers: any[], jobSuggestions: any[] } | null>(null);
+    const [userData, setUserData] = useState<UserData | null>(null);
+    const [sidebarData, setSidebarData] = useState<{ suggestedUsers: SidebarUser[], jobSuggestions: SidebarJob[] } | null>(null);
     const [sidebarLoading, setSidebarLoading] = useState(true);
 
     useEffect(() => {
@@ -295,7 +337,7 @@ export default function TalentFeed() {
     const spillsCount = userData?.spillPosts?.length ?? userData?.spills?.length ?? 0;
     const followersCount = userData?._count?.followers ?? 0;
     const followingCount = userData?._count?.following ?? 0;
-    const currentJob = userData?.talentProfile?.workExperience?.find((w: any) => w.isCurrent);
+    const currentJob = userData?.talentProfile?.workExperience?.find((w: WorkExperience) => w.isCurrent);
     const roleLine = currentJob
         ? `${currentJob.role}`
         : userData?.talentProfile?.experienceLevel
@@ -362,7 +404,7 @@ export default function TalentFeed() {
                                         <div className="flex items-center gap-3">
                                             <Link href={userData?.id === post.userId ? "/talent/profile" : (post.user?.role === "TALENT" ? `/talent/talent/${post.user?.id}` : `/talent/recruiter/${post.user?.id}`)}>
                                             {post.user?.avatarUrl ? (
-                                                <img src={post.user.avatarUrl} alt={pFullName} loading="lazy" className="w-10 h-10 rounded-full object-cover shadow-md" />
+                                                <Image src={post.user.avatarUrl} alt={pFullName} loading="lazy" width={40} height={40} className="w-10 h-10 rounded-full object-cover shadow-md" unoptimized />
                                             ) : (
                                                 <div className={`w-10 h-10 rounded-full bg-linear-to-br ${pGrad} flex items-center justify-center text-white text-[11px] font-bold shadow-md`}>
                                                     {pInitials}
@@ -391,7 +433,7 @@ export default function TalentFeed() {
                                                     <button onClick={() => handleReport("POST", post.id)} className="px-4 py-2.5 text-left text-[12px] font-medium text-red-400 hover:bg-black/20 hover:text-red-300 border-none bg-transparent cursor-pointer transition-colors">
                                                         Report Post
                                                     </button>
-                                                    <button onClick={() => handleReport("USER", post.user?.id)} className="px-4 py-2.5 text-left text-[12px] font-medium text-red-400 hover:bg-black/20 hover:text-red-300 border-none bg-transparent cursor-pointer transition-colors">
+                                                    <button onClick={() => handleReport("USER", post.user?.id ?? "")} className="px-4 py-2.5 text-left text-[12px] font-medium text-red-400 hover:bg-black/20 hover:text-red-300 border-none bg-transparent cursor-pointer transition-colors">
                                                         Report Account
                                                     </button>
                                                 </div>
@@ -410,8 +452,8 @@ export default function TalentFeed() {
                                     {post.media && post.media.length > 0 && (
                                         <div className="px-5 mb-3">
                                             <div className={`grid gap-1 rounded-xl overflow-hidden ${post.media.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
-                                                {post.media.map((m: any, i: number) => (
-                                                    <img key={i} src={m.url} alt="Post media" loading="lazy" className="w-full h-auto object-cover max-h-[400px] border border-(--theme-border-light)" />
+                                                {post.media.map((m, i) => (
+                                                    <Image key={i} src={m.url} alt="Post media" loading="lazy" width={800} height={600} className="w-full h-auto object-cover max-h-100 border border-(--theme-border-light)" unoptimized />
                                                 ))}
                                             </div>
                                         </div>
@@ -439,7 +481,7 @@ export default function TalentFeed() {
                                                     <span className="text-[9px] text-(--theme-text-muted) uppercase tracking-wider font-bold"
                                                         style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{post.codeLang}</span>
                                                     <button 
-                                                        onClick={() => handleCopyCode(post.id, post.code)}
+                                                        onClick={() => handleCopyCode(post.id, post.code ?? "")}
                                                         className="flex items-center justify-center bg-transparent border-none cursor-pointer text-(--theme-text-muted) hover:text-primary transition-colors"
                                                         title="Copy Code"
                                                     >
@@ -528,10 +570,13 @@ export default function TalentFeed() {
                             <div className="px-4 pb-4 -mt-6">
                                 {/* Avatar */}
                                 {avatarUrl ? (
-                                    <img
+                                    <Image
                                         src={avatarUrl}
                                         alt={fullName}
+                                        width={48}
+                                        height={48}
                                         className="w-12 h-12 rounded-full object-cover shadow-lg border-2 border-(--theme-card) relative z-10"
+                                        unoptimized
                                     />
                                 ) : (
                                     <div className="w-12 h-12 rounded-full bg-linear-to-br from-green-400 to-[#2edb13] flex items-center justify-center text-white text-[14px] font-bold shadow-lg border-2 border-(--theme-card) relative z-10">
@@ -577,7 +622,7 @@ export default function TalentFeed() {
                                 {sidebarLoading ? (
                                     [...Array(3)].map((_, i) => <SidebarJobSkeleton key={i} />)
                                 ) : (
-                                    displayJobs.map((job: any) => (
+                                    displayJobs.map((job) => (
                                         <div key={job.title} className="px-4 py-3 hover:bg-primary/10 transition-colors cursor-pointer group" style={{ borderColor: "var(--theme-border-light)" }}>
                                             <div className="flex items-start justify-between">
                                                 <div>
@@ -603,11 +648,11 @@ export default function TalentFeed() {
                                 {sidebarLoading ? (
                                     [...Array(3)].map((_, i) => <SidebarUserSkeleton key={i} />)
                                 ) : (
-                                    displayUsers.map((user: any) => (
+                                    displayUsers.map((user) => (
                                         <div key={user.name} className="flex items-center justify-between px-4 py-3" style={{ borderColor: "var(--theme-border-light)" }}>
                                             <Link href={`/talent/${user.type === 'RECRUITER' ? 'recruiter' : 'talent'}/${user.id || '1'}`} className="flex items-center gap-2.5 no-underline">
                                                 {user.avatarUrl ? (
-                                                    <img src={user.avatarUrl} alt={user.name} className="w-8 h-8 rounded-full object-cover shadow-sm border border-(--theme-border-light)" />
+                                                    <Image src={user.avatarUrl} alt={user.name} width={32} height={32} className="w-8 h-8 rounded-full object-cover shadow-sm border border-(--theme-border-light)" unoptimized />
                                                 ) : (
                                                     <div className={`w-8 h-8 rounded-full bg-linear-to-br ${user.grad} flex items-center justify-center text-white text-[9px] font-bold shadow-sm`}>
                                                         {user.initials}

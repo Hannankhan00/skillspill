@@ -1,6 +1,6 @@
 # SkillSpill Design Class Diagram
 
-This document presents the Design Class Diagram for the SkillSpill platform. Unlike the conceptual UML Class Diagram that focuses on database entities, this Design Class Diagram illustrates the actual software components, including Next.js Pages (UI), Server Actions/API Controllers, Services, and Data Access (Prisma), representing the full-stack architecture.
+This document presents the **Design Class Diagram** for the SkillSpill platform. Unlike the conceptual Domain Model, this diagram illustrates the actual software components representing the full-stack architecture. It has been customized to accurately reflect the **Next.js (App Router)** and **Prisma** architecture.
 
 ## Diagram (Mermaid)
 
@@ -9,63 +9,59 @@ This document presents the Design Class Diagram for the SkillSpill platform. Unl
   'theme': 'base',
   'themeVariables': {
     'primaryColor': '#ffffff',
-    'primaryTextColor': '#000000',
-    'primaryBorderColor': '#000000',
-    'lineColor': '#000000',
-    'secondaryColor': '#ffffff',
-    'tertiaryColor': '#ffffff',
-    'nodeBorder': '#000000',
-    'mainBkg': '#ffffff',
-    'fontFamily': 'arial'
+    'primaryTextColor': '#1e293b',
+    'primaryBorderColor': '#e2e8f0',
+    'lineColor': '#64748b',
+    'fontFamily': 'inter, sans-serif'
   }
-} }%%
+}}%%
 classDiagram
     direction TB
 
     %% Frontend Components (UI Layer)
     class TalentDashboardPage {
-        <<UI Component>>
+        <<React Server Component>>
         +render()
         -fetchTalentData()
     }
     
     class RecruiterDashboardPage {
-        <<UI Component>>
+        <<React Server Component>>
         +render()
         -fetchRecruiterData()
     }
 
     class BountyCardComponent {
-        <<UI Component>>
+        <<Client Component>>
         +props: BountyData
         +render()
         +onApplyClick()
     }
 
     class ApplicationForm {
-        <<UI Component>>
+        <<Client Component>>
         +props: BountyId
         +submitApplication(data)
         +render()
     }
 
     %% Backend Controllers / Server Actions (Application Layer)
-    class BountyController {
-        <<Server Action / API>>
+    class BountyActions {
+        <<Server Actions>>
         +getBounties(filters)
         +createBounty(data)
         +applyToBounty(bountyId, talentId, data)
     }
 
-    class UserController {
-        <<Server Action / API>>
+    class UserActions {
+        <<Server Actions>>
         +registerUser(data)
         +loginUser(credentials)
         +getUserProfile(userId)
     }
 
-    class ApplicationController {
-        <<Server Action / API>>
+    class ApplicationActions {
+        <<Server Actions>>
         +getApplicationsForBounty(bountyId)
         +updateApplicationStatus(appId, status)
     }
@@ -75,11 +71,10 @@ classDiagram
         <<Service>>
         +hashPassword(password)
         +verifyPassword(hash, password)
-        +generateJWT(user)
-        +validateSession(token)
+        +generateSession(user)
     }
 
-    class GitHubIntegrationService {
+    class GitHubService {
         <<Service>>
         +fetchUserRepos(username)
         +calculateTotalStars(repos)
@@ -87,49 +82,65 @@ classDiagram
 
     %% Data Access Layer (Prisma ORM Models / Wrappers)
     class PrismaUserRepository {
-        <<Repository>>
+        <<Prisma Client>>
         +findUnique(args)
         +create(args)
         +update(args)
     }
 
     class PrismaBountyRepository {
-        <<Repository>>
+        <<Prisma Client>>
         +findMany(args)
         +create(args)
         +update(args)
     }
 
     %% Relationships
-    TalentDashboardPage ..> BountyController : calls (HTTP/Action)
-    TalentDashboardPage ..> UserController : calls
-    RecruiterDashboardPage ..> BountyController : calls
-    RecruiterDashboardPage ..> ApplicationController : calls
+    TalentDashboardPage ..> BountyActions : calls
+    TalentDashboardPage ..> UserActions : calls
+    RecruiterDashboardPage ..> BountyActions : calls
+    RecruiterDashboardPage ..> ApplicationActions : calls
     
-    TalentDashboardPage *-- BountyCardComponent : uses
-    BountyCardComponent ..> ApplicationForm : opens
-    ApplicationForm ..> BountyController : applyToBounty()
+    TalentDashboardPage *-- BountyCardComponent : mounts
+    BountyCardComponent ..> ApplicationForm : triggers
+    ApplicationForm ..> BountyActions : invokes applyToBounty()
 
-    UserController ..> AuthenticationService : uses
-    UserController ..> PrismaUserRepository : uses
+    UserActions ..> AuthenticationService : utilizes
+    UserActions ..> PrismaUserRepository : queries
     
-    BountyController ..> PrismaBountyRepository : uses
-    ApplicationController ..> PrismaBountyRepository : uses
+    BountyActions ..> PrismaBountyRepository : queries
+    ApplicationActions ..> PrismaBountyRepository : queries
     
-    UserController ..> GitHubIntegrationService : uses (for Talent setup)
+    UserActions ..> GitHubService : integrates (for setup)
+
+    %% Premium Color Styling
+    style TalentDashboardPage fill:#eff6ff,stroke:#3b82f6,stroke-width:2px,color:#1e40af
+    style RecruiterDashboardPage fill:#eff6ff,stroke:#3b82f6,stroke-width:2px,color:#1e40af
+    style BountyCardComponent fill:#eff6ff,stroke:#3b82f6,stroke-width:2px,color:#1e40af
+    style ApplicationForm fill:#eff6ff,stroke:#3b82f6,stroke-width:2px,color:#1e40af
+
+    style BountyActions fill:#f5f3ff,stroke:#8b5cf6,stroke-width:2px,color:#5b21b6
+    style UserActions fill:#f5f3ff,stroke:#8b5cf6,stroke-width:2px,color:#5b21b6
+    style ApplicationActions fill:#f5f3ff,stroke:#8b5cf6,stroke-width:2px,color:#5b21b6
+
+    style AuthenticationService fill:#fefce8,stroke:#eab308,stroke-width:2px,color:#854d0e
+    style GitHubService fill:#fefce8,stroke:#eab308,stroke-width:2px,color:#854d0e
+
+    style PrismaUserRepository fill:#f0fdf4,stroke:#22c55e,stroke-width:2px,color:#166534
+    style PrismaBountyRepository fill:#f0fdf4,stroke:#22c55e,stroke-width:2px,color:#166534
 ```
 
 ## Layer Descriptions
 
-### 1. UI Layer (Next.js React Components)
-* **Pages (`TalentDashboardPage`, `RecruiterDashboardPage`):** The main views that users interact with. They fetch initial data and render child components.
-* **Components (`BountyCardComponent`, `ApplicationForm`):** Reusable UI elements that handle specific user interactions (like clicking "Apply" and filling out forms).
+### 1. UI Layer (Next.js React Components) - <span style="color:#3b82f6">Blue</span>
+* **Pages (`TalentDashboardPage`, `RecruiterDashboardPage`):** The React Server Components (RSC) that users interact with. They fetch initial data securely on the server and render child components.
+* **Components (`BountyCardComponent`, `ApplicationForm`):** Reusable Client Components that handle interactivity and UI states (like clicking "Apply" and managing form inputs).
 
-### 2. Application Layer (Next.js Server Actions / API Routes)
-* **Controllers (`BountyController`, `UserController`, `ApplicationController`):** These act as the boundary between the frontend and the database. They validate incoming requests, check authorizations, and coordinate business logic.
+### 2. Application Layer (Next.js Server Actions) - <span style="color:#8b5cf6">Purple</span>
+* **Actions (`BountyActions`, `UserActions`, `ApplicationActions`):** These act as the boundary between the frontend and the database in Next.js App Router. They validate incoming requests, check authorizations, mutate data, and coordinate business logic.
 
-### 3. Service Layer
-* **Services (`AuthenticationService`, `GitHubIntegrationService`):** Encapsulates complex or external business logic, such as integrating with the GitHub API for talent verification, or securely hashing passwords.
+### 3. Service Layer - <span style="color:#eab308">Yellow</span>
+* **Services (`AuthenticationService`, `GitHubService`):** Encapsulates complex or external business logic, such as integrating with the GitHub API for talent verification, or securely hashing passwords using `bcrypt`.
 
-### 4. Data Access Layer
-* **Repositories / ORM (`PrismaUserRepository`, `PrismaBountyRepository`):** Represents the Prisma Client abstraction. These execute direct queries (create, read, update, delete) against the MySQL database.
+### 4. Data Access Layer (Prisma) - <span style="color:#22c55e">Green</span>
+* **Repositories (`PrismaUserRepository`, `PrismaBountyRepository`):** Represents the generated Prisma Client abstraction. These execute direct database queries against the MySQL schema safely and with full TypeScript typing.

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import Image from "next/image";
 import { Briefcase, CircleDot, Users, Plus, Search, MoreHorizontal, MapPin, DollarSign, Clock, LayoutGrid, List, X, ChevronDown, Trash2, Edit2, Eye, Loader2 } from "lucide-react";
 
 const accent = "#A855F7";
@@ -89,7 +90,7 @@ function PostJobModal({ onClose, onCreated, editJob }: {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
 
-    const set = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }));
+    const set = (k: string, v: string | number | boolean) => setForm(f => ({ ...f, [k]: v }));
 
     async function submit(e: React.FormEvent) {
         e.preventDefault();
@@ -138,7 +139,7 @@ function PostJobModal({ onClose, onCreated, editJob }: {
                         <label className="block text-[11px] font-bold uppercase tracking-wider text-(--theme-text-muted) mb-1.5">Job Title *</label>
                         <input required value={form.title} onChange={e => set("title", e.target.value)}
                             placeholder="e.g. Senior Frontend Engineer"
-                            className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all border border-(--theme-border) focus:border-[#A855F7]/50 focus:ring-2 focus:ring-[#A855F7]/10"
+                            className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all border border-(--theme-border) focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10"
                             style={{ background: "var(--theme-input-bg)", color: "var(--theme-text-primary)" }} />
                     </div>
 
@@ -148,7 +149,7 @@ function PostJobModal({ onClose, onCreated, editJob }: {
                         <textarea required value={form.description} onChange={e => set("description", e.target.value)}
                             placeholder="Describe the role, responsibilities, and what you're looking for..."
                             rows={4}
-                            className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none resize-none transition-all border border-(--theme-border) focus:border-[#A855F7]/50 focus:ring-2 focus:ring-[#A855F7]/10"
+                            className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none resize-none transition-all border border-(--theme-border) focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10"
                             style={{ background: "var(--theme-input-bg)", color: "var(--theme-text-primary)" }} />
                     </div>
 
@@ -158,7 +159,7 @@ function PostJobModal({ onClose, onCreated, editJob }: {
                         <textarea value={form.requirements} onChange={e => set("requirements", e.target.value)}
                             placeholder="List specific qualifications, years of experience, etc."
                             rows={3}
-                            className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none resize-none transition-all border border-(--theme-border) focus:border-[#A855F7]/50 focus:ring-2 focus:ring-[#A855F7]/10"
+                            className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none resize-none transition-all border border-(--theme-border) focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10"
                             style={{ background: "var(--theme-input-bg)", color: "var(--theme-text-primary)" }} />
                     </div>
 
@@ -167,7 +168,7 @@ function PostJobModal({ onClose, onCreated, editJob }: {
                         <label className="block text-[11px] font-bold uppercase tracking-wider text-(--theme-text-muted) mb-1.5">Required Skills</label>
                         <input value={form.skillsRaw} onChange={e => set("skillsRaw", e.target.value)}
                             placeholder="React, TypeScript, Node.js (comma-separated)"
-                            className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all border border-(--theme-border) focus:border-[#A855F7]/50 focus:ring-2 focus:ring-[#A855F7]/10"
+                            className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all border border-(--theme-border) focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10"
                             style={{ background: "var(--theme-input-bg)", color: "var(--theme-text-primary)" }} />
                     </div>
 
@@ -177,14 +178,14 @@ function PostJobModal({ onClose, onCreated, editJob }: {
                             <label className="block text-[11px] font-bold uppercase tracking-wider text-(--theme-text-muted) mb-1.5">Salary / Reward</label>
                             <input type="number" min="0" value={form.reward} onChange={e => set("reward", e.target.value)}
                                 placeholder="e.g. 120000"
-                                className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all border border-(--theme-border) focus:border-[#A855F7]/50 focus:ring-2 focus:ring-[#A855F7]/10"
+                                className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all border border-(--theme-border) focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10"
                                 style={{ background: "var(--theme-input-bg)", color: "var(--theme-text-primary)" }} />
                         </div>
                         <div>
                             <label className="block text-[11px] font-bold uppercase tracking-wider text-(--theme-text-muted) mb-1.5">Currency</label>
                             <div className="relative">
                                 <select value={form.currency} onChange={e => set("currency", e.target.value)}
-                                    className="w-full appearance-none px-3.5 py-2.5 rounded-xl text-[13px] outline-none cursor-pointer transition-all border border-(--theme-border) focus:border-[#A855F7]/50"
+                                    className="w-full appearance-none px-3.5 py-2.5 rounded-xl text-[13px] outline-none cursor-pointer transition-all border border-(--theme-border) focus:border-secondary/50"
                                     style={{ background: "var(--theme-input-bg)", color: "var(--theme-text-primary)" }}>
                                     <option value="USD">USD</option>
                                     <option value="EUR">EUR</option>
@@ -201,14 +202,14 @@ function PostJobModal({ onClose, onCreated, editJob }: {
                         <div>
                             <label className="block text-[11px] font-bold uppercase tracking-wider text-(--theme-text-muted) mb-1.5">Deadline</label>
                             <input type="date" value={form.deadline} onChange={e => set("deadline", e.target.value)}
-                                className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all border border-(--theme-border) focus:border-[#A855F7]/50"
+                                className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all border border-(--theme-border) focus:border-secondary/50"
                                 style={{ background: "var(--theme-input-bg)", color: "var(--theme-text-primary)", colorScheme: "dark" }} />
                         </div>
                         <div>
                             <label className="block text-[11px] font-bold uppercase tracking-wider text-(--theme-text-muted) mb-1.5">Max Applicants</label>
                             <input type="number" min="1" value={form.maxApplicants} onChange={e => set("maxApplicants", e.target.value)}
                                 placeholder="Unlimited"
-                                className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all border border-(--theme-border) focus:border-[#A855F7]/50"
+                                className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all border border-(--theme-border) focus:border-secondary/50"
                                 style={{ background: "var(--theme-input-bg)", color: "var(--theme-text-primary)" }} />
                         </div>
                     </div>
@@ -217,7 +218,7 @@ function PostJobModal({ onClose, onCreated, editJob }: {
                     <div>
                         <label className="flex items-center gap-3 cursor-pointer group">
                             <button type="button" onClick={() => set("isRemote", !form.isRemote)}
-                                className={`relative w-10 h-5 rounded-full transition-all border-none cursor-pointer shrink-0 ${form.isRemote ? "bg-[#A855F7]" : "bg-(--theme-input-bg) border border-(--theme-border)"}`}>
+                                className={`relative w-10 h-5 rounded-full transition-all border-none cursor-pointer shrink-0 ${form.isRemote ? "bg-secondary" : "bg-(--theme-input-bg) border border-(--theme-border)"}`}>
                                 <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${form.isRemote ? "left-5" : "left-0.5"}`} />
                             </button>
                             <span className="text-[12px] font-medium text-(--theme-text-secondary)">Remote position</span>
@@ -225,7 +226,7 @@ function PostJobModal({ onClose, onCreated, editJob }: {
                         {!form.isRemote && (
                             <input value={form.location} onChange={e => set("location", e.target.value)}
                                 placeholder="City, Country"
-                                className="mt-2 w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all border border-(--theme-border) focus:border-[#A855F7]/50"
+                                className="mt-2 w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all border border-(--theme-border) focus:border-secondary/50"
                                 style={{ background: "var(--theme-input-bg)", color: "var(--theme-text-primary)" }} />
                         )}
                     </div>
@@ -309,7 +310,7 @@ function ApplicationsDrawer({ job, onClose }: { job: Job; onClose: () => void })
                 <div className="overflow-y-auto flex-1 p-4 space-y-3">
                     {loading ? (
                         <div className="flex items-center justify-center py-12">
-                            <Loader2 className="w-6 h-6 animate-spin text-[#A855F7]" />
+                            <Loader2 className="w-6 h-6 animate-spin text-secondary" />
                         </div>
                     ) : apps.length === 0 ? (
                         <div className="text-center py-12">
@@ -321,7 +322,8 @@ function ApplicationsDrawer({ job, onClose }: { job: Job; onClose: () => void })
                         <div key={app.id} className="rounded-xl border border-(--theme-border) p-4 space-y-3" style={{ background: "var(--theme-bg-secondary)" }}>
                             <div className="flex items-start justify-between gap-3">
                                 <div className="flex items-center gap-3">
-                                    <img loading="lazy" src={app.talentProfile.user.avatarUrl || "/default-avatar.png"} alt={app.talentProfile.user.fullName}
+                                    <Image loading="lazy" src={app.talentProfile.user.avatarUrl || "/default-avatar.png"} alt={app.talentProfile.user.fullName}
+                                        width={36} height={36}
                                         className="w-9 h-9 rounded-full object-cover border border-(--theme-border)" />
                                     <div>
                                         <p className="text-[13px] font-bold text-(--theme-text-primary)">{app.talentProfile.user.fullName}</p>
@@ -338,16 +340,16 @@ function ApplicationsDrawer({ job, onClose }: { job: Job; onClose: () => void })
                                 </div>
                             )}
                             {app.coverLetter && (
-                                <p className="text-[11px] text-(--theme-text-secondary) leading-relaxed line-clamp-3 italic">"{app.coverLetter}"</p>
+                                <p className="text-[11px] text-(--theme-text-secondary) leading-relaxed line-clamp-3 italic">&ldquo;{app.coverLetter}&rdquo;</p>
                             )}
                             {app.submissionUrl && (
-                                <a href={app.submissionUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] text-[#A855F7] hover:underline">View submission →</a>
+                                <a href={app.submissionUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] text-secondary hover:underline">View submission →</a>
                             )}
                             <div className="flex flex-wrap gap-2 pt-1">
                                 {["REVIEWED", "SHORTLISTED", "ACCEPTED", "REJECTED"].map(s => (
                                     <button key={s} disabled={app.status === s || updatingId === app.id}
                                         onClick={() => updateStatus(app.id, s)}
-                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer border transition-all disabled:opacity-50 ${app.status === s ? APP_STATUS_COLORS[s] : "bg-(--theme-input-bg) border-(--theme-border) text-(--theme-text-muted) hover:border-[#A855F7]/40 hover:text-[#A855F7]"}`}>
+                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer border transition-all disabled:opacity-50 ${app.status === s ? APP_STATUS_COLORS[s] : "bg-(--theme-input-bg) border-(--theme-border) text-(--theme-text-muted) hover:border-secondary/40 hover:text-secondary"}`}>
                                         {updatingId === app.id ? "…" : s.charAt(0) + s.slice(1).toLowerCase()}
                                     </button>
                                 ))}
@@ -392,18 +394,22 @@ export default function RecruiterJobsPage() {
         if (search) params.set("search", search);
         if (cursor) params.set("cursor", cursor);
 
-        const res = await fetch(`/api/jobs?${params}`);
-        if (!res.ok) return;
-        const data = await res.json();
-        setJobs(prev => replace ? data.jobs : [...prev, ...data.jobs]);
-        setHasMore(data.hasMore);
-        cursorRef.current = data.nextCursor;
+        if (replace) setLoading(true);
+        try {
+            const res = await fetch(`/api/jobs?${params}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            setJobs(prev => replace ? data.jobs : [...prev, ...data.jobs]);
+            setHasMore(data.hasMore);
+            cursorRef.current = data.nextCursor;
+        } finally {
+            if (replace) setLoading(false);
+        }
     }, [statusFilter, search]);
 
     useEffect(() => {
-        setLoading(true);
         cursorRef.current = null;
-        fetchJobs(true).finally(() => setLoading(false));
+        fetchJobs(true);
     }, [fetchJobs]);
 
     const fetchMore = useCallback(async () => {
@@ -465,7 +471,7 @@ export default function RecruiterJobsPage() {
 
     return (
         <div className="min-h-full" style={{ background: "var(--theme-bg)" }}>
-            <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-4 pb-24 lg:pb-8">
+            <div className="max-w-275 mx-auto px-4 sm:px-6 py-4 pb-24 lg:pb-8">
 
                 {/* HEADER */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -484,7 +490,7 @@ export default function RecruiterJobsPage() {
                 {/* STATS */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
                     {[
-                        { label: "Total Jobs", value: jobs.length, color: "text-[#A855F7]", bg: "bg-[#A855F7]/10", border: "border-[#A855F7]/20", icon: <Briefcase className="w-5 h-5 text-[#A855F7]" /> },
+                        { label: "Total Jobs", value: jobs.length, color: "text-[#A855F7]", bg: "bg-[#A855F7]/10", border: "border-[#A855F7]/20", icon: <Briefcase className="w-5 h-5 text-secondary" /> },
                         { label: "Active Postings", value: activeCount, color: "text-green-500", bg: "bg-green-500/10", border: "border-green-500/20", icon: <CircleDot className="w-5 h-5 text-green-500" /> },
                         { label: "Total Applicants", value: totalApplicants, color: "text-blue-500", bg: "bg-blue-500/10", border: "border-blue-500/20", icon: <Users className="w-5 h-5 text-blue-500" /> },
                     ].map((stat, i) => (
@@ -504,7 +510,7 @@ export default function RecruiterJobsPage() {
                         {["All", "Active", "In Progress", "Completed", "Cancelled"].map(tab => (
                             <button key={tab} onClick={() => setActiveTab(tab)}
                                 className={`px-4 py-2 rounded-xl text-[12px] font-bold transition-all border whitespace-nowrap cursor-pointer ${activeTab === tab
-                                    ? "bg-[#A855F7] text-white border-transparent shadow-md shadow-purple-500/20"
+                                    ? "bg-secondary text-white border-transparent shadow-md shadow-purple-500/20"
                                     : "bg-(--theme-input-bg) text-(--theme-text-muted) border-(--theme-border) hover:bg-(--theme-bg-secondary) hover:text-(--theme-text-primary)"
                                     }`}>
                                 {tab} {tabCounts[tab] > 0 && <span className="ml-1 opacity-70">({tabCounts[tab]})</span>}
@@ -513,7 +519,7 @@ export default function RecruiterJobsPage() {
                     </div>
 
                     <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
-                        <div className="flex items-center gap-2 bg-(--theme-input-bg) px-3 py-2 rounded-xl border border-(--theme-border) flex-1 sm:w-[200px] focus-within:border-[#A855F7]/40 transition-all">
+                        <div className="flex items-center gap-2 bg-(--theme-input-bg) px-3 py-2 rounded-xl border border-(--theme-border) flex-1 sm:w-50 focus-within:border-secondary/40 transition-all">
                             <Search className="w-4 h-4 text-(--theme-text-muted)" />
                             <input type="text" placeholder="Search jobs…" value={search} onChange={e => setSearch(e.target.value)}
                                 className="bg-transparent border-none outline-none text-[12px] w-full text-(--theme-text-primary)" />
@@ -554,7 +560,7 @@ export default function RecruiterJobsPage() {
                                 </button>
                             </div>
                         ) : jobs.map(job => (
-                            <div key={job.id} className={`bg-(--theme-card) border border-(--theme-border) rounded-2xl p-4 sm:p-5 transition-all hover:border-[#A855F7]/40 hover:shadow-md group relative overflow-hidden ${viewMode === "grid" ? "flex flex-col" : "flex flex-col sm:flex-row sm:items-center gap-4"}`}>
+                            <div key={job.id} className={`bg-(--theme-card) border border-(--theme-border) rounded-2xl p-4 sm:p-5 transition-all hover:border-secondary/40 hover:shadow-md group relative overflow-hidden ${viewMode === "grid" ? "flex flex-col" : "flex flex-col sm:flex-row sm:items-center gap-4"}`}>
                                 {/* Status stripe */}
                                 <div className={`absolute left-0 top-0 ${viewMode === "grid" ? "w-full h-1" : "w-1 h-full"} ${STATUS_COLORS[job.status]}`} />
 
@@ -562,14 +568,14 @@ export default function RecruiterJobsPage() {
                                     <div className="flex items-start justify-between mb-2">
                                         <div className="min-w-0 pr-4">
                                             <div className="flex items-center gap-2 mb-1">
-                                                <h3 className="text-[15px] sm:text-[16px] font-bold text-(--theme-text-primary) truncate group-hover:text-[#A855F7] transition-colors">{job.title}</h3>
+                                                <h3 className="text-[15px] sm:text-[16px] font-bold text-(--theme-text-primary) truncate group-hover:text-secondary transition-colors">{job.title}</h3>
                                                 {job.status === "OPEN" && <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] shrink-0" />}
                                             </div>
                                             <p className="text-[12px] text-(--theme-text-muted)">{STATUS_LABELS[job.status]} &bull; {job.isRemote ? "Remote" : job.location || "On-site"}</p>
                                         </div>
                                         <div className="relative shrink-0">
                                             <button onClick={() => setMenuOpenId(menuOpenId === job.id ? null : job.id)}
-                                                className="text-(--theme-text-muted) hover:text-[#A855F7] transition-colors bg-transparent border-none cursor-pointer p-1">
+                                                className="text-(--theme-text-muted) hover:text-secondary transition-colors bg-transparent border-none cursor-pointer p-1">
                                                 <MoreHorizontal className="w-4 h-4" />
                                             </button>
                                             {menuOpenId === job.id && (
@@ -596,7 +602,7 @@ export default function RecruiterJobsPage() {
                                     </div>
 
                                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-medium text-(--theme-text-tertiary) mt-3">
-                                        <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-[#A855F7]" /> {job.isRemote ? "Remote" : job.location || "On-site"}</span>
+                                        <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-secondary" /> {job.isRemote ? "Remote" : job.location || "On-site"}</span>
                                         {formatReward(job.reward, job.currency) && (
                                             <span className="flex items-center gap-1.5 text-green-600 dark:text-green-500"><DollarSign className="w-3.5 h-3.5" /> {formatReward(job.reward, job.currency)}</span>
                                         )}
@@ -607,7 +613,7 @@ export default function RecruiterJobsPage() {
                                     {job.skills.length > 0 && (
                                         <div className="flex flex-wrap gap-1.5 mt-4">
                                             {job.skills.map(s => (
-                                                <span key={s.skillName} className="text-[10px] px-2 py-1 rounded-md bg-(--theme-input-bg) text-(--theme-text-secondary) border border-(--theme-border) hover:bg-[#A855F7]/10 hover:text-[#A855F7] hover:border-[#A855F7]/30 transition-colors cursor-default">
+                                                <span key={s.skillName} className="text-[10px] px-2 py-1 rounded-md bg-(--theme-input-bg) text-(--theme-text-secondary) border border-(--theme-border) hover:bg-secondary/10 hover:text-secondary hover:border-secondary/30 transition-colors cursor-default">
                                                     {s.skillName}
                                                 </span>
                                             ))}
@@ -621,7 +627,7 @@ export default function RecruiterJobsPage() {
                                         <p className="text-[10px] text-(--theme-text-muted) uppercase tracking-wider mt-0.5">Applicants</p>
                                     </div>
                                     <button onClick={() => setViewAppsJob(job)}
-                                        className="px-4 py-2 rounded-xl text-[11px] font-bold text-[#A855F7] bg-[#A855F7]/10 transition-all hover:bg-purple-600 hover:text-white cursor-pointer border border-[#A855F7]/20 hover:border-purple-600 whitespace-nowrap">
+                                        className="px-4 py-2 rounded-xl text-[11px] font-bold text-secondary bg-secondary/10 transition-all hover:bg-purple-600 hover:text-white cursor-pointer border border-secondary/20 hover:border-purple-600 whitespace-nowrap">
                                         View
                                     </button>
                                 </div>
@@ -630,7 +636,7 @@ export default function RecruiterJobsPage() {
 
                         {/* Sentinel */}
                         <div ref={sentinelRef} className="col-span-full py-4 flex justify-center">
-                            {loadingMore && <Loader2 className="w-5 h-5 animate-spin text-[#A855F7]" />}
+                            {loadingMore && <Loader2 className="w-5 h-5 animate-spin text-secondary" />}
                             {!hasMore && jobs.length > 0 && <p className="text-[11px] text-(--theme-text-muted)">All jobs loaded</p>}
                         </div>
                     </div>

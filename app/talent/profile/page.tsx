@@ -11,6 +11,7 @@ import { compressImageClient } from "@/lib/client-compress";
 import PostComposer from "@/app/feed/components/PostComposer";
 import PostCard from "@/app/feed/components/PostCard";
 import { CoverBanner, CoverBannerSelector } from "@/app/components/CoverBanners";
+import GitHubScoreCard from "@/app/components/GitHubScoreCard";
 
 const accent = "#3CF91A";
 
@@ -1126,6 +1127,7 @@ export default function TalentProfilePage() {
                     {/* ── GITHUB TAB ── */}
                     {activeTab === "GitHub" && (
                         <div className="space-y-4">
+                            <GitHubScoreCard isOwnProfile={true} />
                             {isLoadingGithub ? (
                                 <div className="flex justify-center p-8"><Loader2 className="w-6 h-6 animate-spin text-[#3CF91A]" /></div>
                             ) : githubData ? (

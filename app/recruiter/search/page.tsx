@@ -124,7 +124,7 @@ export default function SearchPage() {
 
     return (
         <div style={{ background: "var(--theme-bg)" }} className="min-h-full flex flex-col">
-            <div className="max-w-[920px] w-full mx-auto px-4 sm:px-6 py-5 pb-24 lg:pb-10 flex-1 flex flex-col">
+            <div className="max-w-230 w-full mx-auto px-4 sm:px-6 py-5 pb-24 lg:pb-10 flex-1 flex flex-col">
 
                 {/* HEADER */}
                 <div className="mb-5">

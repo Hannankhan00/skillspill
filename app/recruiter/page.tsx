@@ -41,7 +41,7 @@ function getGrad(str: string) {
         "from-violet-500 to-purple-600",
         "from-amber-400 to-orange-500",
         "from-cyan-400 to-blue-600",
-        "from-[#A855F7] to-purple-600",
+        "from-secondary to-purple-600",
         "from-pink-400 to-rose-500",
         "from-emerald-400 to-teal-500",
         "from-sky-400 to-indigo-500",
@@ -302,7 +302,7 @@ export default function RecruiterFeed() {
 
     return (
         <div style={{ background: "var(--theme-bg)" }} className="min-h-full">
-            <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-4 pb-24 lg:pb-8">
+            <div className="max-w-275 mx-auto px-4 sm:px-6 py-4 pb-24 lg:pb-8">
                 <div className="flex flex-col lg:flex-row gap-6">
 
                     {/* â•â•â•â•â•â•â•â• MAIN FEED â•â•â•â•â•â•â•â• */}
@@ -368,7 +368,7 @@ export default function RecruiterFeed() {
                                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="#8B5CF6"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#fff" strokeWidth="2" /></svg>
                                                     )}
                                                     {mockMatchScore && (
-                                                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#A855F7]/10 text-[#A855F7] border border-[#A855F7]/20 font-bold"
+                                                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-secondary/10 text-secondary border border-secondary/20 font-bold"
                                                             style={{ fontFamily: "var(--font-jetbrains-mono)" }}>
                                                             {mockMatchScore}% match
                                                         </span>
@@ -381,7 +381,7 @@ export default function RecruiterFeed() {
                                         </div>
                                         <div className="flex items-center gap-2">
                                             {mockMatchScore && (
-                                                <button className="px-3 py-1 rounded-lg text-[10px] font-bold text-[#A855F7] border border-[#A855F7]/30 bg-[#A855F7]/10 cursor-pointer hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all">
+                                                <button className="px-3 py-1 rounded-lg text-[10px] font-bold text-secondary border border-secondary/30 bg-secondary/10 cursor-pointer hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all">
                                                     Connect
                                                 </button>
                                             )}
@@ -412,7 +412,7 @@ export default function RecruiterFeed() {
                                     {/* Video */}
                                     {post.videoUrl && (
                                         <div className="px-5 mb-3">
-                                            <video controls className="w-full rounded-xl max-h-[500px] object-cover border border-(--theme-border-light)" poster={post.thumbnailUrl || undefined} preload="metadata">
+                                            <video controls className="w-full rounded-xl max-h-125 object-cover border border-(--theme-border-light)" poster={post.thumbnailUrl || undefined} preload="metadata">
                                                 <source src={post.videoUrl} />
                                             </video>
                                         </div>
@@ -432,10 +432,10 @@ export default function RecruiterFeed() {
                                                         style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{post.codeLang}</span>
                                                     <button 
                                                         onClick={() => handleCopyCode(post.id, post.code)}
-                                                        className="flex items-center justify-center bg-transparent border-none cursor-pointer text-(--theme-text-muted) hover:text-[#A855F7] transition-colors"
+                                                        className="flex items-center justify-center bg-transparent border-none cursor-pointer text-(--theme-text-muted) hover:text-secondary transition-colors"
                                                         title="Copy Code"
                                                     >
-                                                        {copiedStatus[post.id] ? <Check size={14} className="text-[#A855F7]" /> : <Copy size={14} />}
+                                                        {copiedStatus[post.id] ? <Check size={14} className="text-secondary" /> : <Copy size={14} />}
                                                     </button>
                                                 </div>
                                             </div>
@@ -449,7 +449,7 @@ export default function RecruiterFeed() {
                                     {/* Tags */}
                                     <div className="flex flex-wrap gap-1.5 px-5 pb-3">
                                         {pTags.map((tag: string) => (
-                                            <span key={tag} className="text-[10px] px-2 py-0.5 rounded-md bg-(--theme-bg-secondary) border border-(--theme-border) text-(--theme-text-muted) font-medium cursor-pointer hover:border-[#A855F7]/40 hover:text-[#A855F7] hover:bg-[#A855F7]/10 transition-all"
+                                            <span key={tag} className="text-[10px] px-2 py-0.5 rounded-md bg-(--theme-bg-secondary) border border-(--theme-border) text-(--theme-text-muted) font-medium cursor-pointer hover:border-secondary/40 hover:text-secondary hover:bg-secondary/10 transition-all"
                                                 style={{ fontFamily: "var(--font-jetbrains-mono)" }}>
                                                 #{tag}
                                             </span>
@@ -467,12 +467,12 @@ export default function RecruiterFeed() {
                                             <button onClick={() => setOpenComments(p => ({ ...p, [post.id]: !p[post.id] }))} className="flex items-center gap-1.5 text-[12px] font-medium text-(--theme-text-muted) hover:text-blue-500 transition-all bg-transparent border-none cursor-pointer">
                                                 <CommentIcon /> {(overrideCommentsCount[post.id] !== undefined ? overrideCommentsCount[post.id] : post.commentsCount) || 0}
                                             </button>
-                                            <button className="flex items-center gap-1.5 text-[12px] font-medium text-(--theme-text-muted) hover:text-[#A855F7] transition-all bg-transparent border-none cursor-pointer">
+                                            <button className="flex items-center gap-1.5 text-[12px] font-medium text-(--theme-text-muted) hover:text-secondary transition-all bg-transparent border-none cursor-pointer">
                                                 <ShareIcon /> {post.repostsCount || 0}
                                             </button>
                                         </div>
                                         <button onClick={() => toggleSave(post.id, isSaved)}
-                                            className={`transition-all bg-transparent border-none cursor-pointer ${isSaved ? "text-[#A855F7]" : "text-(--theme-text-muted) hover:text-[#A855F7]"}`}>
+                                            className={`transition-all bg-transparent border-none cursor-pointer ${isSaved ? "text-secondary" : "text-(--theme-text-muted) hover:text-secondary"}`}>
                                             <BookmarkIcon filled={isSaved} />
                                         </button>
                                     </div>
@@ -525,8 +525,8 @@ export default function RecruiterFeed() {
                                 <h3 className="text-[14px] font-bold text-(--theme-text-primary) mt-2">{companyName}</h3>
                                 <p className="text-[11px] text-(--theme-text-muted) mb-3">{jobTitle} • SkillSpill</p>
                                 <div className="grid grid-cols-3 gap-2 text-center">
-                                    <div className="bg-[#A855F7]/10 rounded-lg py-2">
-                                        <p className="text-[14px] font-bold text-[#A855F7]">{fmtCount(spillsCount)}</p>
+                                    <div className="bg-secondary/10 rounded-lg py-2">
+                                        <p className="text-[14px] font-bold text-secondary">{fmtCount(spillsCount)}</p>
                                         <p className="text-[8px] text-(--theme-text-muted) uppercase tracking-wider font-semibold">Spills</p>
                                     </div>
                                     <div className="bg-indigo-500/10 rounded-lg py-2">
@@ -576,7 +576,7 @@ export default function RecruiterFeed() {
                             </div>
                             <div className="px-4 py-3 border-t border-(--theme-border-light)">
                                 <Link href="/recruiter/applications"
-                                    className="flex items-center justify-center gap-2 w-full py-2 rounded-xl text-[11px] font-bold text-[#A855F7] bg-[#A855F7]/10 border border-[#A855F7]/20 hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all no-underline cursor-pointer">
+                                    className="flex items-center justify-center gap-2 w-full py-2 rounded-xl text-[11px] font-bold text-secondary bg-secondary/10 border border-secondary/20 hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all no-underline cursor-pointer">
                                     + Post New Job
                                 </Link>
                             </div>
@@ -588,7 +588,7 @@ export default function RecruiterFeed() {
                                 <h3 className="text-[11px] font-bold text-(--theme-text-muted) uppercase tracking-[2px]"
                                     style={{ fontFamily: "var(--font-jetbrains-mono)" }}><Target className="inline-block w-4 h-4 mr-1.5 align-text-bottom" />Top Matches</h3>
                                 <Link href="/recruiter/search"
-                                    className="text-[9px] text-[#A855F7] hover:text-[#A855F7] font-bold no-underline transition-colors flex items-center gap-0.5">
+                                    className="text-[9px] text-secondary hover:text-secondary font-bold no-underline transition-colors flex items-center gap-0.5">
                                     SEARCH <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
                                 </Link>
                             </div>
@@ -607,14 +607,14 @@ export default function RecruiterFeed() {
                                                     </div>
                                                 )}
                                                 <div>
-                                                    <p className="text-[12px] font-semibold text-(--theme-text-secondary) hover:text-[#A855F7] transition-colors">{c.name}</p>
+                                                    <p className="text-[12px] font-semibold text-(--theme-text-secondary) hover:text-secondary transition-colors">{c.name}</p>
                                                     <p className="text-[10px] text-(--theme-text-muted)">{c.role}</p>
                                                 </div>
                                             </Link>
                                             <div className="flex items-center gap-2">
-                                                <span className="text-[10px] font-bold text-[#A855F7]"
+                                                <span className="text-[10px] font-bold text-secondary"
                                                     style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{c.score}%</span>
-                                                <button className="px-2.5 py-1 rounded-md text-[9px] font-bold text-[#A855F7] border border-[#A855F7]/30 bg-[#A855F7]/10 cursor-pointer hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all">
+                                                <button className="px-2.5 py-1 rounded-md text-[9px] font-bold text-secondary border border-secondary/30 bg-secondary/10 cursor-pointer hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all">
                                                     View
                                                 </button>
                                             </div>

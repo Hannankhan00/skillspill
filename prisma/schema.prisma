@@ -86,9 +86,10 @@ model User {
   conversationsAsA Conversation[] @relation("ConversationUserA")
   conversationsAsB Conversation[] @relation("ConversationUserB")
   messagesSent     Message[]
-  followers        Follow[] @relation("Followers")
-  following        Follow[] @relation("Following")
-  reports          Report[] @relation("Reporter")
+  followers           Follow[]           @relation("Followers")
+  following           Follow[]           @relation("Following")
+  reports             Report[]           @relation("Reporter")
+  githubRepositories  GithubRepository[]
 
   @@map("users")
 }
@@ -150,6 +151,8 @@ model TalentProfile {
   githubStars       Int             @default(0)
   githubAccessToken String?         @db.Text
   sharePrivateRepos Boolean         @default(false)
+  githubScore       Float           @default(0)
+  scoreLastUpdated  DateTime?
   isAvailable       Boolean         @default(true)
 
   contactEmail    String?
@@ -564,4 +567,31 @@ model Message {
   @@index([conversationId])
   @@index([senderId])
   @@map("messages")
+}
+
+// ─────────────────────────────────────────────
+// GITHUB REPOSITORIES (per-talent scored repos)
+// ─────────────────────────────────────────────
+
+model GithubRepository {
+  id              Int       @id @default(autoincrement())
+  userId          String
+  repoName        String
+  repoUrl         String    @db.VarChar(500)
+  repoType        String?   @db.VarChar(50)
+  primaryLanguage String?   @db.VarChar(100)
+  metadataScore   Float     @default(0)
+  structureScore  Float     @default(0)
+  aiScore         Float     @default(0)
+  finalScore      Float     @default(0)
+  isTopRepo       Boolean   @default(false)
+  scoreBreakdown  Json?
+  pushedAt        DateTime?
+  scoredAt        DateTime?
+  createdAt       DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("github_repositories")
 }
