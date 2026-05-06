@@ -16,7 +16,7 @@ import GitHubScoreCard from "@/app/components/GitHubScoreCard";
 const accent = "#3CF91A";
 
 /* ─── Shared Spill Grid Tile (Instagram Style) ─── */
-function SpillGridTile({ spill, accent, avatarUrl, initials, username, onClick }: any) {
+function SpillGridTile({ spill, onClick }: any) {
     const mediaArray = spill.media || [];
     const hasImage = mediaArray.length > 0;
     const hasVideo = !hasImage && !!spill.videoUrl;
@@ -26,7 +26,7 @@ function SpillGridTile({ spill, accent, avatarUrl, initials, username, onClick }
     return (
         <div 
             onClick={() => onClick?.(spill)}
-            className="relative aspect-square bg-[#1a1a1a] overflow-hidden group cursor-pointer border border-(--theme-border)">
+            className="relative aspect-square bg-surface-light overflow-hidden group cursor-pointer border border-(--theme-border)">
             {/* If it's an image */}
             {hasImage && (
                 <img src={mediaArray[0].url} alt="Post preview" className="w-full h-full object-cover" />
@@ -466,7 +466,7 @@ export default function TalentProfilePage() {
 
     const { fullName, username, spills, avatarUrl } = userData;
     const {
-        bio, experienceLevel, isAvailable, skills, projectLinks, workExperience,
+        bio, experienceLevel, isAvailable, workExperience,
         githubUsername, githubConnected, githubRepos,
         linkedinUrl, portfolioUrl,
         contactEmail, contactPhone, showEmail, showPhone, showSocials,
@@ -506,7 +506,7 @@ export default function TalentProfilePage() {
                     className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-300"
                     style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(12px)" }}>
                     <div
-                        className="w-full max-w-4xl rounded-2xl overflow-hidden relative flex flex-col sm:flex-row max-h-[85vh] sm:min-h-[600px] shadow-2xl animate-in zoom-in-95 duration-300"
+                        className="w-full max-w-4xl rounded-2xl overflow-hidden relative flex flex-col sm:flex-row max-h-[85vh] sm:min-h-150 shadow-2xl animate-in zoom-in-95 duration-300"
                         style={{
                             background: "var(--theme-card)",
                             border: `1px solid ${accent}30`,
@@ -538,7 +538,7 @@ export default function TalentProfilePage() {
 
                             <nav className="flex flex-wrap sm:flex-col gap-2 relative z-10 w-full mb-1 sm:mb-0">
                                 <button onClick={() => setEditTab("basic")}
-                                    className={`flex-1 min-w-[90px] sm:flex-none flex flex-col sm:flex-row items-center sm:justify-start gap-1.5 sm:gap-3 px-2 sm:px-4 py-2 sm:py-3 rounded-xl text-[10px] sm:text-[13px] font-semibold transition-all cursor-pointer border text-center sm:text-left ${
+                                    className={`flex-1 min-w-22.5 sm:flex-none flex flex-col sm:flex-row items-center sm:justify-start gap-1.5 sm:gap-3 px-2 sm:px-4 py-2 sm:py-3 rounded-xl text-[10px] sm:text-[13px] font-semibold transition-all cursor-pointer border text-center sm:text-left ${
                                         editTab === "basic" 
                                         ? "bg-black/20 text-white" 
                                         : "bg-transparent border-transparent text-(--theme-text-muted) hover:bg-(--theme-bg-secondary) hover:text-(--theme-text-primary)"
@@ -548,7 +548,7 @@ export default function TalentProfilePage() {
                                     Basic Info
                                 </button>
                                 <button onClick={() => setEditTab("contact")}
-                                    className={`flex-1 min-w-[90px] sm:flex-none flex flex-col sm:flex-row items-center sm:justify-start gap-1.5 sm:gap-3 px-2 sm:px-4 py-2 sm:py-3 rounded-xl text-[10px] sm:text-[13px] font-semibold transition-all cursor-pointer border text-center sm:text-left ${
+                                    className={`flex-1 min-w-22.5 sm:flex-none flex flex-col sm:flex-row items-center sm:justify-start gap-1.5 sm:gap-3 px-2 sm:px-4 py-2 sm:py-3 rounded-xl text-[10px] sm:text-[13px] font-semibold transition-all cursor-pointer border text-center sm:text-left ${
                                         editTab === "contact" 
                                         ? "bg-black/20 text-white" 
                                         : "bg-transparent border-transparent text-(--theme-text-muted) hover:bg-(--theme-bg-secondary) hover:text-(--theme-text-primary)"
@@ -558,7 +558,7 @@ export default function TalentProfilePage() {
                                     Contact
                                 </button>
                                 <button onClick={() => setEditTab("privacy")}
-                                    className={`flex-1 min-w-[90px] sm:flex-none flex flex-col sm:flex-row items-center sm:justify-start gap-1.5 sm:gap-3 px-2 sm:px-4 py-2 sm:py-3 rounded-xl text-[10px] sm:text-[13px] font-semibold transition-all cursor-pointer border text-center sm:text-left ${
+                                    className={`flex-1 min-w-22.5 sm:flex-none flex flex-col sm:flex-row items-center sm:justify-start gap-1.5 sm:gap-3 px-2 sm:px-4 py-2 sm:py-3 rounded-xl text-[10px] sm:text-[13px] font-semibold transition-all cursor-pointer border text-center sm:text-left ${
                                         editTab === "privacy" 
                                         ? "bg-black/20 text-white" 
                                         : "bg-transparent border-transparent text-(--theme-text-muted) hover:bg-(--theme-bg-secondary) hover:text-(--theme-text-primary)"
@@ -750,7 +750,7 @@ export default function TalentProfilePage() {
                 
                 {coverSaving && (
                     <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20">
-                        <Loader2 className="w-6 h-6 animate-spin text-[#3CF91A]" />
+                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
                     </div>
                 )}
 
@@ -786,7 +786,7 @@ export default function TalentProfilePage() {
                 )}
 
                 {/* Avatar */}
-                <div className="max-w-[900px] mx-auto px-4 sm:px-6">
+                <div className="max-w-225 mx-auto px-4 sm:px-6">
                     <div className="relative -mt-12 sm:-mt-16 flex items-end gap-4">
                         {/* Interactive Avatar Container */}
                         <div className="relative group shrink-0">
@@ -865,7 +865,7 @@ export default function TalentProfilePage() {
             </div>
 
             {/* ── MAIN CONTENT ── */}
-            <div className="max-w-[900px] mx-auto px-4 sm:px-6 pb-24 lg:pb-8">
+            <div className="max-w-225 mx-auto px-4 sm:px-6 pb-24 lg:pb-8">
 
                 {/* Bio & Social Links */}
                 <div className="mt-4 sm:mt-6">
@@ -959,7 +959,7 @@ export default function TalentProfilePage() {
                     {tabs.map(tab => (
                         <button key={tab} onClick={() => setActiveTab(tab)}
                             className={`px-4 sm:px-6 py-3 text-[12px] sm:text-[13px] font-semibold border-b-2 transition-all cursor-pointer bg-transparent whitespace-nowrap
-                                ${activeTab === tab ? "border-[#3CF91A] text-[#3CF91A]" : "border-transparent text-(--theme-text-muted) hover:text-(--theme-text-tertiary)"}`}>
+                                ${activeTab === tab ? "border-primary text-primary" : "border-transparent text-(--theme-text-muted) hover:text-(--theme-text-tertiary)"}`}>
                             {tab}
                         </button>
                     ))}
@@ -987,7 +987,7 @@ export default function TalentProfilePage() {
                                     className="rounded-2xl border border-(--theme-border) bg-(--theme-card) p-4 sm:p-5 flex gap-4 group transition-all"
                                     onMouseEnter={e => (e.currentTarget.style.borderColor = `${accent}40`)}
                                     onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--theme-border)")}>
-                                    <div className="w-10 h-10 shrink-0 rounded-xl bg-linear-to-br from-[#3CF91A] to-[#10B981] flex items-center justify-center text-[13px] font-bold" style={{ color: "#000" }}>
+                                    <div className="w-10 h-10 shrink-0 rounded-xl bg-linear-to-br from-primary to-[#10B981] flex items-center justify-center text-[13px] font-bold" style={{ color: "#000" }}>
                                         {exp.companyName[0].toUpperCase()}
                                     </div>
                                     <div className="flex-1 min-w-0">
@@ -1129,7 +1129,7 @@ export default function TalentProfilePage() {
                         <div className="space-y-4">
                             <GitHubScoreCard isOwnProfile={true} />
                             {isLoadingGithub ? (
-                                <div className="flex justify-center p-8"><Loader2 className="w-6 h-6 animate-spin text-[#3CF91A]" /></div>
+                                <div className="flex justify-center p-8"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
                             ) : githubData ? (
                                 <>
                                     {/* ── GitHub Profile Card ── */}
@@ -1172,7 +1172,7 @@ export default function TalentProfilePage() {
                                     {/* ── Top Languages ── */}
                                     <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm p-4 sm:p-5">
                                         <h2 className="text-[14px] font-bold text-(--theme-text-primary) mb-4 flex items-center gap-2">
-                                            <Github className="w-4 h-4 text-[#3CF91A]" /> Top Languages
+                                            <Github className="w-4 h-4 text-primary" /> Top Languages
                                         </h2>
                                         {Object.keys(githubData.languageStats).length > 0 ? (
                                             <div className="flex flex-wrap gap-2">
@@ -1180,8 +1180,8 @@ export default function TalentProfilePage() {
                                                     .sort(([, a], [, b]) => (b as number) - (a as number))
                                                     .map(([lang, count]) => (
                                                         <span key={lang} className="px-3 py-1.5 rounded-lg text-[11px] sm:text-[12px] font-medium bg-(--theme-input-bg) text-(--theme-text-secondary) border border-(--theme-border-light) flex items-center gap-1.5">
-                                                            <span className="w-2 h-2 rounded-full bg-[#3CF91A]"></span>
-                                                            {lang} <span className="text-[#3CF91A] font-bold">{count as number}</span>
+                                                            <span className="w-2 h-2 rounded-full bg-primary"></span>
+                                                            {lang} <span className="text-primary font-bold">{count as number}</span>
                                                         </span>
                                                     ))}
                                             </div>
@@ -1193,18 +1193,18 @@ export default function TalentProfilePage() {
                                     {/* ── Repositories ── */}
                                     <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm p-4 sm:p-5">
                                         <h2 className="text-[14px] font-bold text-(--theme-text-primary) mb-4 flex items-center gap-2">
-                                            <Github className="w-4 h-4 text-[#3CF91A]" /> Repositories {githubData.sharePrivateRepos && <span className="text-[10px] bg-[#3CF91A]/10 text-[#3CF91A] px-2 py-0.5 rounded-full ml-2">Includes Private</span>}
+                                            <Github className="w-4 h-4 text-primary" /> Repositories {githubData.sharePrivateRepos && <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full ml-2">Includes Private</span>}
                                         </h2>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             {githubData.repos.map((repo: any) => (
-                                                <a key={repo.id} href={repo.html_url} target="_blank" rel="noopener noreferrer" className="p-4 rounded-xl border border-(--theme-border-light) bg-(--theme-bg-secondary) hover:border-[#3CF91A]/40 transition-all no-underline block flex flex-col break-inside-avoid">
+                                                <a key={repo.id} href={repo.html_url} target="_blank" rel="noopener noreferrer" className="p-4 rounded-xl border border-(--theme-border-light) bg-(--theme-bg-secondary) hover:border-primary/40 transition-all no-underline block flex-col break-inside-avoid">
                                                     <h3 className="text-[13px] font-bold text-(--theme-text-primary) mb-1 flex items-center justify-between">
                                                         <span className="truncate pr-2">{repo.name}</span>
                                                         {repo.private && <span className="text-[9px] bg-red-500/10 text-red-500 px-2 py-0.5 rounded-full border border-red-500/20 shrink-0">Private</span>}
                                                     </h3>
-                                                    <p className="text-[11px] text-(--theme-text-muted) mb-3 line-clamp-2 flex-grow">{repo.description || "No description"}</p>
+                                                    <p className="text-[11px] text-(--theme-text-muted) mb-3 line-clamp-2 grow">{repo.description || "No description"}</p>
                                                     <div className="flex items-center gap-3 text-[10px] text-(--theme-text-secondary) mt-auto pt-2 border-t border-(--theme-border-light)">
-                                                        {repo.language && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#3CF91A]"></span>{repo.language}</span>}
+                                                        {repo.language && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-primary"></span>{repo.language}</span>}
                                                         <span className="flex items-center gap-1"><Star className="w-3 h-3 text-(--theme-text-muted)" /> {repo.stargazers_count}</span>
                                                         {repo.forks_count > 0 && <span className="flex items-center gap-1">🔱 {repo.forks_count}</span>}
                                                         <span className="flex items-center gap-1 ml-auto text-(--theme-text-muted)">{new Date(repo.updated_at).toLocaleDateString()}</span>
@@ -1218,9 +1218,9 @@ export default function TalentProfilePage() {
                                     {githubData.recentActivity && githubData.recentActivity.length > 0 && (
                                         <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm p-4 sm:p-5">
                                             <h2 className="text-[14px] font-bold text-(--theme-text-primary) mb-4 flex items-center gap-2">
-                                                <Zap className="w-4 h-4 text-[#3CF91A]" /> Recent Activity
+                                                <Zap className="w-4 h-4 text-primary" /> Recent Activity
                                             </h2>
-                                            <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                                            <div className="space-y-2 max-h-75 overflow-y-auto">
                                                 {githubData.recentActivity.slice(0, 15).map((event: any, i: number) => {
                                                     const typeMap: Record<string, string> = {
                                                         PushEvent: "Pushed to",
@@ -1256,12 +1256,12 @@ export default function TalentProfilePage() {
                                     {/* ── ACHIEVEMENTS (Gamification) ── */}
                                     <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm p-4 sm:p-5">
                                         <h2 className="text-[14px] font-bold text-(--theme-text-primary) mb-4 flex items-center gap-2">
-                                            <Sparkles className="w-4 h-4 text-[#3CF91A]" /> GitHub Achievements
+                                            <Sparkles className="w-4 h-4 text-primary" /> GitHub Achievements
                                         </h2>
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                             {/* Badge 1: Connected */}
-                                            <div className="flex flex-col items-center justify-center p-3 rounded-xl border border-[#3CF91A]/30 bg-[#3CF91A]/5 text-center">
-                                                <div className="w-10 h-10 rounded-full bg-[#3CF91A]/20 text-[#3CF91A] flex items-center justify-center mb-2 shadow-[0_0_15px_rgba(60,249,26,0.3)]">
+                                            <div className="flex flex-col items-center justify-center p-3 rounded-xl border border-primary/30 bg-primary/5 text-center">
+                                                <div className="w-10 h-10 rounded-full bg-primary/20 text-primary flex items-center justify-center mb-2 shadow-[0_0_15px_rgba(60,249,26,0.3)]">
                                                     <Github className="w-5 h-5" />
                                                 </div>
                                                 <span className="text-[11px] font-bold text-(--theme-text-primary)">Verified Hacker</span>
@@ -1397,7 +1397,7 @@ export default function TalentProfilePage() {
                                 </div>
                             </div>
                             <label className="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" checked={expForm.isCurrent} onChange={e => setExpForm(f => ({ ...f, isCurrent: e.target.checked, endDate: "" }))} className="accent-[#3CF91A] w-4 h-4" />
+                                <input type="checkbox" checked={expForm.isCurrent} onChange={e => setExpForm(f => ({ ...f, isCurrent: e.target.checked, endDate: "" }))} className="accent-primary w-4 h-4" />
                                 <span className="text-[12px] text-(--theme-text-secondary)">I currently work here</span>
                             </label>
                             <Field label="Description" value={expForm.description} onChange={v => setExpForm(f => ({ ...f, description: v }))} placeholder="What did you work on?" textarea />

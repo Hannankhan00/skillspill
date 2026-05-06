@@ -170,6 +170,7 @@ model TalentProfile {
   projectLinks   TalentProject[]
   workExperience TalentWorkExperience[]
   applications   BountyApplication[]
+  matches        TalentBountyMatch[]
 
   @@map("talent_profiles")
 }
@@ -428,6 +429,7 @@ model Bounty {
   recruiterProfile RecruiterProfile    @relation(fields: [recruiterProfileId], references: [id], onDelete: Cascade)
   skills           BountySkill[]
   applications     BountyApplication[]
+  matches          TalentBountyMatch[]
 
   @@index([recruiterProfileId])
   @@index([status])
@@ -462,6 +464,34 @@ model BountyApplication {
   @@index([talentProfileId])
   @@index([status])
   @@map("bounty_applications")
+}
+
+// ─────────────────────────────────────────────
+// SEMANTIC MATCHING
+// ─────────────────────────────────────────────
+
+model TalentBountyMatch {
+  id                String   @id @default(cuid())
+  bountyId          String
+  talentProfileId   String
+
+  matchScore        Float
+  skillOverlapScore Float
+  semanticScore     Float
+  bonusScore        Float
+
+  computedAt        DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  bounty        Bounty        @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+  talentProfile TalentProfile @relation(fields: [talentProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([bountyId, talentProfileId])
+  @@index([bountyId])
+  @@index([talentProfileId])
+  @@index([matchScore])
+  @@map("talent_bounty_matches")
 }
 
 // ─────────────────────────────────────────────

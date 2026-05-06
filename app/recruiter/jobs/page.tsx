@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
-import { Briefcase, CircleDot, Users, Plus, Search, MoreHorizontal, MapPin, DollarSign, Clock, LayoutGrid, List, X, ChevronDown, Trash2, Edit2, Eye, Loader2 } from "lucide-react";
+import { Briefcase, CircleDot, Users, Plus, Search, MoreHorizontal, MapPin, DollarSign, Clock, LayoutGrid, List, X, ChevronDown, Trash2, Edit2, Eye, Loader2, Sparkles } from "lucide-react";
+import { AIMatchedCandidates } from "@/components/recruiter/AIMatchedCandidates";
 
 const accent = "#A855F7";
 
@@ -276,6 +277,7 @@ function ApplicationsDrawer({ job, onClose }: { job: Job; onClose: () => void })
     const [apps, setApps] = useState<Application[]>([]);
     const [loading, setLoading] = useState(true);
     const [updatingId, setUpdatingId] = useState<string | null>(null);
+    const [drawerTab, setDrawerTab] = useState<"applications" | "matches">("applications");
 
     useEffect(() => {
         fetch(`/api/jobs/${job.id}/apply`)
@@ -298,16 +300,35 @@ function ApplicationsDrawer({ job, onClose }: { job: Job; onClose: () => void })
     return (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}>
             <div className="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-t-2xl sm:rounded-2xl border border-(--theme-border) shadow-2xl" style={{ background: "var(--theme-card)" }}>
-                <div className="flex items-center justify-between px-5 py-4 border-b border-(--theme-border) shrink-0">
-                    <div>
-                        <h2 className="text-[15px] font-bold text-(--theme-text-primary)">{job.title}</h2>
-                        <p className="text-[11px] text-(--theme-text-muted) mt-0.5">{apps.length} applicant{apps.length !== 1 ? "s" : ""}</p>
-                    </div>
-                    <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-(--theme-bg-secondary) text-(--theme-text-muted) cursor-pointer border-none bg-transparent">
+                {/* Header */}
+                <div className="flex items-center justify-between px-5 py-4 shrink-0">
+                    <h2 className="text-[15px] font-bold text-(--theme-text-primary) truncate pr-4">{job.title}</h2>
+                    <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-(--theme-bg-secondary) text-(--theme-text-muted) cursor-pointer border-none bg-transparent shrink-0">
                         <X className="w-4 h-4" />
                     </button>
                 </div>
-                <div className="overflow-y-auto flex-1 p-4 space-y-3">
+
+                {/* Tabs */}
+                <div className="flex px-5 border-b border-(--theme-border) shrink-0">
+                    <button onClick={() => setDrawerTab("applications")}
+                        className={`px-3 py-2.5 text-[12px] font-semibold border-b-2 transition-all cursor-pointer bg-transparent flex items-center gap-1.5 whitespace-nowrap ${drawerTab === "applications" ? "border-purple-500 text-[#A855F7]" : "border-transparent text-(--theme-text-muted) hover:text-(--theme-text-secondary)"}`}>
+                        Applications
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${drawerTab === "applications" ? "bg-[#A855F7]/20 text-[#A855F7]" : "bg-(--theme-input-bg) text-(--theme-text-muted)"}`}>
+                            {apps.length}
+                        </span>
+                    </button>
+                    <button onClick={() => setDrawerTab("matches")}
+                        className={`px-3 py-2.5 text-[12px] font-semibold border-b-2 transition-all cursor-pointer bg-transparent flex items-center gap-1.5 whitespace-nowrap ${drawerTab === "matches" ? "border-purple-500 text-[#A855F7]" : "border-transparent text-(--theme-text-muted) hover:text-(--theme-text-secondary)"}`}>
+                        <Sparkles className="w-3 h-3" />
+                        AI Matches
+                    </button>
+                </div>
+
+                <div className="overflow-y-auto flex-1 p-4">
+                    {drawerTab === "matches" ? (
+                        <AIMatchedCandidates bountyId={job.id} bountyTitle={job.title} bountyStatus={job.status} />
+                    ) : (
+                    <div className="space-y-3">
                     {loading ? (
                         <div className="flex items-center justify-center py-12">
                             <Loader2 className="w-6 h-6 animate-spin text-secondary" />
@@ -357,6 +378,8 @@ function ApplicationsDrawer({ job, onClose }: { job: Job; onClose: () => void })
                             <p className="text-[10px] text-(--theme-text-muted)">Applied {timeAgo(app.appliedAt)}</p>
                         </div>
                     ))}
+                    </div>
+                    )}
                 </div>
             </div>
         </div>

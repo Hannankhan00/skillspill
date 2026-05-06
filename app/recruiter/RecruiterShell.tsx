@@ -132,7 +132,15 @@ export default function RecruiterShell({
     const dropdownRef = useRef<HTMLDivElement>(null);
     const accent = "#A855F7";
 
-    const [userData, setUserData] = useState<any>(null);
+    const [userData, setUserData]       = useState<any>(null);
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    useEffect(() => {
+        fetch("/api/notifications?countOnly=true")
+            .then(r => r.json())
+            .then(d => { if (typeof d.unreadCount === "number") setUnreadCount(d.unreadCount); })
+            .catch(() => {});
+    }, []);
 
     useEffect(() => {
         fetch("/api/user/profile")
@@ -377,7 +385,11 @@ export default function RecruiterShell({
                         <Link href="/recruiter/notifications"
                             className="relative w-9 h-9 rounded-xl flex items-center justify-center transition-all" style={{ color: 'var(--theme-text-muted)' }}>
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" style={{ border: '1px solid var(--theme-surface)' }} />
+                            {unreadCount > 0 && (
+                                <span className="absolute top-1 right-1 min-w-4 h-4 px-0.5 flex items-center justify-center rounded-full text-[8px] font-black bg-red-500 text-white" style={{ border: '1.5px solid var(--theme-bg)', lineHeight: 1 }}>
+                                    {unreadCount > 9 ? "9+" : unreadCount}
+                                </span>
+                            )}
                         </Link>
 
                         <Link href="/recruiter/settings"
@@ -488,15 +500,18 @@ export default function RecruiterShell({
                         }
 
                         const active = isActive(item.href);
+                        const showBadge = item.label === "Alerts" && unreadCount > 0;
                         return (
                             <Link key={item.label} href={item.href}
-                                className={`flex flex-col items-center justify-center gap-0.5 py-1 px-2 no-underline transition-colors
+                                className={`relative flex flex-col items-center justify-center gap-0.5 py-1 px-2 no-underline transition-colors
                                     ${active ? "text-[#A855F7]" : "text-(--theme-text-muted)"}`}>
                                 {active ? item.iconFilled : item.icon}
-                                <span className="text-[9px] font-medium">{item.label}</span>
-                                {item.label === "Alerts" && (
-                                    <span className="absolute top-1 right-1/2 translate-x-3 w-1.5 h-1.5 bg-red-500 rounded-full" />
+                                {showBadge && (
+                                    <span className="absolute top-0 right-1.5 min-w-3.5 h-3.5 px-0.5 flex items-center justify-center rounded-full text-[7px] font-black bg-red-500 text-white" style={{ lineHeight: 1 }}>
+                                        {unreadCount > 9 ? "9+" : unreadCount}
+                                    </span>
                                 )}
+                                <span className="text-[9px] font-medium">{item.label}</span>
                             </Link>
                         );
                     })}

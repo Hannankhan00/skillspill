@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { notify } from "@/lib/notify";
 
 // POST /api/jobs/[id]/apply — talent submits application
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -14,7 +15,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
         const job = await prisma.bounty.findUnique({
             where: { id: bountyId },
-            select: { id: true, status: true, maxApplicants: true, _count: { select: { applications: true } } },
+            select: {
+                id: true, title: true, status: true, maxApplicants: true,
+                _count: { select: { applications: true } },
+                recruiterProfile: { select: { userId: true } },
+            },
         });
 
         if (!job) {
@@ -54,6 +59,30 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
                 status: "PENDING",
             },
         });
+
+        // Notify talent that their application was submitted
+        notify({
+            userId: session.userId,
+            title: "Application Submitted",
+            message: `Your application for "${job.title}" has been submitted successfully.`,
+            type: "application",
+            link: `/talent/jobs/${bountyId}`,
+        });
+
+        // Notify recruiter of new applicant
+        if (job.recruiterProfile?.userId) {
+            const talentUser = await prisma.user.findUnique({
+                where: { id: session.userId },
+                select: { fullName: true },
+            });
+            notify({
+                userId: job.recruiterProfile.userId,
+                title: "New Application",
+                message: `${talentUser?.fullName ?? "A candidate"} applied to your job "${job.title}".`,
+                type: "application",
+                link: `/recruiter/jobs`,
+            });
+        }
 
         return NextResponse.json({ application }, { status: 201 });
     } catch (error) {

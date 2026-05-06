@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { runMatching } from "@/lib/runMatching";
 
 // GET /api/jobs
 // Talent: paginated list of OPEN jobs
@@ -175,6 +176,13 @@ export async function POST(req: Request) {
                 _count: { select: { applications: true } },
             },
         });
+
+        // Trigger AI matching in the background — do not await.
+        // The recruiter gets their 201 immediately; matching runs async
+        // so the response is never delayed by the Python microservice call.
+        runMatching(job.id).catch(err =>
+            console.error("[Auto-match] Failed for bounty:", job.id, err)
+        );
 
         return NextResponse.json({ job }, { status: 201 });
     } catch (error) {

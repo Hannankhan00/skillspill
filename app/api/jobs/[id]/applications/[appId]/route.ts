@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { notify } from "@/lib/notify";
 
 // PATCH /api/jobs/[id]/applications/[appId] — recruiter updates application status
 export async function PATCH(
@@ -46,7 +47,28 @@ export async function PATCH(
                 status,
                 reviewedAt: status !== "PENDING" ? new Date() : null,
             },
+            include: {
+                talentProfile: { select: { userId: true } },
+                bounty: { select: { title: true } },
+            },
         });
+
+        // Notify talent of status change
+        const statusMessages: Record<string, string> = {
+            REVIEWED:    "Your application is under review.",
+            SHORTLISTED: "Great news — you've been shortlisted!",
+            ACCEPTED:    "Congratulations! Your application was accepted.",
+            REJECTED:    "Your application was not selected this time.",
+        };
+        if (statusMessages[status] && application.talentProfile?.userId) {
+            notify({
+                userId: application.talentProfile.userId,
+                title:  `Application ${status.charAt(0) + status.slice(1).toLowerCase()}`,
+                message: `${statusMessages[status]} — "${application.bounty?.title}"`,
+                type:   status === "ACCEPTED" ? "match" : status === "REJECTED" ? "alert" : "application",
+                link:   `/talent/jobs/${bountyId}`,
+            });
+        }
 
         return NextResponse.json({ application });
     } catch (error) {

@@ -4,10 +4,10 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
     Bell, FileText, Sparkles, MessageSquare, Rocket, AlertTriangle,
-    CheckCheck, Loader2, X
+    CheckCheck, Loader2, Trash2, X
 } from "lucide-react";
 
-const accent = "#A855F7";
+const accent = "#3CF91A";
 
 interface Notification {
     id: string;
@@ -20,10 +20,10 @@ interface Notification {
 }
 
 const TYPE_META: Record<string, { icon: React.ReactNode; color: string }> = {
-    application: { icon: <FileText className="w-4 h-4" />,   color: "#3B82F6"  },
-    match:       { icon: <Sparkles className="w-4 h-4" />,   color: "#A855F7"  },
-    message:     { icon: <MessageSquare className="w-4 h-4" />, color: "#06B6D4" },
-    system:      { icon: <Rocket className="w-4 h-4" />,     color: "#F59E0B"  },
+    application: { icon: <FileText className="w-4 h-4" />,   color: "#3B82F6" },
+    match:       { icon: <Sparkles className="w-4 h-4" />,   color: accent    },
+    message:     { icon: <MessageSquare className="w-4 h-4" />, color: "#8B5CF6" },
+    system:      { icon: <Rocket className="w-4 h-4" />,     color: "#F59E0B" },
     alert:       { icon: <AlertTriangle className="w-4 h-4" />, color: "#EF4444" },
     info:        { icon: <Bell className="w-4 h-4" />,        color: "var(--theme-text-muted)" },
 };
@@ -40,11 +40,11 @@ function timeAgo(iso: string) {
     return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-export default function RecruiterNotificationsPage() {
-    const [notifs, setNotifs]       = useState<Notification[]>([]);
-    const [loading, setLoading]     = useState(true);
-    const [unread, setUnread]       = useState(0);
-    const [filter, setFilter]       = useState("All");
+export default function TalentNotificationsPage() {
+    const [notifs, setNotifs]     = useState<Notification[]>([]);
+    const [loading, setLoading]   = useState(true);
+    const [unread, setUnread]     = useState(0);
+    const [filter, setFilter]     = useState("All");
     const [markingAll, setMarkingAll] = useState(false);
 
     const filters = ["All", "Unread"];
@@ -95,7 +95,9 @@ export default function RecruiterNotificationsPage() {
                             Notifications
                         </h1>
                         {unread > 0 && (
-                            <p className="text-[12px] text-(--theme-text-muted) mt-0.5">{unread} unread</p>
+                            <p className="text-[12px] text-(--theme-text-muted) mt-0.5">
+                                {unread} unread
+                            </p>
                         )}
                     </div>
                     {unread > 0 && (
@@ -120,12 +122,12 @@ export default function RecruiterNotificationsPage() {
                             onClick={() => setFilter(f)}
                             className="flex-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer border-none"
                             style={filter === f
-                                ? { background: accent, color: "#fff" }
+                                ? { background: accent, color: "#000" }
                                 : { background: "transparent", color: "var(--theme-text-muted)" }}>
                             {f}
                             {f === "Unread" && unread > 0 && (
                                 <span className="ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full font-bold"
-                                    style={{ background: filter === "Unread" ? "rgba(255,255,255,0.2)" : `${accent}20`, color: filter === "Unread" ? "#fff" : accent }}>
+                                    style={{ background: filter === "Unread" ? "rgba(0,0,0,0.2)" : `${accent}20`, color: filter === "Unread" ? "#000" : accent }}>
                                     {unread}
                                 </span>
                             )}
@@ -158,8 +160,8 @@ export default function RecruiterNotificationsPage() {
                                     key={n.id}
                                     className="group relative rounded-2xl border transition-all"
                                     style={{
-                                        background: n.isRead ? "var(--theme-card)" : `${accent}08`,
-                                        borderColor: n.isRead ? "var(--theme-border)" : `${accent}30`,
+                                        background: n.isRead ? "var(--theme-card)" : `${accent}06`,
+                                        borderColor: n.isRead ? "var(--theme-border)" : `${accent}25`,
                                     }}>
                                     <Wrapper
                                         href={n.link ?? "#"}
