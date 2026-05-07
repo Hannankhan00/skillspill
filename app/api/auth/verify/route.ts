@@ -3,30 +3,24 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest) {
+export async function POST(req: NextRequest) {
     try {
-        const url = new URL(req.url);
-        const token = url.searchParams.get("token");
+        const { email, otp } = await req.json();
 
-        if (!token) {
-            return NextResponse.redirect(new URL("/login?error=MissingVerificationToken", req.url));
+        if (!email || !otp) {
+            return NextResponse.json({ error: "Email and OTP are required." }, { status: 400 });
         }
 
-        // Find user with this token
-        const user = await prisma.user.findUnique({
-            where: { verificationToken: token },
-        });
+        const user = await prisma.user.findUnique({ where: { email } });
 
-        if (!user) {
-            return NextResponse.redirect(new URL("/login?error=InvalidVerificationToken", req.url));
+        if (!user || user.verificationToken !== otp) {
+            return NextResponse.json({ error: "Invalid verification code." }, { status: 400 });
         }
 
-        // Check if token has expired
         if (user.verificationExpiresAt && new Date() > user.verificationExpiresAt) {
-            return NextResponse.redirect(new URL("/login?error=ExpiredVerificationToken", req.url));
+            return NextResponse.json({ error: "Code has expired. Please request a new one." }, { status: 400 });
         }
 
-        // Update user to verified
         await prisma.user.update({
             where: { id: user.id },
             data: {
@@ -36,11 +30,10 @@ export async function GET(req: NextRequest) {
             },
         });
 
-        // Redirect to login with success message
-        return NextResponse.redirect(new URL("/login?verified=true", req.url));
+        return NextResponse.json({ success: true });
 
     } catch (error) {
         console.error("Verification Error:", error);
-        return NextResponse.redirect(new URL("/login?error=VerificationFailed", req.url));
+        return NextResponse.json({ error: "Internal server error." }, { status: 500 });
     }
 }

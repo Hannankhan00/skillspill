@@ -4,7 +4,6 @@ import { hashPassword } from "@/lib/auth";
 import { sendEmail } from "@/lib/mail";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
-import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
 
@@ -56,9 +55,9 @@ export async function POST(req: NextRequest) {
         // 2. Hash Password
         const passwordHash = await hashPassword(password);
 
-        // Generate Verification Token
-        const verificationToken = crypto.randomBytes(32).toString("hex");
-        const verificationExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+        // Generate 6-digit OTP (valid for 10 minutes)
+        const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+        const verificationExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
         // 3. Transaction: Create User -> Profile -> Industries
         const user = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
@@ -105,28 +104,29 @@ export async function POST(req: NextRequest) {
             return newUser;
         });
 
-        // 4. Send Verification Email
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-        const verificationUrl = `${appUrl}/api/auth/verify?token=${verificationToken}`;
-
-        await sendEmail({
-            to: email,
-            subject: "Verify your SkillSpill Recruiter Account",
-            html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
-                    <h2 style="color: #4F46E5; text-align: center;">Welcome to SkillSpill, ${companyName}!</h2>
-                    <p style="font-size: 16px; color: #333;">We are excited to have you on board. Please click the button below to verify your email address and activate your recruiter account.</p>
-                    <div style="text-align: center; margin: 30px 0;">
-                        <a href="${verificationUrl}" style="background-color: #4F46E5; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Verify Email Address</a>
+        // 4. Send OTP Email
+        try {
+            await sendEmail({
+                to: email,
+                subject: "Your SkillSpill Verification Code",
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 8px;">
+                        <h2 style="color: #A855F7; text-align: center; letter-spacing: 2px;">SKILLSPILL</h2>
+                        <p style="font-size: 16px; color: #ccc; text-align: center;">Welcome, ${companyName}! Enter this code to verify your recruiter account.</p>
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="display: inline-block; background: #111; border: 2px solid #A855F7; border-radius: 8px; padding: 16px 32px;">
+                                <span style="font-size: 36px; font-weight: bold; letter-spacing: 12px; color: #A855F7; font-family: monospace;">${verificationToken}</span>
+                            </div>
+                        </div>
+                        <p style="font-size: 14px; color: #666; text-align: center;">This code expires in <strong style="color: #ccc;">10 minutes</strong>.</p>
+                        <hr style="border: none; border-top: 1px solid #222; margin: 20px 0;" />
+                        <p style="font-size: 12px; color: #444; text-align: center;">If you didn't sign up for SkillSpill, ignore this email.</p>
                     </div>
-                    <p style="font-size: 14px; color: #666;">If the button doesn't work, you can copy and paste the following link into your browser:</p>
-                    <p style="font-size: 14px; color: #4F46E5; word-break: break-all;">${verificationUrl}</p>
-                    <p style="font-size: 14px; color: #666;">This link will expire in 24 hours.</p>
-                    <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;" />
-                    <p style="font-size: 12px; color: #999; text-align: center;">If you didn't create an account with SkillSpill, you can safely ignore this email.</p>
-                </div>
-            `,
-        });
+                `,
+            });
+        } catch (mailErr) {
+            console.error("Failed to send verification email:", mailErr);
+        }
 
         // No session created, user needs to verify first
         return NextResponse.json({ success: true, redirectTo: "/verify-request" }, { status: 201 });

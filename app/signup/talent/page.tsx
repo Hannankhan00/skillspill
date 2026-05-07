@@ -137,8 +137,21 @@ export default function TalentSignup() {
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [verificationCode, setVerificationCode] = useState(["", "", "", "", "", ""]);
+
+    // OTP stage — shown after successful form submission
+    const [otpStage, setOtpStage] = useState(false);
+    const [otpCode, setOtpCode] = useState(["", "", "", "", "", ""]);
+    const [otpLoading, setOtpLoading] = useState(false);
+    const [otpError, setOtpError] = useState("");
+    const [resendCooldown, setResendCooldown] = useState(0);
+    const [resendLoading, setResendLoading] = useState(false);
     const codeRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+    useEffect(() => {
+        if (resendCooldown <= 0) return;
+        const t = setTimeout(() => setResendCooldown(c => c - 1), 1000);
+        return () => clearTimeout(t);
+    }, [resendCooldown]);
 
     // Aesthetic Colors
     const COLOR_ACCENT = "#3CF91A";
@@ -206,8 +219,32 @@ export default function TalentSignup() {
     const addProjectLink = () => setFormData((prev) => ({ ...prev, projectLinks: [...prev.projectLinks, ""] }));
     const updateProjectLink = (i: number, v: string) => setFormData((prev) => { const l = [...prev.projectLinks]; l[i] = v; return { ...prev, projectLinks: l }; });
     const removeProjectLink = (i: number) => setFormData((prev) => ({ ...prev, projectLinks: prev.projectLinks.filter((_, idx) => idx !== i) }));
-    const handleVerificationInput = (i: number, v: string) => { if (v.length > 1) v = v.slice(-1); if (v && !/^\d$/.test(v)) return; const c = [...verificationCode]; c[i] = v; setVerificationCode(c); if (v && i < 5) codeRefs.current[i + 1]?.focus(); };
-    const handleVerificationKeyDown = (i: number, e: React.KeyboardEvent) => { if (e.key === "Backspace" && !verificationCode[i] && i > 0) codeRefs.current[i - 1]?.focus(); };
+    const handleOtpInput = (i: number, v: string) => { if (v.length > 1) v = v.slice(-1); if (v && !/^\d$/.test(v)) return; const c = [...otpCode]; c[i] = v; setOtpCode(c); setOtpError(""); if (v && i < 5) codeRefs.current[i + 1]?.focus(); };
+    const handleOtpKeyDown = (i: number, e: React.KeyboardEvent) => { if (e.key === "Backspace" && !otpCode[i] && i > 0) codeRefs.current[i - 1]?.focus(); };
+
+    const handleVerifyOtp = async () => {
+        const otp = otpCode.join("");
+        if (otp.length < 6) { setOtpError("Please enter all 6 digits."); return; }
+        setOtpLoading(true); setOtpError("");
+        try {
+            const res = await fetch("/api/auth/verify", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: formData.email, otp }) });
+            const data = await res.json();
+            if (!res.ok) { setOtpError(data.error || "Verification failed."); return; }
+            router.push("/login?verified=true");
+        } catch { setOtpError("Network error. Please try again."); }
+        finally { setOtpLoading(false); }
+    };
+
+    const handleResendOtp = async () => {
+        setResendLoading(true); setOtpError("");
+        try {
+            const res = await fetch("/api/auth/resend-otp", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: formData.email }) });
+            const data = await res.json();
+            if (!res.ok) { setOtpError(data.error || "Failed to resend code."); return; }
+            setOtpCode(["", "", "", "", "", ""]); setResendCooldown(60); codeRefs.current[0]?.focus();
+        } catch { setOtpError("Network error. Please try again."); }
+        finally { setResendLoading(false); }
+    };
 
     const progressPercent = ((currentStep + 1) / STEPS.length) * 100;
 
@@ -450,19 +487,19 @@ export default function TalentSignup() {
                 <p className="text-xs text-[#666]" style={mono}>Phase 5: Confirm and initialize.</p>
             </div>
 
-            <div className="flex flex-col items-center justify-center py-6 gap-4">
-                <p className="text-sm text-[#888]">Verification code sent to <span className="text-white">{formData.email}</span></p>
-                <div className="flex gap-2">
-                    {verificationCode.map((d, i) => (
-                        <input key={i} ref={el => { codeRefs.current[i] = el; }}
-                            maxLength={1}
-                            value={d}
-                            onChange={(e) => handleVerificationInput(i, e.target.value)}
-                            onKeyDown={(e) => handleVerificationKeyDown(i, e)}
-                            className="w-10 h-14 bg-[#111] border border-white/20 rounded text-center text-xl font-mono text-[#3CF91A] focus:border-[#3CF91A] outline-none"
-                        />
-                    ))}
-                </div>
+            <div className="p-4 bg-[#111] border border-white/10 rounded-xl space-y-3">
+                {[
+                    { label: "Name", value: formData.fullName },
+                    { label: "Email", value: formData.email },
+                    { label: "Username", value: `@${formData.username}` },
+                    { label: "Experience", value: formData.experienceLevel },
+                    { label: "Skills", value: formData.selectedSkills.slice(0, 4).join(", ") + (formData.selectedSkills.length > 4 ? ` +${formData.selectedSkills.length - 4} more` : "") },
+                ].filter(r => r.value).map((row, i, arr) => (
+                    <div key={row.label} className={`flex justify-between items-start gap-3 ${i < arr.length - 1 ? "pb-3 border-b border-white/5" : ""}`}>
+                        <span className="text-xs text-[#666] shrink-0">{row.label}</span>
+                        <span className="text-sm font-bold text-white text-right">{row.value}</span>
+                    </div>
+                ))}
             </div>
 
             <div className="flex items-start gap-3 p-4 bg-[#111] border border-white/10 rounded-xl">
@@ -470,6 +507,63 @@ export default function TalentSignup() {
                 <div className="text-xs text-[#666] leading-relaxed">
                     I agree to the <span className="text-white">Terms of Protocol</span> and <span className="text-white">Neural Data Policy</span>. I understand my code will be analyzed by the network.
                 </div>
+            </div>
+        </div>
+    );
+
+    const renderOtpStage = () => (
+        <div className="flex flex-col gap-6 animate-in fade-in duration-300">
+            <div className="mb-2 text-center">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#3CF91A]/10 border border-[#3CF91A]/40 flex items-center justify-center">
+                    <IconMail className="w-7 h-7 text-[#3CF91A]" />
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-1">Verify <span className="text-[#3CF91A]">Email</span></h2>
+                <p className="text-xs text-[#666]" style={mono}>Enter the 6-digit code sent to</p>
+                <p className="text-sm text-white mt-1 font-mono">{formData.email}</p>
+            </div>
+
+            <div className="flex justify-center gap-2">
+                {otpCode.map((d, i) => (
+                    <input
+                        key={i}
+                        ref={el => { codeRefs.current[i] = el; }}
+                        maxLength={1}
+                        value={d}
+                        onChange={(e) => handleOtpInput(i, e.target.value)}
+                        onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                        onPaste={(e) => {
+                            e.preventDefault();
+                            const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+                            const newCode = [...otpCode];
+                            pasted.split("").forEach((ch, idx) => { if (idx < 6) newCode[idx] = ch; });
+                            setOtpCode(newCode);
+                            setOtpError("");
+                            codeRefs.current[Math.min(pasted.length, 5)]?.focus();
+                        }}
+                        className="w-12 h-16 bg-[#111] border border-white/20 rounded-lg text-center text-2xl font-mono text-[#3CF91A] focus:border-[#3CF91A] focus:shadow-[0_0_10px_rgba(60,249,26,0.2)] outline-none transition-all"
+                    />
+                ))}
+            </div>
+
+            {otpError && <p className="text-[#FF003C] text-xs text-center font-mono">{otpError}</p>}
+
+            <button
+                onClick={handleVerifyOtp}
+                disabled={otpLoading}
+                className="w-full bg-[#3CF91A] text-black font-bold h-14 rounded-xl uppercase tracking-widest hover:shadow-[0_0_30px_rgba(60,249,26,0.4)] hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+            >
+                {otpLoading ? "VERIFYING..." : <><IconCheck className="w-4 h-4" /> VERIFY & ACTIVATE</>}
+            </button>
+
+            <div className="text-center">
+                <p className="text-xs text-[#555] mb-2">Didn't receive the code?</p>
+                <button
+                    onClick={handleResendOtp}
+                    disabled={resendCooldown > 0 || resendLoading}
+                    className="text-xs font-mono text-[#3CF91A] hover:underline disabled:text-[#555] disabled:no-underline disabled:cursor-not-allowed transition-colors"
+                >
+                    {resendLoading ? "Sending..." : resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend Code"}
+                </button>
             </div>
         </div>
     );
@@ -507,82 +601,89 @@ export default function TalentSignup() {
                     <div className="flex justify-between items-start mb-2 relative z-10">
                         <div className="flex flex-col">
                             <span className="text-[10px] text-[#3CF91A] tracking-[0.2em] uppercase font-bold font-mono mb-1">Registration Flow</span>
-                            <h1 className="text-2xl font-bold tracking-tight text-white">{STEPS[currentStep].label}</h1>
+                            <h1 className="text-2xl font-bold tracking-tight text-white">
+                                {otpStage ? "Verify Email" : STEPS[currentStep].label}
+                            </h1>
                         </div>
-                        <span className="text-3xl font-mono font-bold text-[#3CF91A] opacity-20">{Math.round(progressPercent)}%</span>
+                        <span className="text-3xl font-mono font-bold text-[#3CF91A] opacity-20">
+                            {otpStage ? "100%" : `${Math.round(progressPercent)}%`}
+                        </span>
                     </div>
-                    {/* Progress Bar */}
                     <div className="w-full h-1 bg-white/5 rounded-full mt-4 overflow-hidden relative z-10">
-                        <div className="h-full bg-[#3CF91A] shadow-[0_0_15px_#3CF91A] transition-all duration-500 ease-out" style={{ width: `${progressPercent}%` }} />
+                        <div className="h-full bg-[#3CF91A] shadow-[0_0_15px_#3CF91A] transition-all duration-500 ease-out" style={{ width: otpStage ? "100%" : `${progressPercent}%` }} />
                     </div>
                 </div>
 
-                {/* 2. Navigation Tabs */}
-                <div className="grid grid-cols-5 gap-2">
-                    {STEPS.map((step, i) => (
-                        <button
-                            key={step.id}
-                            onClick={() => i <= currentStep && goToStep(i)}
-                            disabled={i > currentStep}
-                            className={`
-                                py-3 px-2 rounded-lg border text-[9px] sm:text-[10px] uppercase tracking-widest font-mono transition-all duration-300
-                                ${i === currentStep
-                                    ? "border-[#3CF91A] text-[#3CF91A] bg-[#3CF91A]/10 shadow-[0_0_15px_rgba(60,249,26,0.1)]"
-                                    : i < currentStep
-                                        ? "border-[#3CF91A]/40 text-[#3CF91A]/60 hover:text-[#3CF91A] hover:border-[#3CF91A]"
-                                        : "border-white/5 text-white/20 cursor-not-allowed bg-[#050505]"
-                                }
-                            `}
-                        >
-                            {step.label}
-                        </button>
-                    ))}
-                </div>
+                {/* 2. Navigation Tabs — hidden during OTP stage */}
+                {!otpStage && (
+                    <div className="grid grid-cols-5 gap-2">
+                        {STEPS.map((step, i) => (
+                            <button
+                                key={step.id}
+                                onClick={() => i <= currentStep && goToStep(i)}
+                                disabled={i > currentStep}
+                                className={`
+                                    py-3 px-2 rounded-lg border text-[9px] sm:text-[10px] uppercase tracking-widest font-mono transition-all duration-300
+                                    ${i === currentStep
+                                        ? "border-[#3CF91A] text-[#3CF91A] bg-[#3CF91A]/10 shadow-[0_0_15px_rgba(60,249,26,0.1)]"
+                                        : i < currentStep
+                                            ? "border-[#3CF91A]/40 text-[#3CF91A]/60 hover:text-[#3CF91A] hover:border-[#3CF91A]"
+                                            : "border-white/5 text-white/20 cursor-not-allowed bg-[#050505]"
+                                    }
+                                `}
+                            >
+                                {step.label}
+                            </button>
+                        ))}
+                    </div>
+                )}
 
                 {/* 3. Main Form Panel */}
                 <div className="border border-white/10 bg-[#0A0A0A]/90 backdrop-blur-xl rounded-2xl p-6 sm:p-8 min-h-[460px] relative shadow-2xl">
                     <div className="absolute top-0 left-0 w-full h-[1px] bg-linear-to-r from-transparent via-[#3CF91A]/30 to-transparent"></div>
-                    {stepRenderers[currentStep]()}
+                    {otpStage ? renderOtpStage() : stepRenderers[currentStep]()}
                 </div>
 
-                {/* 4. Controls */}
-                <div className="flex flex-col items-center mt-8 gap-4">
-                    <button
-                        onClick={currentStep === STEPS.length - 1 ? async () => {
-                            setSubmitLoading(true); setSubmitError("");
-                            try {
-                                const res = await fetch("/api/auth/signup/talent", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData) });
-                                const data = await res.json();
-                                if (!res.ok) { setSubmitError(data.errors ? Object.values(data.errors).join(", ") : (data.error || "Signup failed")); return; }
-                                router.push(data.redirectTo || "/talent");
-                            } catch { setSubmitError("Network connection failed."); }
-                            finally { setSubmitLoading(false); }
-                        } : nextStep}
-                        disabled={currentStep === STEPS.length - 1 && (!formData.agreedToTerms || submitLoading)}
-                        className={`
-                            relative group overflow-hidden w-full sm:w-[320px] bg-[#3CF91A] text-black font-bold h-14 rounded-xl uppercase tracking-widest 
-                            hover:shadow-[0_0_30px_rgba(60,249,26,0.4)] hover:scale-[1.02] transition-all duration-300
-                            disabled:opacity-50 disabled:shadow-none disabled:scale-100 disabled:cursor-not-allowed
-                            flex items-center justify-center gap-3 text-sm
-                        `}
-                    >
-                        <span className="relative z-10 flex items-center gap-2">
-                            {submitLoading ? "INITIALIZING..." : (
-                                currentStep === STEPS.length - 1 ? <>COMPLETE REGISTRATION <IconBolt /></> : <>NEXT: {STEPS[currentStep + 1]?.label} <IconArrowRight /></>
-                            )}
-                        </span>
-                        {/* Shine effect */}
-                        <div className="absolute top-0 -left-[100%] w-full h-full bg-linear-to-r from-transparent via-white/40 to-transparent group-hover:left-[100%] transition-all duration-700 ease-in-out"></div>
-                    </button>
+                {/* 4. Controls — hidden during OTP stage (OTP stage has its own controls) */}
+                {!otpStage && (
+                    <div className="flex flex-col items-center mt-8 gap-4">
+                        <button
+                            onClick={currentStep === STEPS.length - 1 ? async () => {
+                                setSubmitLoading(true); setSubmitError("");
+                                try {
+                                    const res = await fetch("/api/auth/signup/talent", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData) });
+                                    const data = await res.json();
+                                    if (!res.ok) { setSubmitError(data.errors ? Object.values(data.errors).join(", ") : (data.error || "Signup failed")); return; }
+                                    setOtpStage(true);
+                                    setResendCooldown(60);
+                                } catch { setSubmitError("Network connection failed."); }
+                                finally { setSubmitLoading(false); }
+                            } : nextStep}
+                            disabled={currentStep === STEPS.length - 1 && (!formData.agreedToTerms || submitLoading)}
+                            className={`
+                                relative group overflow-hidden w-full sm:w-[320px] bg-[#3CF91A] text-black font-bold h-14 rounded-xl uppercase tracking-widest
+                                hover:shadow-[0_0_30px_rgba(60,249,26,0.4)] hover:scale-[1.02] transition-all duration-300
+                                disabled:opacity-50 disabled:shadow-none disabled:scale-100 disabled:cursor-not-allowed
+                                flex items-center justify-center gap-3 text-sm
+                            `}
+                        >
+                            <span className="relative z-10 flex items-center gap-2">
+                                {submitLoading ? "INITIALIZING..." : (
+                                    currentStep === STEPS.length - 1 ? <>COMPLETE REGISTRATION <IconBolt /></> : <>NEXT: {STEPS[currentStep + 1]?.label} <IconArrowRight /></>
+                                )}
+                            </span>
+                            <div className="absolute top-0 -left-[100%] w-full h-full bg-linear-to-r from-transparent via-white/40 to-transparent group-hover:left-[100%] transition-all duration-700 ease-in-out"></div>
+                        </button>
 
-                    <button
-                        onClick={currentStep > 0 ? prevStep : () => router.push("/")}
-                        className="text-[#666] hover:text-white text-xs uppercase tracking-widest font-mono transition-colors py-2 border-b border-transparent hover:border-white/20"
-                    >
-                        {currentStep > 0 ? "Go Back" : "Cancel Registration"}
-                    </button>
-                </div>
-                {submitError && <div className="text-[#FF003C] text-xs text-center font-mono mt-4">{submitError}</div>}
+                        <button
+                            onClick={currentStep > 0 ? prevStep : () => router.push("/")}
+                            className="text-[#666] hover:text-white text-xs uppercase tracking-widest font-mono transition-colors py-2 border-b border-transparent hover:border-white/20"
+                        >
+                            {currentStep > 0 ? "Go Back" : "Cancel Registration"}
+                        </button>
+                    </div>
+                )}
+                {!otpStage && submitError && <div className="text-[#FF003C] text-xs text-center font-mono mt-4">{submitError}</div>}
 
             </main>
         </div>
