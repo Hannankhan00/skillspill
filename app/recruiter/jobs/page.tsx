@@ -583,9 +583,9 @@ export default function RecruiterJobsPage() {
                                 </button>
                             </div>
                         ) : jobs.map(job => (
-                            <div key={job.id} className={`bg-(--theme-card) border border-(--theme-border) rounded-2xl p-4 sm:p-5 transition-all hover:border-secondary/40 hover:shadow-md group relative overflow-hidden ${viewMode === "grid" ? "flex flex-col" : "flex flex-col sm:flex-row sm:items-center gap-4"}`}>
+                            <div key={job.id} className={`bg-(--theme-card) border border-(--theme-border) rounded-2xl p-4 sm:p-5 transition-all hover:border-secondary/40 hover:shadow-md group relative ${viewMode === "grid" ? "flex flex-col" : "flex flex-col sm:flex-row sm:items-center gap-4"}`}>
                                 {/* Status stripe */}
-                                <div className={`absolute left-0 top-0 ${viewMode === "grid" ? "w-full h-1" : "w-1 h-full"} ${STATUS_COLORS[job.status]}`} />
+                                <div className={`absolute left-0 top-0 ${viewMode === "grid" ? "w-full h-1 rounded-t-2xl" : "w-1 h-full rounded-l-2xl"} ${STATUS_COLORS[job.status]}`} />
 
                                 <div className="flex-1 min-w-0 z-10">
                                     <div className="flex items-start justify-between mb-2">
