@@ -37,7 +37,7 @@ export default function TalentProfileViewPage() {
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-full p-20">
-                <Loader2 className="w-10 h-10 text-[#3CF91A] animate-spin mb-4" />
+                <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
                 <p className="text-[13px] text-(--theme-text-muted) font-medium">Loading talent profile...</p>
             </div>
         );
@@ -80,7 +80,7 @@ export default function TalentProfileViewPage() {
                 </div>
 
                 {/* Avatar */}
-                <div className="max-w-[900px] mx-auto px-4 sm:px-6">
+                <div className="max-w-225 mx-auto px-4 sm:px-6">
                     <div className="relative -mt-12 sm:-mt-16 flex items-end gap-4">
                         <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden bg-linear-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-(--theme-bg) text-2xl sm:text-3xl font-bold border-4 border-(--theme-bg) shadow-xl shrink-0">
                             {avatarUrl ? (
@@ -98,7 +98,7 @@ export default function TalentProfileViewPage() {
                                 )}
                             </div>
                             <p className="text-[13px] text-(--theme-text-muted) mt-0.5">{role}</p>
-                            <p className="text-[11px] text-[#3CF91A] font-medium flex items-center gap-1 mt-1">
+                            <p className="text-[11px] text-primary font-medium flex items-center gap-1 mt-1">
                                 <Sparkles className="w-3 h-3" /> Talent Profile
                             </p>
                         </div>
@@ -121,7 +121,7 @@ export default function TalentProfileViewPage() {
             </div>
 
             {/* ── MAIN CONTENT ── */}
-            <div className="max-w-[900px] mx-auto px-4 sm:px-6 pb-24 lg:pb-8">
+            <div className="max-w-225 mx-auto px-4 sm:px-6 pb-24 lg:pb-8">
 
                 {/* ── Stats / Actions row ── */}
                 <div className="flex items-center gap-3 sm:gap-6 mt-4 sm:mt-5 pb-4 border-b border-(--theme-border)">
@@ -160,7 +160,7 @@ export default function TalentProfileViewPage() {
                     {tabs.map(tab => (
                         <button key={tab} onClick={() => setActiveTab(tab)}
                             className={`px-4 sm:px-6 py-3 text-[12px] sm:text-[13px] font-semibold border-b-2 transition-all cursor-pointer bg-transparent whitespace-nowrap
-                                ${activeTab === tab ? "border-[#3CF91A] text-[#3CF91A]" : "border-transparent text-(--theme-text-muted) hover:text-(--theme-text-tertiary)"}`}>
+                                ${activeTab === tab ? "border-primary text-primary" : "border-transparent text-(--theme-text-muted) hover:text-(--theme-text-tertiary)"}`}>
                             {tab}
                         </button>
                     ))}
@@ -172,8 +172,8 @@ export default function TalentProfileViewPage() {
                         <div className="space-y-3">
                             {workExperience && workExperience.length > 0 ? (
                                 workExperience.map((exp: any) => (
-                                    <div key={exp.id} className="rounded-2xl border border-(--theme-border) bg-(--theme-card) p-4 sm:p-5 flex gap-4 hover:border-[#3CF91A]/30 transition-all">
-                                        <div className="w-10 h-10 shrink-0 rounded-xl bg-linear-to-br from-[#3CF91A] to-[#10B981] flex items-center justify-center text-[13px] font-bold" style={{ color: '#000' }}>
+                                    <div key={exp.id} className="rounded-2xl border border-(--theme-border) bg-(--theme-card) p-4 sm:p-5 flex gap-4 hover:border-primary/30 transition-all">
+                                        <div className="w-10 h-10 shrink-0 rounded-xl bg-linear-to-br from-primary to-[#10B981] flex items-center justify-center text-[13px] font-bold" style={{ color: '#000' }}>
                                             {exp.companyName[0].toUpperCase()}
                                         </div>
                                         <div className="flex-1 min-w-0">
@@ -214,7 +214,7 @@ export default function TalentProfileViewPage() {
                                 <h2 className="text-[14px] font-bold text-(--theme-text-primary) mb-2">About</h2>
                                 <p className="text-[13px] text-(--theme-text-tertiary) leading-relaxed whitespace-pre-wrap">{bio || "This user hasn't added a bio yet."}</p>
                                 <div className="flex flex-wrap gap-3 mt-4 text-[11px] text-(--theme-text-muted) pt-3 border-t border-(--theme-border-light)">
-                                    <span className="flex items-center gap-1.5 text-[#3CF91A] font-medium">
+                                    <span className="flex items-center gap-1.5 text-primary font-medium">
                                         <Briefcase className="w-3.5 h-3.5" />
                                         {role}
                                     </span>
@@ -228,8 +228,8 @@ export default function TalentProfileViewPage() {
                                 </h2>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {showEmail && contactEmail && (
-                                        <a href={`mailto:${contactEmail}`} className="flex items-center gap-3 p-3 rounded-xl bg-(--theme-bg-secondary) hover:bg-[#3CF91A]/10 transition-colors border border-(--theme-border-light) hover:border-[#3CF91A]/30 group">
-                                            <Mail className="w-5 h-5 text-(--theme-text-secondary) group-hover:text-[#3CF91A]" />
+                                        <a href={`mailto:${contactEmail}`} className="flex items-center gap-3 p-3 rounded-xl bg-(--theme-bg-secondary) hover:bg-primary/10 transition-colors border border-(--theme-border-light) hover:border-primary/30 group">
+                                            <Mail className="w-5 h-5 text-(--theme-text-secondary) group-hover:text-primary" />
                                             <div>
                                                 <p className="text-[12px] font-bold text-(--theme-text-primary)">Email</p>
                                                 <p className="text-[10px] text-(--theme-text-muted)">{contactEmail}</p>
@@ -237,8 +237,8 @@ export default function TalentProfileViewPage() {
                                         </a>
                                     )}
                                     {showPhone && contactPhone && (
-                                        <a href={`tel:${contactPhone}`} className="flex items-center gap-3 p-3 rounded-xl bg-(--theme-bg-secondary) hover:bg-[#3CF91A]/10 transition-colors border border-(--theme-border-light) hover:border-[#3CF91A]/30 group">
-                                            <Phone className="w-5 h-5 text-(--theme-text-secondary) group-hover:text-[#3CF91A]" />
+                                        <a href={`tel:${contactPhone}`} className="flex items-center gap-3 p-3 rounded-xl bg-(--theme-bg-secondary) hover:bg-primary/10 transition-colors border border-(--theme-border-light) hover:border-primary/30 group">
+                                            <Phone className="w-5 h-5 text-(--theme-text-secondary) group-hover:text-primary" />
                                             <div>
                                                 <p className="text-[12px] font-bold text-(--theme-text-primary)">Phone</p>
                                                 <p className="text-[10px] text-(--theme-text-muted)">{contactPhone}</p>
@@ -246,8 +246,8 @@ export default function TalentProfileViewPage() {
                                         </a>
                                     )}
                                     {showSocials && githubUsername && (
-                                        <a href={`https://github./${githubUsername}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-xl bg-(--theme-bg-secondary) hover:bg-[#3CF91A]/10 transition-colors border border-(--theme-border-light) hover:border-[#3CF91A]/30 group">
-                                            <Github className="w-5 h-5 text-(--theme-text-secondary) group-hover:text-[#3CF91A]" />
+                                        <a href={`https://github./${githubUsername}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-xl bg-(--theme-bg-secondary) hover:bg-primary/10 transition-colors border border-(--theme-border-light) hover:border-primary/30 group">
+                                            <Github className="w-5 h-5 text-(--theme-text-secondary) group-hover:text-primary" />
                                             <div>
                                                 <p className="text-[12px] font-bold text-(--theme-text-primary)">GitHub</p>
                                                 <p className="text-[10px] text-(--theme-text-muted)">@{githubUsername}</p>
@@ -255,8 +255,8 @@ export default function TalentProfileViewPage() {
                                         </a>
                                     )}
                                     {linkedinUrl && (
-                                        <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-xl bg-(--theme-bg-secondary) hover:bg-[#3CF91A]/10 transition-colors border border-(--theme-border-light) hover:border-[#3CF91A]/30 group">
-                                            <Linkedin className="w-5 h-5 text-(--theme-text-secondary) group-hover:text-[#3CF91A]" />
+                                        <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-xl bg-(--theme-bg-secondary) hover:bg-primary/10 transition-colors border border-(--theme-border-light) hover:border-primary/30 group">
+                                            <Linkedin className="w-5 h-5 text-(--theme-text-secondary) group-hover:text-primary" />
                                             <div>
                                                 <p className="text-[12px] font-bold text-(--theme-text-primary)">LinkedIn</p>
                                                 <p className="text-[10px] text-(--theme-text-muted)">View Profile</p>
@@ -264,8 +264,8 @@ export default function TalentProfileViewPage() {
                                         </a>
                                     )}
                                     {portfolioUrl && (
-                                        <a href={portfolioUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-xl bg-(--theme-bg-secondary) hover:bg-[#3CF91A]/10 transition-colors border border-(--theme-border-light) hover:border-[#3CF91A]/30 group">
-                                            <Briefcase className="w-5 h-5 text-(--theme-text-secondary) group-hover:text-[#3CF91A]" />
+                                        <a href={portfolioUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-xl bg-(--theme-bg-secondary) hover:bg-primary/10 transition-colors border border-(--theme-border-light) hover:border-primary/30 group">
+                                            <Briefcase className="w-5 h-5 text-(--theme-text-secondary) group-hover:text-primary" />
                                             <div>
                                                 <p className="text-[12px] font-bold text-(--theme-text-primary)">Portfolio</p>
                                                 <p className="text-[10px] text-(--theme-text-muted)">{portfolioUrl.replace(/^https?:\/\//, '')}</p>
@@ -273,8 +273,8 @@ export default function TalentProfileViewPage() {
                                         </a>
                                     )}
                                     {showSocials && resumeUrl && (
-                                        <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-xl bg-(--theme-bg-secondary) hover:bg-[#3CF91A]/10 transition-colors border border-(--theme-border-light) hover:border-[#3CF91A]/30 group">
-                                            <FileText className="w-5 h-5 text-(--theme-text-secondary) group-hover:text-[#3CF91A]" />
+                                        <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-xl bg-(--theme-bg-secondary) hover:bg-primary/10 transition-colors border border-(--theme-border-light) hover:border-primary/30 group">
+                                            <FileText className="w-5 h-5 text-(--theme-text-secondary) group-hover:text-primary" />
                                             <div>
                                                 <p className="text-[12px] font-bold text-(--theme-text-primary)">Resume</p>
                                                 <p className="text-[10px] text-(--theme-text-muted)">View Document</p>
@@ -295,13 +295,13 @@ export default function TalentProfileViewPage() {
                     {activeTab === "Skills" && (
                         <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm p-4 sm:p-5">
                             <h2 className="text-[14px] font-bold text-(--theme-text-primary) mb-4 flex items-center gap-2">
-                                <Zap className="w-4 h-4 text-[#3CF91A]" /> Professional Skills
+                                <Zap className="w-4 h-4 text-primary" /> Professional Skills
                             </h2>
                             {skills && skills.length > 0 ? (
                                 <div className="flex flex-wrap gap-2">
                                     {skills.map((skill: any) => (
                                         <span key={skill.skillName} className="px-3 py-1.5 rounded-lg text-[11px] sm:text-[12px] font-medium bg-(--theme-input-bg) text-(--theme-text-secondary) border border-(--theme-border-light) shadow-sm flex items-center gap-1.5 hover:border-[#3CF91A]/30 transition-colors">
-                                            {skill.isVerified && <CheckCircle className="w-3 h-3 text-[#3CF91A]" />}
+                                            {skill.isVerified && <CheckCircle className="w-3 h-3 text-primary" />}
                                             {skill.skillName}
                                         </span>
                                     ))}
@@ -321,7 +321,7 @@ export default function TalentProfileViewPage() {
                                         {project.description && (
                                             <p className="text-[12px] text-(--theme-text-secondary) mb-3 leading-relaxed">{project.description}</p>
                                         )}
-                                        <a href={project.url} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-[#3CF91A] hover:underline flex items-center gap-1">
+                                        <a href={project.url} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-primary hover:underline flex items-center gap-1">
                                             <LinkIcon className="w-3 h-3" /> View Project Source
                                         </a>
                                     </div>
@@ -343,7 +343,7 @@ export default function TalentProfileViewPage() {
                             {spills && spills.length > 0 ? (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {spills.map((spill: any) => (
-                                        <div key={spill.id} className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm overflow-hidden hover:border-[#3CF91A]/30 transition-all flex flex-col h-full">
+                                        <div key={spill.id} className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm overflow-hidden hover:border-primary/30 transition-all flex flex-col h-full">
                                             <div className="p-4 sm:p-5 flex-1">
                                                 <div className="flex items-center gap-3 mb-3">
                                                     <div className="w-8 h-8 rounded-full bg-linear-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-(--theme-bg) text-[9px] font-bold shrink-0">
@@ -366,7 +366,7 @@ export default function TalentProfileViewPage() {
                                                 {spill.tags && (
                                                     <div className="flex flex-wrap gap-1.5 mt-auto">
                                                         {spill.tags.split(',').slice(0, 3).map((tag: string) => (
-                                                            <span key={tag} className="text-[9px] px-2 py-0.5 rounded-full bg-[#3CF91A]/10 text-[#3CF91A] font-medium">#{tag.trim()}</span>
+                                                            <span key={tag} className="text-[9px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">#{tag.trim()}</span>
                                                         ))}
                                                     </div>
                                                 )}

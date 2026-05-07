@@ -90,7 +90,7 @@ const mono = { fontFamily: "var(--font-jetbrains-mono), monospace" };
 /* REUSABLE UI COMPONENTS */
 const InputField = ({ label, icon: Icon, value, onChange, type = "text", placeholder, error, rightElement }: any) => (
     <div className="flex flex-col gap-2">
-        <label className="flex items-center gap-2 text-[10px] font-bold text-[#A855F7] uppercase tracking-wider" style={mono}>
+        <label className="flex items-center gap-2 text-[10px] font-bold text-secondary uppercase tracking-wider" style={mono}>
             <Icon className="w-3 h-3" /> {label}
         </label>
         <div className={`relative group`}>
@@ -99,7 +99,7 @@ const InputField = ({ label, icon: Icon, value, onChange, type = "text", placeho
                 value={value}
                 onChange={onChange}
                 placeholder={placeholder}
-                className={`w-full bg-[#111] border rounded-lg px-4 py-3.5 text-sm text-white focus:outline-none focus:bg-[#151515] transition-all font-mono placeholder:text-white/20 ${error ? 'border-[#FF003C]' : 'border-white/10 group-hover:border-white/20 focus:border-[#A855F7]'}`}
+                className={`w-full bg-[#111] border rounded-lg px-4 py-3.5 text-sm text-white focus:outline-none focus:bg-[#151515] transition-all font-mono placeholder:text-white/20 ${error ? 'border-danger' : 'border-white/10 group-hover:border-white/20 focus:border-[#A855F7]'}`}
                 style={mono}
             />
             {rightElement && (
@@ -108,7 +108,7 @@ const InputField = ({ label, icon: Icon, value, onChange, type = "text", placeho
                 </div>
             )}
         </div>
-        {error && <span className="text-[10px] text-[#FF003C] font-mono">{error}</span>}
+        {error && <span className="text-[10px] text-danger font-mono">{error}</span>}
     </div>
 );
 export default function RecruiterSignup() {
