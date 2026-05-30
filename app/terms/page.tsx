@@ -27,9 +27,8 @@ export default function TermsPage() {
 
       {/* ── Header ── */}
       <header className="border-b border-white/5 px-6 py-4 flex items-center justify-between sticky top-0 bg-[#0a0a0a]/95 backdrop-blur-sm z-10">
-        <Link href="/" className="flex items-center gap-2 opacity-80 hover:opacity-100 transition-opacity">
-          <Image src="/assets/logo 2.png" alt="SkillSpill" width={28} height={28} />
-          <span className="text-sm font-bold tracking-wide" style={mono}>SKILLSPILL</span>
+        <Link href="/" className="opacity-80 hover:opacity-100 transition-opacity">
+          <Image src="/assets/logo 2.png" alt="SkillSpill" width={100} height={28} />
         </Link>
         <span className="text-[0.65rem] text-[#444] px-2 py-1 border border-white/10 rounded" style={mono}>LEGAL PROTOCOL v1.0</span>
       </header>
