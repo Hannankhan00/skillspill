@@ -243,9 +243,9 @@ function LoginPageInner() {
                                     {/* Terms */}
                                     <p className="text-center text-[0.65rem] text-[#444] mt-5 mb-0 leading-relaxed">
                                         By entering, you accept our{" "}
-                                        <a href="#" className="text-[#A855F7] no-underline hover:underline font-semibold">Protocols</a>{" "}
+                                        <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-[#A855F7] no-underline hover:underline font-semibold">Protocols</a>{" "}
                                         &amp;{" "}
-                                        <a href="#" className="text-[#A855F7] no-underline hover:underline font-semibold">Neural Security Policy</a>
+                                        <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#A855F7] no-underline hover:underline font-semibold">Neural Security Policy</a>
                                     </p>
                                 </>
                             )}

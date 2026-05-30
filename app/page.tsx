@@ -387,9 +387,9 @@ export default function Home() {
       {/* ───── FOOTER ───── */}
       <footer className="py-12 md:py-16 px-6 text-center" id="footer">
         <div className="flex flex-col md:flex-row justify-center gap-4 md:gap-8 mb-8">
-          {["PRIVACY POLICY", "TERMS OF SERVICE", "SYSTEM STATUS"].map((t) => (
-            <a key={t} href="#" className="text-[#555] no-underline text-xs hover:text-[#3CF91A] transition-colors">{t}</a>
-          ))}
+          <a href="/privacy" className="text-[#555] no-underline text-xs hover:text-[#3CF91A] transition-colors">PRIVACY POLICY</a>
+          <a href="/terms" className="text-[#555] no-underline text-xs hover:text-[#3CF91A] transition-colors">TERMS OF SERVICE</a>
+          <a href="#" className="text-[#555] no-underline text-xs hover:text-[#3CF91A] transition-colors">SYSTEM STATUS</a>
         </div>
         <div className="flex justify-center gap-3 mb-8">
           {[<IconShare key="s" />, <IconSettings key="st" />, <IconTerminal key="t" />].map((icon, i) => (

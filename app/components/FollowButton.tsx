@@ -50,7 +50,7 @@ export default function FollowButton({ targetUserId, initialIsFollowing, classNa
             className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold transition-all border outline-none ${
                 isFollowing 
                     ? "bg-transparent text-(--theme-text-primary) border-(--theme-border) hover:border-red-500 hover:text-red-500" 
-                    : "bg-[#3CF91A] text-black border-transparent hover:bg-[#3CF91A]/90 hover:scale-105 shadow-[0_0_15px_rgba(60,249,26,0.2)]"
+                    : "bg-primary text-black border-transparent hover:bg-primary/90 hover:scale-105 shadow-[0_0_15px_rgba(60,249,26,0.2)]"
             } ${className || ""}`}
         >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : isFollowing ? "Following" : "Follow+"}

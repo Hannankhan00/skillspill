@@ -505,7 +505,7 @@ export default function TalentSignup() {
             <div className="flex items-start gap-3 p-4 bg-[#111] border border-white/10 rounded-xl">
                 <input type="checkbox" className="mt-1 accent-[#3CF91A]" checked={formData.agreedToTerms} onChange={e => updateForm("agreedToTerms", e.target.checked)} />
                 <div className="text-xs text-[#666] leading-relaxed">
-                    I agree to the <span className="text-white">Terms of Protocol</span> and <span className="text-white">Neural Data Policy</span>. I understand my code will be analyzed by the network.
+                    I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-white hover:text-[#3CF91A] underline decoration-dotted transition-colors">Terms of Protocol</a> and <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-white hover:text-[#3CF91A] underline decoration-dotted transition-colors">Neural Data Policy</a>. I understand my code will be analyzed by the network.
                 </div>
             </div>
         </div>

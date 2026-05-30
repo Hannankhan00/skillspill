@@ -332,7 +332,7 @@ export default function RecruiterSignup() {
             <div className="flex items-start gap-3 p-4 bg-[#111] border border-white/10 rounded-xl">
                 <input type="checkbox" className="mt-1 accent-[#A855F7]" checked={formData.agreedToTerms} onChange={e => updateForm("agreedToTerms", e.target.checked)} />
                 <div className="text-xs text-[#666] leading-relaxed">
-                    I agree to the <span className="text-white">Terms of Assignment</span> and <span className="text-white">Talent Acquisition Policy</span>. I verify that I represent a legitimate organization.
+                    I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-white hover:text-[#A855F7] underline decoration-dotted transition-colors">Terms of Assignment</a> and <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-white hover:text-[#A855F7] underline decoration-dotted transition-colors">Talent Acquisition Policy</a>. I verify that I represent a legitimate organization.
                 </div>
             </div>
         </div>
