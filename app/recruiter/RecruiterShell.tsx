@@ -154,7 +154,9 @@ export default function RecruiterShell({
     // Subscribe to personal Pusher channel for real-time notification toasts
     useEffect(() => {
         if (!userId) return;
-        const pusherClient = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+        const pusherKey = process.env.NEXT_PUBLIC_PUSHER_KEY;
+        if (!pusherKey) return;
+        const pusherClient = new Pusher(pusherKey, {
             cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
         });
         const channel = pusherClient.subscribe(`user-${userId}`);

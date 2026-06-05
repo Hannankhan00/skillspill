@@ -69,6 +69,7 @@ const blankForm = {
     isRemote: true,
     location: "",
     skillsRaw: "",
+    openlyLooking: false,
 };
 
 function PostJobModal({ onClose, onCreated, editJob }: {
@@ -87,6 +88,7 @@ function PostJobModal({ onClose, onCreated, editJob }: {
         isRemote: editJob.isRemote,
         location: editJob.location || "",
         skillsRaw: editJob.skills.map(s => s.skillName).join(", "),
+        openlyLooking: !editJob.deadline,
     } : { ...blankForm });
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
@@ -198,13 +200,42 @@ function PostJobModal({ onClose, onCreated, editJob }: {
                         </div>
                     </div>
 
+                    {/* Openly looking toggle */}
+                    <div>
+                        <label className="flex items-center gap-3 cursor-pointer">
+                            <button type="button" onClick={() => {
+                                const next = !form.openlyLooking;
+                                setForm(f => ({ ...f, openlyLooking: next, deadline: next ? "" : f.deadline }));
+                            }}
+                                className={`relative w-10 h-5 rounded-full transition-all border-none cursor-pointer shrink-0 ${form.openlyLooking ? "bg-secondary" : "bg-(--theme-input-bg) border border-(--theme-border)"}`}>
+                                <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${form.openlyLooking ? "left-5" : "left-0.5"}`} />
+                            </button>
+                            <div>
+                                <span className="text-[12px] font-semibold text-(--theme-text-secondary)">Openly looking</span>
+                                <p className="text-[11px] text-(--theme-text-muted)">No closing date — accepting applications until the role is filled</p>
+                            </div>
+                        </label>
+                    </div>
+
                     {/* Deadline + Max Applicants */}
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-[11px] font-bold uppercase tracking-wider text-(--theme-text-muted) mb-1.5">Deadline</label>
-                            <input type="date" value={form.deadline} onChange={e => set("deadline", e.target.value)}
-                                className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all border border-(--theme-border) focus:border-secondary/50"
-                                style={{ background: "var(--theme-input-bg)", color: "var(--theme-text-primary)", colorScheme: "dark" }} />
+                            <label className="block text-[11px] font-bold uppercase tracking-wider mb-1.5"
+                                style={{ color: form.openlyLooking ? "var(--theme-text-muted)" : "var(--theme-text-muted)" }}>
+                                Deadline {!form.openlyLooking && <span className="text-red-400">*</span>}
+                            </label>
+                            <input
+                                type="date"
+                                required={!form.openlyLooking}
+                                disabled={form.openlyLooking}
+                                value={form.deadline}
+                                onChange={e => set("deadline", e.target.value)}
+                                className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all border border-(--theme-border) focus:border-secondary/50 disabled:opacity-40 disabled:cursor-not-allowed"
+                                style={{ background: "var(--theme-input-bg)", color: "var(--theme-text-primary)", colorScheme: "dark" }}
+                            />
+                            {form.openlyLooking && (
+                                <p className="text-[10px] text-secondary mt-1">Disabled — openly looking has no end date</p>
+                            )}
                         </div>
                         <div>
                             <label className="block text-[11px] font-bold uppercase tracking-wider text-(--theme-text-muted) mb-1.5">Max Applicants</label>
@@ -630,7 +661,10 @@ export default function RecruiterJobsPage() {
                                             <span className="flex items-center gap-1.5 text-green-600 dark:text-green-500"><DollarSign className="w-3.5 h-3.5" /> {formatReward(job.reward, job.currency)}</span>
                                         )}
                                         <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-(--theme-text-muted)" /> {timeAgo(job.createdAt)}</span>
-                                        {job.deadline && <span className="text-orange-500">Closes {new Date(job.deadline).toLocaleDateString()}</span>}
+                                        {job.deadline
+                                            ? <span className="text-orange-500">Closes {new Date(job.deadline).toLocaleDateString()}</span>
+                                            : <span className="text-green-500">Open until filled</span>
+                                        }
                                     </div>
 
                                     {job.skills.length > 0 && (

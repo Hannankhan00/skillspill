@@ -23,6 +23,7 @@ export async function GET(req: Request) {
                 id: true,
                 fullName: true,
                 username: true,
+                avatarUrl: true,
                 role: true,
                 talentProfile: {
                     select: {

@@ -209,8 +209,10 @@ export default function MessagesUI({ accent }: { accent: string }) {
                 const uid = d.user?.id ?? null;
                 setCurrentUserId(uid);
                 if (!uid) return;
+                const pusherKey = process.env.NEXT_PUBLIC_PUSHER_KEY;
+                if (!pusherKey) return;
 
-                const client = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+                const client = new Pusher(pusherKey, {
                     cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
                 });
                 pusherRef.current = client;

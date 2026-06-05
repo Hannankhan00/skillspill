@@ -28,6 +28,7 @@ interface UserResult {
     id: string;
     fullName: string;
     username: string;
+    avatarUrl?: string | null;
     role: "TALENT" | "RECRUITER";
     talentProfile?: {
         bio?: string;
@@ -259,9 +260,13 @@ function TalentCard({ user, index, accent }: { user: UserResult; index: number; 
 
             <div className="flex gap-3 sm:gap-4">
                 {/* Avatar */}
-                <div className={`w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-linear-to-br ${grad} flex items-center justify-center text-white text-[13px] sm:text-[16px] font-bold shrink-0`}>
-                    {getInitials(user.fullName)}
-                </div>
+                {user.avatarUrl ? (
+                    <img src={user.avatarUrl} alt={user.fullName} className="w-11 h-11 sm:w-14 sm:h-14 rounded-full object-cover shrink-0" />
+                ) : (
+                    <div className={`w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-linear-to-br ${grad} flex items-center justify-center text-white text-[13px] sm:text-[16px] font-bold shrink-0`}>
+                        {getInitials(user.fullName)}
+                    </div>
+                )}
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
@@ -345,9 +350,13 @@ function RecruiterCard({ user, index, accent }: { user: UserResult; index: numbe
 
             <div className="flex gap-3 sm:gap-4">
                 {/* Avatar */}
-                <div className={`w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-linear-to-br ${grad} flex items-center justify-center text-white text-[13px] sm:text-[16px] font-bold shrink-0`}>
-                    {getInitials(user.fullName)}
-                </div>
+                {user.avatarUrl ? (
+                    <img src={user.avatarUrl} alt={user.fullName} className="w-11 h-11 sm:w-14 sm:h-14 rounded-full object-cover shrink-0" />
+                ) : (
+                    <div className={`w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-linear-to-br ${grad} flex items-center justify-center text-white text-[13px] sm:text-[16px] font-bold shrink-0`}>
+                        {getInitials(user.fullName)}
+                    </div>
+                )}
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
@@ -443,12 +452,16 @@ function DirectIdCard({ user, accent }: { user: UserResult; accent: string }) {
             </div>
 
             <div className="flex gap-3 sm:gap-4 items-center">
-                <div
-                    className="w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-white text-[15px] sm:text-[18px] font-bold shrink-0"
-                    style={{ background: `linear-gradient(135deg, ${accent}, #7C3AED)` }}
-                >
-                    {getInitials(user.fullName)}
-                </div>
+                {user.avatarUrl ? (
+                    <img src={user.avatarUrl} alt={user.fullName} className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover shrink-0" />
+                ) : (
+                    <div
+                        className="w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-white text-[15px] sm:text-[18px] font-bold shrink-0"
+                        style={{ background: `linear-gradient(135deg, ${accent}, #7C3AED)` }}
+                    >
+                        {getInitials(user.fullName)}
+                    </div>
+                )}
 
                 <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-3 flex-wrap">
