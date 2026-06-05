@@ -319,7 +319,7 @@ export default function TalentProfileViewPage() {
                         <div className="space-y-4">
                             {projectLinks && projectLinks.length > 0 ? (
                                 projectLinks.map((project: any, i: number) => (
-                                    <div key={i} className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm p-4 sm:p-5 hover:border-[#3CF91A]/30 transition-all">
+                                    <div key={i} className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm p-4 sm:p-5 hover:border-primary/30 transition-all">
                                         <h3 className="text-[14px] font-bold text-(--theme-text-primary) mb-1">{project.title || "Project Link"}</h3>
                                         {project.description && (
                                             <p className="text-[12px] text-(--theme-text-secondary) mb-3 leading-relaxed">{project.description}</p>

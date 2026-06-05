@@ -12,6 +12,7 @@ import { compressImageClient } from "@/lib/client-compress";
 import PostComposer from "@/app/feed/components/PostComposer";
 import PostCard from "@/app/feed/components/PostCard";
 import { CoverBanner, CoverBannerSelector } from "@/app/components/CoverBanners";
+import FollowListModal from "@/app/components/FollowListModal";
 
 const accent = "#A855F7";
 
@@ -124,6 +125,7 @@ export default function RecruiterProfilePage() {
     const tabs = ["Spills", "Jobs"];
     const [composerOpen, setComposerOpen] = useState(false);
     const [selectedSpill, setSelectedSpill] = useState<any>(null);
+    const [followModal, setFollowModal] = useState<"followers" | "following" | null>(null);
 
     /* ── Edit modal ── */
     const [showEdit, setShowEdit] = useState(false);
@@ -314,6 +316,7 @@ export default function RecruiterProfilePage() {
     const displayTitle = companyName || "Company Profile";
 
     return (
+        <>
         <div style={{ background: "var(--theme-bg)" }} className="min-h-full">
             {toastMessage && (
                 <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-100 animate-in slide-in-from-bottom-5 fade-in duration-300">
@@ -736,14 +739,14 @@ export default function RecruiterProfilePage() {
                         <p className="text-sm sm:text-lg font-bold text-(--theme-text-primary)">{userData?._count?.spillPosts ?? spills?.length ?? 0}</p>
                         <p className="text-[9px] sm:text-[10px] text-(--theme-text-muted) uppercase tracking-wider">Spills</p>
                     </div>
-                    <div className="text-center">
+                    <button onClick={() => setFollowModal("followers")} className="text-center cursor-pointer bg-transparent border-none p-1 rounded-lg transition-all hover:bg-(--theme-input-bg)">
                         <p className="text-sm sm:text-lg font-bold text-(--theme-text-primary)">{userData?._count?.followers ?? 0}</p>
                         <p className="text-[9px] sm:text-[10px] text-(--theme-text-muted) uppercase tracking-wider">Followers</p>
-                    </div>
-                    <div className="text-center">
+                    </button>
+                    <button onClick={() => setFollowModal("following")} className="text-center cursor-pointer bg-transparent border-none p-1 rounded-lg transition-all hover:bg-(--theme-input-bg)">
                         <p className="text-sm sm:text-lg font-bold text-(--theme-text-primary)">{userData?._count?.following ?? 0}</p>
                         <p className="text-[9px] sm:text-[10px] text-(--theme-text-muted) uppercase tracking-wider">Following</p>
-                    </div>
+                    </button>
                     <div className="ml-auto flex gap-2">
                         {/* ✏️  Opens modal — no navigation */}
                         <button
@@ -911,5 +914,18 @@ export default function RecruiterProfilePage() {
                 </div>
             )}
         </div>
+
+        {followModal && (
+            <FollowListModal
+                isOpen={!!followModal}
+                onClose={() => setFollowModal(null)}
+                userId={userData.id}
+                type={followModal}
+                count={followModal === "followers" ? (userData._count?.followers ?? 0) : (userData._count?.following ?? 0)}
+                accent={accent}
+                profileBasePath="/recruiter"
+            />
+        )}
+        </>
     );
 }

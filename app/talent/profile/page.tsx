@@ -12,6 +12,7 @@ import PostComposer from "@/app/feed/components/PostComposer";
 import PostCard from "@/app/feed/components/PostCard";
 import { CoverBanner, CoverBannerSelector } from "@/app/components/CoverBanners";
 import GitHubScoreCard from "@/app/components/GitHubScoreCard";
+import FollowListModal from "@/app/components/FollowListModal";
 
 const accent = "#3CF91A";
 
@@ -150,7 +151,8 @@ export default function TalentProfilePage() {
     const tabs = ["Spills", "Experience", "Projects", "GitHub", "Skills"];
     const [composerOpen, setComposerOpen] = useState(false);
     const [selectedSpill, setSelectedSpill] = useState<any>(null);
-    
+    const [followModal, setFollowModal] = useState<"followers" | "following" | null>(null);
+
     const [showAvatarMenu, setShowAvatarMenu] = useState(false);
     const [avatarUploading, setAvatarUploading] = useState(false);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -484,6 +486,7 @@ export default function TalentProfilePage() {
     const fmtDate = (d: string) => new Date(d).toLocaleDateString("en-US", { month: "short", year: "numeric" });
 
     return (
+        <>
         <div style={{ background: "var(--theme-bg)" }} className="min-h-full">
             {toastMessage && (
                 <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-100 animate-in slide-in-from-bottom-5 fade-in duration-300">
@@ -925,14 +928,14 @@ export default function TalentProfilePage() {
 
                 {/* Stats / Actions row */}
                 <div className="flex items-center gap-3 sm:gap-6 mt-4 sm:mt-5 pb-4 border-b border-(--theme-border)">
-                    <div className="text-center">
+                    <button onClick={() => setFollowModal("following")} className="text-center cursor-pointer bg-transparent border-none p-1 rounded-lg transition-all hover:bg-(--theme-input-bg)">
                         <p className="text-sm sm:text-lg font-bold text-(--theme-text-primary)">{userData?._count?.following || 0}</p>
                         <p className="text-[9px] sm:text-[10px] text-(--theme-text-muted) uppercase tracking-wider">Following</p>
-                    </div>
-                    <div className="text-center">
+                    </button>
+                    <button onClick={() => setFollowModal("followers")} className="text-center cursor-pointer bg-transparent border-none p-1 rounded-lg transition-all hover:bg-(--theme-input-bg)">
                         <p className="text-sm sm:text-lg font-bold text-(--theme-text-primary)">{userData?._count?.followers || 0}</p>
                         <p className="text-[9px] sm:text-[10px] text-(--theme-text-muted) uppercase tracking-wider">Followers</p>
-                    </div>
+                    </button>
                     {githubConnected && (
                         <div className="text-center">
                             <p className="text-sm sm:text-lg font-bold text-(--theme-text-primary)">{githubRepos || 0}</p>
@@ -1476,5 +1479,18 @@ export default function TalentProfilePage() {
                 </div>
             )}
         </div>
+
+        {followModal && (
+            <FollowListModal
+                isOpen={!!followModal}
+                onClose={() => setFollowModal(null)}
+                userId={userData.id}
+                type={followModal}
+                count={followModal === "followers" ? (userData._count?.followers ?? 0) : (userData._count?.following ?? 0)}
+                accent={accent}
+                profileBasePath="/talent"
+            />
+        )}
+        </>
     );
 }

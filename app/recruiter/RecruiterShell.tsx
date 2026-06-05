@@ -8,7 +8,6 @@ import { ThemeToggle } from "../components/ThemeProvider";
 import Logo from "../components/Logo";
 import PostComposer from "../feed/components/PostComposer";
 import { NotificationToastContainer, type ToastNotification } from "../components/NotificationToast";
-import FollowListModal from "../components/FollowListModal";
 import GlobalSearch from "../components/GlobalSearch";
 
 /* ── SVG Icon Components ── */
@@ -138,7 +137,6 @@ export default function RecruiterShell({
     const [userData, setUserData]       = useState<any>(null);
     const [unreadCount, setUnreadCount] = useState(0);
     const [toasts, setToasts]           = useState<ToastNotification[]>([]);
-    const [followModal, setFollowModal] = useState<"followers" | "following" | null>(null);
 
     const dismissToast = useCallback((id: string) => {
         setToasts(prev => prev.filter(t => t.id !== id));
@@ -302,17 +300,6 @@ export default function RecruiterShell({
                             <p className="text-xs font-semibold truncate" style={{ color: 'var(--theme-text-secondary)' }}>{companyName}</p>
                             <p className="text-[10px] font-mono text-[#A855F7]">{jobTitle}</p>
                         </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <button onClick={() => setFollowModal("followers")} className="flex-1 text-center cursor-pointer bg-transparent border-none py-1.5 px-2 rounded-lg transition-all hover:bg-(--theme-input-bg)">
-                            <p className="text-[13px] font-bold" style={{ color: 'var(--theme-text-primary)' }}>{userData?._count?.followers ?? 0}</p>
-                            <p className="text-[9px] uppercase tracking-wider" style={{ color: 'var(--theme-text-muted)' }}>Followers</p>
-                        </button>
-                        <div className="w-px h-8" style={{ background: 'var(--theme-border-light)' }} />
-                        <button onClick={() => setFollowModal("following")} className="flex-1 text-center cursor-pointer bg-transparent border-none py-1.5 px-2 rounded-lg transition-all hover:bg-(--theme-input-bg)">
-                            <p className="text-[13px] font-bold" style={{ color: 'var(--theme-text-primary)' }}>{userData?._count?.following ?? 0}</p>
-                            <p className="text-[9px] uppercase tracking-wider" style={{ color: 'var(--theme-text-muted)' }}>Following</p>
-                        </button>
                     </div>
 
                     <button
@@ -548,17 +535,6 @@ export default function RecruiterShell({
                 accentColor={accent}
             />
 
-            {followModal && userData && (
-                <FollowListModal
-                    isOpen={!!followModal}
-                    onClose={() => setFollowModal(null)}
-                    userId={userId}
-                    type={followModal}
-                    count={followModal === "followers" ? (userData._count?.followers ?? 0) : (userData._count?.following ?? 0)}
-                    accent={accent}
-                    profileBasePath="/recruiter"
-                />
-            )}
         </div>
     );
 }
