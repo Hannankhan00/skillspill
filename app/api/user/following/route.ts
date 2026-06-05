@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-// GET /api/user/followers?userId=xxx — returns a user's followers list
+// GET /api/user/following?userId=xxx — returns a user's following list
 export async function GET(req: Request) {
     try {
         const session = await getSession();
@@ -12,9 +12,9 @@ export async function GET(req: Request) {
         const targetId = searchParams.get("userId") || session.userId;
 
         const follows = await prisma.follow.findMany({
-            where: { followingId: targetId },
+            where: { followerId: targetId },
             include: {
-                follower: {
+                following: {
                     select: {
                         id: true,
                         fullName: true,
@@ -29,8 +29,8 @@ export async function GET(req: Request) {
             orderBy: { createdAt: "desc" },
         });
 
-        const followers = follows.map((f) => f.follower);
-        return NextResponse.json({ followers });
+        const following = follows.map((f) => f.following);
+        return NextResponse.json({ following });
     } catch (err) {
         console.error(err);
         return NextResponse.json({ error: "Server error" }, { status: 500 });

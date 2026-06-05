@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import pusher from "@/lib/pusher";
+import { notify } from "@/lib/notify";
 
 // GET /api/conversations/[id]/messages
 export async function GET(req: Request, context: { params: Promise<{ id: string }> }) {
@@ -82,6 +83,19 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
             "new-message",
             message
         ).catch(() => {/* non-critical — client will see message on next fetch */});
+
+        // Persist a notification so the recipient sees it even when offline
+        const senderName = message.sender.fullName ?? message.sender.username ?? "Someone";
+        const preview = content?.trim()
+            ? content.trim().slice(0, 60) + (content.trim().length > 60 ? "…" : "")
+            : "Sent an attachment";
+        notify({
+            userId: recipientId,
+            title: `Message from ${senderName}`,
+            message: preview,
+            type: "message",
+            link: `/talent/messages?conversation=${id}`,
+        });
 
         return NextResponse.json({ message });
     } catch (err) {

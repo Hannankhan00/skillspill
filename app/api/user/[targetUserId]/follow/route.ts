@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { notify } from "@/lib/notify";
 
 export async function POST(req: Request, context: { params: Promise<{ targetUserId: string }> }) {
     try {
@@ -37,7 +38,18 @@ export async function POST(req: Request, context: { params: Promise<{ targetUser
             }
         });
 
-        // Also potentially send a notification here but omit for now to keep it simple
+        // Notify the user being followed
+        const follower = await prisma.user.findUnique({
+            where: { id: session.userId },
+            select: { fullName: true, username: true },
+        });
+        notify({
+            userId: targetUserId,
+            title: "New Follower",
+            message: `${follower?.fullName ?? follower?.username ?? "Someone"} started following you.`,
+            type: "follow",
+            link: `/talent/profile/${session.userId}`,
+        });
 
         return NextResponse.json({ success: true, follow });
     } catch (error) {

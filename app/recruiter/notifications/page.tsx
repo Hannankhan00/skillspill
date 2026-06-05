@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
     Bell, FileText, Sparkles, MessageSquare, Rocket, AlertTriangle,
-    CheckCheck, Loader2, X
+    CheckCheck, Loader2, X, UserPlus, MessageCircle,
 } from "lucide-react";
 
 const accent = "#A855F7";
@@ -20,12 +20,14 @@ interface Notification {
 }
 
 const TYPE_META: Record<string, { icon: React.ReactNode; color: string }> = {
-    application: { icon: <FileText className="w-4 h-4" />,   color: "#3B82F6"  },
-    match:       { icon: <Sparkles className="w-4 h-4" />,   color: "#A855F7"  },
-    message:     { icon: <MessageSquare className="w-4 h-4" />, color: "#06B6D4" },
-    system:      { icon: <Rocket className="w-4 h-4" />,     color: "#F59E0B"  },
-    alert:       { icon: <AlertTriangle className="w-4 h-4" />, color: "#EF4444" },
-    info:        { icon: <Bell className="w-4 h-4" />,        color: "var(--theme-text-muted)" },
+    application: { icon: <FileText className="w-4 h-4" />,        color: "#3B82F6"  },
+    match:       { icon: <Sparkles className="w-4 h-4" />,        color: "#A855F7"  },
+    message:     { icon: <MessageSquare className="w-4 h-4" />,   color: "#06B6D4"  },
+    system:      { icon: <Rocket className="w-4 h-4" />,          color: "#F59E0B"  },
+    alert:       { icon: <AlertTriangle className="w-4 h-4" />,   color: "#EF4444"  },
+    follow:      { icon: <UserPlus className="w-4 h-4" />,        color: "#EC4899"  },
+    comment:     { icon: <MessageCircle className="w-4 h-4" />,   color: "#06B6D4"  },
+    info:        { icon: <Bell className="w-4 h-4" />,            color: "var(--theme-text-muted)" },
 };
 
 function timeAgo(iso: string) {

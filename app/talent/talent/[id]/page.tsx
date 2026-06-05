@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Sparkles, Zap, CheckCircle, Github, Linkedin, Briefcase, FileText, Loader2, Link as LinkIcon, Phone, Mail, MessageSquare, Heart, Eye, Share2 } from "lucide-react";
 import FollowButton from "@/app/components/FollowButton";
 import { CoverBanner } from "@/app/components/CoverBanners";
+import FollowListModal from "@/app/components/FollowListModal";
 
 const accent = "#3CF91A"; // Talent primary accent
 
@@ -16,6 +17,7 @@ export default function TalentProfileViewPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("Overview");
     const tabs = ["Overview", "Experience", "Projects", "Skills", "Spills"];
+    const [followModal, setFollowModal] = useState<"followers" | "following" | null>(null);
 
     useEffect(() => {
         if (!id) return;
@@ -64,6 +66,7 @@ export default function TalentProfileViewPage() {
     const role = experienceLevel ? `${experienceLevel} Developer` : "Developer";
 
     return (
+        <>
         <div style={{ background: "var(--theme-bg)" }} className="min-h-full">
 
             {/* ── COVER / BANNER ── */}
@@ -135,14 +138,14 @@ export default function TalentProfileViewPage() {
                             <p className="text-[9px] sm:text-[10px] text-(--theme-text-muted) uppercase tracking-wider">Repos</p>
                         </div>
                     )}
-                    <div className="text-center">
+                    <button onClick={() => setFollowModal("followers")} className="text-center cursor-pointer bg-transparent border-none p-1 rounded-lg transition-all hover:bg-(--theme-input-bg)">
                         <p className="text-sm sm:text-lg font-bold text-(--theme-text-primary)">{followersCount}</p>
                         <p className="text-[9px] sm:text-[10px] text-(--theme-text-muted) uppercase tracking-wider">Followers</p>
-                    </div>
-                    <div className="text-center">
+                    </button>
+                    <button onClick={() => setFollowModal("following")} className="text-center cursor-pointer bg-transparent border-none p-1 rounded-lg transition-all hover:bg-(--theme-input-bg)">
                         <p className="text-sm sm:text-lg font-bold text-(--theme-text-primary)">{followingCount}</p>
                         <p className="text-[9px] sm:text-[10px] text-(--theme-text-muted) uppercase tracking-wider">Following</p>
-                    </div>
+                    </button>
                     <div className="ml-auto flex gap-2">
                         {talentData?.id && (
                             <FollowButton targetUserId={talentData.id} initialIsFollowing={talentData.isFollowing} />
@@ -395,5 +398,18 @@ export default function TalentProfileViewPage() {
                 </div>
             </div>
         </div>
+
+        {followModal && (
+            <FollowListModal
+                isOpen={!!followModal}
+                onClose={() => setFollowModal(null)}
+                userId={talentData.id}
+                type={followModal}
+                count={followModal === "followers" ? followersCount : followingCount}
+                accent={accent}
+                profileBasePath="/talent"
+            />
+        )}
+        </>
     );
 }

@@ -9,6 +9,7 @@ import {
     Eye, Sparkles, Users, CheckCircle,
 } from "lucide-react";
 import FollowButton from "@/app/components/FollowButton";
+import FollowListModal from "@/app/components/FollowListModal";
 
 const accent = "#A855F7";
 
@@ -19,6 +20,7 @@ export default function RecruiterProfileViewPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("Overview");
     const tabs = ["Overview", "Jobs", "Spills"];
+    const [followModal, setFollowModal] = useState<"followers" | "following" | null>(null);
 
     useEffect(() => {
         if (!id) return;
@@ -63,6 +65,7 @@ export default function RecruiterProfileViewPage() {
         : companyName || "Recruiter";
 
     return (
+        <>
         <div style={{ background: "var(--theme-bg)" }} className="min-h-full">
 
             {/* ── COVER BANNER ── */}
@@ -133,14 +136,14 @@ export default function RecruiterProfileViewPage() {
                         <p className="text-sm sm:text-lg font-bold text-(--theme-text-primary)">{spills?.length || 0}</p>
                         <p className="text-[9px] sm:text-[10px] text-(--theme-text-muted) uppercase tracking-wider">Spills</p>
                     </div>
-                    <div className="text-center">
+                    <button onClick={() => setFollowModal("followers")} className="text-center cursor-pointer bg-transparent border-none p-1 rounded-lg transition-all hover:bg-(--theme-input-bg)">
                         <p className="text-sm sm:text-lg font-bold text-(--theme-text-primary)">{followersCount}</p>
                         <p className="text-[9px] sm:text-[10px] text-(--theme-text-muted) uppercase tracking-wider">Followers</p>
-                    </div>
-                    <div className="text-center">
+                    </button>
+                    <button onClick={() => setFollowModal("following")} className="text-center cursor-pointer bg-transparent border-none p-1 rounded-lg transition-all hover:bg-(--theme-input-bg)">
                         <p className="text-sm sm:text-lg font-bold text-(--theme-text-primary)">{followingCount}</p>
                         <p className="text-[9px] sm:text-[10px] text-(--theme-text-muted) uppercase tracking-wider">Following</p>
-                    </div>
+                    </button>
                     <div className="ml-auto flex gap-2">
                         {recruiterData?.id && (
                             <FollowButton targetUserId={recruiterData.id} initialIsFollowing={recruiterData.isFollowing} />
@@ -353,5 +356,18 @@ export default function RecruiterProfileViewPage() {
                 </div>
             </div>
         </div>
+
+        {followModal && (
+            <FollowListModal
+                isOpen={!!followModal}
+                onClose={() => setFollowModal(null)}
+                userId={recruiterData.id}
+                type={followModal}
+                count={followModal === "followers" ? followersCount : followingCount}
+                accent={accent}
+                profileBasePath="/recruiter"
+            />
+        )}
+        </>
     );
 }

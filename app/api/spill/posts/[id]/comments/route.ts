@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { notify } from "@/lib/notify";
 
 const userSelect = {
     id: true,
@@ -100,6 +101,23 @@ export async function POST(
             where: { id },
             data: { commentsCount: { increment: 1 } },
         });
+
+        // Notify post author (skip if author is the commenter)
+        if (post.userId !== session.userId) {
+            const commenter = await prisma.user.findUnique({
+                where: { id: session.userId },
+                select: { fullName: true, username: true },
+            });
+            const commenterName = commenter?.fullName ?? commenter?.username ?? "Someone";
+            const isReply = !!parentId;
+            notify({
+                userId: post.userId,
+                title: isReply ? "New Reply" : "New Comment",
+                message: `${commenterName} ${isReply ? "replied to a comment on" : "commented on"} your post.`,
+                type: "comment",
+                link: `/feed/${id}`,
+            });
+        }
 
         return NextResponse.json({ comment }, { status: 201 });
     } catch (error) {

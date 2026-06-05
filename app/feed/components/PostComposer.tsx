@@ -4,7 +4,6 @@ import {
     X,
     Send,
     Globe,
-    Users,
     Type,
     Image as ImageIcon,
     Code2,
@@ -15,7 +14,6 @@ import {
     Plus,
     Trash2,
     ChevronDown,
-    Upload,
     Video,
     AlertCircle,
     Eye,
@@ -105,7 +103,7 @@ export default function PostComposer({ userData, onClose, onPostCreated }: PostC
     // ── State ──
     const [activeTab, setActiveTab]           = useState<TabKey>("text");
     const [caption, setCaption]               = useState("");
-    const [visibility, setVisibility]         = useState<"public" | "followers">("public");
+    const visibility = "public";
 
     // Hashtags
     const [hashtags, setHashtags]             = useState<string[]>([]);
@@ -682,31 +680,6 @@ export default function PostComposer({ userData, onClose, onPostCreated }: PostC
             case "settings":
                 return (
                     <div className="space-y-4">
-                        {/* Visibility */}
-                        <div>
-                            <label className="block text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--theme-text-muted)" }}>Who can see this post?</label>
-                            <div className="grid grid-cols-2 gap-2">
-                                {[
-                                    { val: "public", Icon: Globe, label: "Everyone", sub: "Visible to all users" },
-                                    { val: "followers", Icon: Users, label: "Followers", sub: "Only people who follow you" },
-                                ].map(({ val, Icon, label, sub }) => (
-                                    <button
-                                        key={val}
-                                        onClick={() => setVisibility(val as "public" | "followers")}
-                                        className="flex flex-col items-start gap-1.5 p-3 rounded-xl border-2 cursor-pointer bg-transparent text-left transition-all"
-                                        style={{
-                                            borderColor: visibility === val ? accent : "var(--theme-border)",
-                                            background: visibility === val ? accentDim : "transparent",
-                                        }}
-                                    >
-                                        <Icon size={16} color={visibility === val ? accent : "var(--theme-text-muted)"} />
-                                        <span className="text-[12px] font-semibold" style={{ color: visibility === val ? accent : "var(--theme-text-primary)" }}>{label}</span>
-                                        <span className="text-[10px]" style={{ color: "var(--theme-text-muted)" }}>{sub}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
                         {/* Engagement controls */}
                         <div>
                             <label className="block text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--theme-text-muted)" }}>Engagement Controls</label>
@@ -795,7 +768,7 @@ export default function PostComposer({ userData, onClose, onPostCreated }: PostC
 
             {/* Modal */}
             <div
-                className="relative w-full sm:max-w-[560px] max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl flex flex-col"
+                className="relative w-full sm:max-w-175 max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl flex flex-col"
                 style={{
                     background: "var(--theme-card)",
                     boxShadow: accentGlow,
@@ -869,17 +842,9 @@ export default function PostComposer({ userData, onClose, onPostCreated }: PostC
                             </div>
                         </div>
 
-                        {/* Visibility pill */}
-                        <div className="relative">
-                            <select
-                                value={visibility}
-                                onChange={(e) => setVisibility(e.target.value as "public" | "followers")}
-                                className="appearance-none pl-3 pr-7 py-1.5 rounded-full text-[11px] font-semibold bg-(--theme-input-bg) border border-(--theme-border) outline-none cursor-pointer text-(--theme-text-primary)"
-                            >
-                                <option value="public">Public</option>
-                                <option value="followers">Followers</option>
-                            </select>
-                            <ChevronDown size={11} className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" color="var(--theme-text-muted)" />
+                        {/* Visibility badge */}
+                        <div className="flex items-center gap-1.5 pl-3 pr-3 py-1.5 rounded-full text-[11px] font-semibold bg-(--theme-input-bg) border border-(--theme-border)" style={{ color: "var(--theme-text-muted)" }}>
+                            <Globe size={11} /> Public
                         </div>
                     </div>
 

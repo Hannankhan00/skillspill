@@ -1,11 +1,15 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Pusher from "pusher-js";
 import { ThemeToggle } from "../components/ThemeProvider";
 import Logo from "../components/Logo";
 import PostComposer from "../feed/components/PostComposer";
+import { NotificationToastContainer, type ToastNotification } from "../components/NotificationToast";
+import FollowListModal from "../components/FollowListModal";
+import GlobalSearch from "../components/GlobalSearch";
 
 /* ── SVG Icon Components ── */
 function HomeIcon() {
@@ -118,7 +122,6 @@ const mobileNavItems = [
 ];
 
 export default function RecruiterShell({
-    role,
     userId,
     children,
 }: {
@@ -134,6 +137,12 @@ export default function RecruiterShell({
 
     const [userData, setUserData]       = useState<any>(null);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [toasts, setToasts]           = useState<ToastNotification[]>([]);
+    const [followModal, setFollowModal] = useState<"followers" | "following" | null>(null);
+
+    const dismissToast = useCallback((id: string) => {
+        setToasts(prev => prev.filter(t => t.id !== id));
+    }, []);
 
     useEffect(() => {
         fetch("/api/notifications?countOnly=true")
@@ -141,6 +150,24 @@ export default function RecruiterShell({
             .then(d => { if (typeof d.unreadCount === "number") setUnreadCount(d.unreadCount); })
             .catch(() => {});
     }, []);
+
+    // Subscribe to personal Pusher channel for real-time notification toasts
+    useEffect(() => {
+        if (!userId) return;
+        const pusherClient = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+            cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+        });
+        const channel = pusherClient.subscribe(`user-${userId}`);
+        channel.bind("new-notification", (data: ToastNotification) => {
+            setToasts(prev => [...prev.slice(-4), data]);
+            setUnreadCount(prev => prev + 1);
+        });
+        return () => {
+            channel.unbind_all();
+            pusherClient.unsubscribe(`user-${userId}`);
+            pusherClient.disconnect();
+        };
+    }, [userId]);
 
     useEffect(() => {
         fetch("/api/user/profile")
@@ -185,12 +212,12 @@ export default function RecruiterShell({
     }, []);
 
     return (
-        <div className="h-[100dvh] overflow-hidden flex" style={{ background: 'var(--theme-bg)', color: 'var(--theme-text-primary)' }}>
+        <div className="h-dvh overflow-hidden flex" style={{ background: 'var(--theme-bg)', color: 'var(--theme-text-primary)' }}>
 
             {/* ══════════════════════════════════════
                 DESKTOP SIDEBAR (hidden on mobile)
                ══════════════════════════════════════ */}
-            <aside className="hidden lg:flex w-[220px] flex-col shrink-0" style={{ background: 'var(--theme-surface)', borderRight: '1px solid var(--theme-border)' }}>
+            <aside className="hidden lg:flex w-55 flex-col shrink-0" style={{ background: 'var(--theme-surface)', borderRight: '1px solid var(--theme-border)' }}>
                 {/* Logo */}
                 <div className="h-14 flex items-center px-5" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
                     <Link href="/recruiter" className="flex items-center gap-2.5">
@@ -252,22 +279,6 @@ export default function RecruiterShell({
                     </Link>
                 </div>
 
-                <div className="px-4 mb-4 block">
-                    <div className="p-3 rounded-xl border border-orange-500/30 bg-orange-500/5 flex flex-col gap-2 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-12 h-12 bg-orange-500/10 rounded-bl-full pointer-events-none" />
-                        <h4 className="text-[11px] font-bold text-orange-500">Incomplete Profile</h4>
-                        <p className="text-[9px] text-(--theme-text-muted) leading-relaxed">
-                            A complete profile attracts more top candidates.
-                        </p>
-                        <Link href="/recruiter/profile" className="mt-1 flex items-center gap-1 text-[10px] font-bold text-[#A855F7] hover:underline">
-                            Complete now
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
-                            </svg>
-                        </Link>
-                    </div>
-                </div>
-
                 {/* Bottom Section */}
                 <div className="p-4 space-y-3" style={{ borderTop: '1px solid var(--theme-border-light)' }}>
                     <div className="flex items-center gap-3">
@@ -289,6 +300,17 @@ export default function RecruiterShell({
                             <p className="text-xs font-semibold truncate" style={{ color: 'var(--theme-text-secondary)' }}>{companyName}</p>
                             <p className="text-[10px] font-mono text-[#A855F7]">{jobTitle}</p>
                         </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <button onClick={() => setFollowModal("followers")} className="flex-1 text-center cursor-pointer bg-transparent border-none py-1.5 px-2 rounded-lg transition-all hover:bg-(--theme-input-bg)">
+                            <p className="text-[13px] font-bold" style={{ color: 'var(--theme-text-primary)' }}>{userData?._count?.followers ?? 0}</p>
+                            <p className="text-[9px] uppercase tracking-wider" style={{ color: 'var(--theme-text-muted)' }}>Followers</p>
+                        </button>
+                        <div className="w-px h-8" style={{ background: 'var(--theme-border-light)' }} />
+                        <button onClick={() => setFollowModal("following")} className="flex-1 text-center cursor-pointer bg-transparent border-none py-1.5 px-2 rounded-lg transition-all hover:bg-(--theme-input-bg)">
+                            <p className="text-[13px] font-bold" style={{ color: 'var(--theme-text-primary)' }}>{userData?._count?.following ?? 0}</p>
+                            <p className="text-[9px] uppercase tracking-wider" style={{ color: 'var(--theme-text-muted)' }}>Following</p>
+                        </button>
                     </div>
 
                     <button
@@ -366,17 +388,7 @@ export default function RecruiterShell({
                     DESKTOP HEADER (full header bar)
                    ══════════════════════════════════════ */}
                 <header className="shrink-0 h-14 hidden lg:flex items-center justify-between px-6 backdrop-blur-xl z-30" style={{ background: 'var(--theme-header-bg)', borderBottom: '1px solid var(--theme-border)' }}>
-                    <div className="flex items-center gap-2 rounded-xl px-3.5 py-2 focus-within:border-[#A855F7]/40 focus-within:ring-2 focus-within:ring-purple-50 transition-all max-w-[360px] w-full" style={{ background: 'var(--theme-input-bg)', border: '1px solid var(--theme-border)' }}>
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2">
-                            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-                        </svg>
-                        <input
-                            type="text"
-                            placeholder="Search SkillSpill..."
-                            className="flex-1 bg-transparent border-none outline-none text-[12px]"
-                            style={{ color: 'var(--theme-text-primary)' }}
-                        />
-                    </div>
+                    <GlobalSearch role="recruiter" accent={accent} />
 
                     {/* Right actions */}
                     <div className="flex items-center gap-2 shrink-0">
@@ -524,6 +536,25 @@ export default function RecruiterShell({
                     userData={{ ...userData, role: "RECRUITER" }}
                     onClose={() => setComposerOpen(false)}
                     onPostCreated={() => setComposerOpen(false)}
+                />
+            )}
+
+            {/* ── Real-time notification toasts ── */}
+            <NotificationToastContainer
+                toasts={toasts}
+                onDismiss={dismissToast}
+                accentColor={accent}
+            />
+
+            {followModal && userData && (
+                <FollowListModal
+                    isOpen={!!followModal}
+                    onClose={() => setFollowModal(null)}
+                    userId={userId}
+                    type={followModal}
+                    count={followModal === "followers" ? (userData._count?.followers ?? 0) : (userData._count?.following ?? 0)}
+                    accent={accent}
+                    profileBasePath="/recruiter"
                 />
             )}
         </div>
