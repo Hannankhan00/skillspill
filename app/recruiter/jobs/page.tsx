@@ -618,7 +618,7 @@ export default function RecruiterJobsPage() {
                                 {/* Status stripe */}
                                 <div className={`absolute left-0 top-0 ${viewMode === "grid" ? "w-full h-1 rounded-t-2xl" : "w-1 h-full rounded-l-2xl"} ${STATUS_COLORS[job.status]}`} />
 
-                                <div className="flex-1 min-w-0 z-10">
+                                <div className="flex-1 min-w-0">
                                     <div className="flex items-start justify-between mb-2">
                                         <div className="min-w-0 pr-4">
                                             <div className="flex items-center gap-2 mb-1">
@@ -678,7 +678,7 @@ export default function RecruiterJobsPage() {
                                     )}
                                 </div>
 
-                                <div className={`flex items-center gap-4 mt-4 sm:mt-0 z-10 ${viewMode === "grid" ? "pt-4 border-t border-(--theme-border-light) justify-between" : "pl-0 sm:pl-4 sm:border-l border-(--theme-border-light)"}`}>
+                                <div className={`flex items-center gap-4 mt-4 sm:mt-0 ${viewMode === "grid" ? "pt-4 border-t border-(--theme-border-light) justify-between" : "pl-0 sm:pl-4 sm:border-l border-(--theme-border-light)"}`}>
                                     <div className="text-center sm:text-right">
                                         <p className="text-[18px] font-bold text-(--theme-text-primary)">{job._count.applications}</p>
                                         <p className="text-[10px] text-(--theme-text-muted) uppercase tracking-wider mt-0.5">Applicants</p>

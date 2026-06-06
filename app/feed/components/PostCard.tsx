@@ -112,14 +112,14 @@ function HiringCard({ post }: { post: any }) {
     );
 }
 
-export default function PostCard({ post, currentUserId, currentUserRole, onDeleted }: { post: any; currentUserId?: string; currentUserRole?: string; onDeleted?: (id: string) => void }) {
+export default function PostCard({ post, currentUserId, currentUserRole, onDeleted, initialShowComments }: { post: any; currentUserId?: string; currentUserRole?: string; onDeleted?: (id: string) => void; initialShowComments?: boolean }) {
     // Coerce to stable primitives — avoids undefined sneaking in from the API shape
     const [liked, setLiked] = useState<boolean>(!!post.isLiked);
     const [likesCount, setLikesCount] = useState<number>(Number(post.likesCount) || 0);
     const [saved, setSaved] = useState<boolean>(!!post.isSaved);
     const [reposted, setReposted] = useState<boolean>(!!post.isReposted);
     const [repostsCount, setRepostsCount] = useState<number>(Number(post.repostsCount) || 0);
-    const [showComments, setShowComments] = useState(false);
+    const [showComments, setShowComments] = useState(initialShowComments ?? false);
     const [commentsCount, setCommentsCount] = useState(post.commentsCount);
     const [showMenu, setShowMenu] = useState(false);
     const [expanded, setExpanded] = useState(false);
@@ -225,7 +225,7 @@ export default function PostCard({ post, currentUserId, currentUserRole, onDelet
     }, [reposted, repostsCount, post.id]);
 
     const handleShare = () => {
-        navigator.clipboard.writeText(`${window.location.origin}/feed?post=${post.id}`);
+        navigator.clipboard.writeText(`${window.location.origin}/feed/${post.id}`);
         setToast("Link copied!"); setTimeout(() => setToast(""), 2000);
     };
 

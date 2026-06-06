@@ -372,7 +372,7 @@ export default function PostComposer({ userData, onClose, onPostCreated }: PostC
                         {/* Video preview */}
                         {videoPreview && (
                             <div className="relative rounded-xl overflow-hidden">
-                                <video src={videoPreview} controls className="w-full max-h-[250px] rounded-xl" />
+                                <video src={videoPreview} controls className="w-full max-h-62.5 rounded-xl" />
                                 <button
                                     onClick={() => { setVideoFile(null); setVideoPreview(""); }}
                                     className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 flex items-center justify-center border-none cursor-pointer"
@@ -878,7 +878,7 @@ export default function PostComposer({ userData, onClose, onPostCreated }: PostC
                     </div>
 
                     {/* ── Tab content ── */}
-                    <div className="min-h-[180px]">
+                    <div className="min-h-45">
                         {renderTabContent()}
                     </div>
 

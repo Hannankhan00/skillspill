@@ -94,7 +94,7 @@ export default function SpillFeedPage() {
                         {filters.map(f => (
                             <button key={f.key} onClick={() => setFilter(f.key)}
                                 className={`px-4 py-2.5 text-[12px] font-semibold border-b-2 transition-all cursor-pointer bg-transparent
-                                    ${filter === f.key ? "border-[#3CF91A] text-[#2edb13]" : "border-transparent text-(--theme-text-muted) hover:text-(--theme-text-tertiary)"}`}>
+                                    ${filter === f.key ? "border-primary text-[#2edb13]" : "border-transparent text-(--theme-text-muted) hover:text-(--theme-text-tertiary)"}`}>
                                 {f.label}
                             </button>
                         ))}
@@ -143,7 +143,7 @@ export default function SpillFeedPage() {
                 {/* Loading more indicator */}
                 {loadingMore && (
                     <div className="flex justify-center py-6">
-                        <div className="w-6 h-6 border-2 border-[#3CF91A] border-t-transparent rounded-full animate-spin" />
+                        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                     </div>
                 )}
 
