@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Sparkles, Briefcase, Target, BarChart2, Copy, Check, Loader2 } from "lucide-react";
 import { CoverBanner } from "@/app/components/CoverBanners";
 import CommentThread from "@/app/feed/components/CommentThread";
+import PostCard from "@/app/feed/components/PostCard";
 
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    S K I L L S P I L L  —  R E C R U I T E R  F E E D
@@ -127,6 +129,10 @@ function SidebarUserSkeleton() {
 }
 
 export default function RecruiterFeed() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const [modalPost, setModalPost] = useState<any>(null);
+    const [modalLoading, setModalLoading] = useState(false);
     const [feedTab, setFeedTab] = useState("Discover");
     const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
     const [savedPosts, setSavedPosts] = useState<Record<string, boolean>>({});
@@ -168,6 +174,28 @@ export default function RecruiterFeed() {
             })
             .catch(() => setSidebarLoading(false));
     }, []);
+
+    // Open post modal when ?post= is present in URL
+    useEffect(() => {
+        const postId = new URLSearchParams(window.location.search).get("post");
+        if (!postId) { setModalPost(null); return; }
+        setModalLoading(true);
+        fetch(`/api/spill/posts/${postId}`)
+            .then(r => r.json())
+            .then(d => { if (d.post) setModalPost(d.post); })
+            .catch(() => {})
+            .finally(() => setModalLoading(false));
+    }, [searchParams]);
+
+    // Lock body scroll when post modal is open
+    useEffect(() => {
+        if (modalPost || modalLoading) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "";
+        }
+        return () => { document.body.style.overflow = ""; };
+    }, [modalPost, modalLoading]);
 
     // Fetch the Feed Posts (initial / tab change)
     useEffect(() => {
@@ -301,6 +329,7 @@ export default function RecruiterFeed() {
 
 
     return (
+        <>
         <div style={{ background: "var(--theme-bg)" }} className="min-h-full">
             <div className="max-w-275 mx-auto px-4 sm:px-6 py-4 pb-24 lg:pb-8">
                 <div className="flex flex-col lg:flex-row gap-6">
@@ -635,6 +664,63 @@ export default function RecruiterFeed() {
                     </div>
                 </div>
             </div>
-        </div >
+        </div>
+        {/* Post modal — opens when ?post= is in the URL */}
+        {(modalPost || modalLoading) && (
+            <div
+                className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto py-6 px-4"
+                style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(3px)" }}
+                onClick={(e) => { if (e.target === e.currentTarget) router.replace("/recruiter"); }}
+            >
+                <div className="w-full max-w-2xl relative mb-8">
+                    <div className="flex items-center gap-3 mb-3">
+                        <button
+                            onClick={() => router.replace("/recruiter")}
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-[12px] font-semibold cursor-pointer border transition-all hover:scale-105"
+                            style={{ background: "var(--theme-card)", borderColor: "var(--theme-border)", color: "var(--theme-text-muted)" }}
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg>
+                            Back to Feed
+                        </button>
+                    </div>
+                    <div className="mt-2">
+                        {modalLoading ? (
+                            <div className="rounded-2xl border p-5 animate-pulse" style={{ background: "var(--theme-card)", borderColor: "var(--theme-border)" }}>
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-10 h-10 rounded-full" style={{ background: "var(--theme-input-bg)" }} />
+                                    <div className="flex-1 space-y-2">
+                                        <div className="h-3 w-28 rounded" style={{ background: "var(--theme-input-bg)" }} />
+                                        <div className="h-2 w-16 rounded" style={{ background: "var(--theme-input-bg)" }} />
+                                    </div>
+                                </div>
+                                <div className="space-y-2 mb-4">
+                                    <div className="h-3 w-full rounded" style={{ background: "var(--theme-input-bg)" }} />
+                                    <div className="h-3 w-4/5 rounded" style={{ background: "var(--theme-input-bg)" }} />
+                                </div>
+                                <div className="h-32 w-full rounded-xl" style={{ background: "var(--theme-input-bg)" }} />
+                            </div>
+                        ) : modalPost ? (
+                            <PostCard
+                                post={modalPost}
+                                currentUserId={userData?.id}
+                                currentUserRole={userData?.role}
+                                onDeleted={() => router.replace("/recruiter")}
+                                initialShowComments
+                            />
+                        ) : (
+                            <div className="rounded-2xl border p-10 text-center" style={{ background: "var(--theme-card)", borderColor: "var(--theme-border)" }}>
+                                <p className="text-3xl mb-3">😕</p>
+                                <p className="text-[14px] font-bold mb-1" style={{ color: "var(--theme-text-secondary)" }}>Post not found</p>
+                                <p className="text-[12px] mb-4" style={{ color: "var(--theme-text-muted)" }}>This post may have been deleted.</p>
+                                <button onClick={() => router.replace("/recruiter")} className="px-5 py-2 rounded-xl text-[12px] font-bold text-white border-none cursor-pointer" style={{ background: "#A855F7" }}>
+                                    Back to Feed
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        )}
+        </>
     );
 }

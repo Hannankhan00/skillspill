@@ -48,7 +48,7 @@ export async function POST(req: Request, context: { params: Promise<{ targetUser
             title: "New Follower",
             message: `${follower?.fullName ?? follower?.username ?? "Someone"} started following you.`,
             type: "follow",
-            link: `/talent/profile/${session.userId}`,
+            link: `/u/${session.userId}`,
         });
 
         return NextResponse.json({ success: true, follow });

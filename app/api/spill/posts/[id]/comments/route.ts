@@ -69,7 +69,10 @@ export async function POST(
             return NextResponse.json({ error: "Comment must be 1-500 characters" }, { status: 400 });
         }
 
-        const post = await prisma.spillPost.findUnique({ where: { id } });
+        const post = await prisma.spillPost.findUnique({
+            where: { id },
+            include: { user: { select: { role: true } } },
+        });
         if (!post) return NextResponse.json({ error: "Post not found" }, { status: 404 });
 
         // If replying, verify parent comment exists and belongs to same post
@@ -115,7 +118,7 @@ export async function POST(
                 title: isReply ? "New Reply" : "New Comment",
                 message: `${commenterName} ${isReply ? "replied to a comment on" : "commented on"} your post.`,
                 type: "comment",
-                link: `/feed/${id}`,
+                link: `/${post.user?.role === "RECRUITER" ? "recruiter" : "talent"}?post=${id}`,
             });
         }
 

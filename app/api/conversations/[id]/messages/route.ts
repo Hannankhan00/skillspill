@@ -94,7 +94,7 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
             title: `Message from ${senderName}`,
             message: preview,
             type: "message",
-            link: `/talent/messages?conversation=${id}`,
+            link: `/messages?conversation=${id}`,
         });
 
         return NextResponse.json({ message });
