@@ -8,6 +8,7 @@ import { ThemeToggle } from "../components/ThemeProvider";
 import Logo from "../components/Logo";
 import PostComposer from "../feed/components/PostComposer";
 import { NotificationToastContainer, type ToastNotification } from "../components/NotificationToast";
+import { NotificationPanel, type IncomingNotif } from "../components/NotificationPanel";
 import GlobalSearch from "../components/GlobalSearch";
 
 /* -- SVG Icon Components -- */
@@ -140,6 +141,8 @@ export default function TalentShell({
     const [userData, setUserData]       = useState<any>(null);
     const [unreadCount, setUnreadCount] = useState(0);
     const [toasts, setToasts]           = useState<ToastNotification[]>([]);
+    const [notifPanelOpen, setNotifPanelOpen] = useState(false);
+    const [latestNotif, setLatestNotif]       = useState<IncomingNotif | null>(null);
 
     const dismissToast = useCallback((id: string) => {
         setToasts(prev => prev.filter(t => t.id !== id));
@@ -162,8 +165,9 @@ export default function TalentShell({
         });
         const channel = pusherClient.subscribe(`user-${userId}`);
         channel.bind("new-notification", (data: ToastNotification) => {
-            setToasts(prev => [...prev.slice(-4), data]); // keep max 5 toasts
+            setToasts(prev => [...prev.slice(-4), data]);
             setUnreadCount(prev => prev + 1);
+            setLatestNotif(data as IncomingNotif);
         });
         return () => {
             channel.unbind_all();
@@ -381,15 +385,15 @@ export default function TalentShell({
                     <div className="flex items-center gap-2 shrink-0">
                         <ThemeToggle size="sm" />
 
-                        <Link href="/talent/notifications"
-                            className="relative w-9 h-9 rounded-xl flex items-center justify-center transition-all" style={{ color: 'var(--theme-text-muted)' }}>
+                        <button onClick={() => setNotifPanelOpen(true)}
+                            className="relative w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer border-none bg-transparent" style={{ color: 'var(--theme-text-muted)' }}>
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
                             {unreadCount > 0 && (
                                 <span className="absolute top-1 right-1 min-w-4 h-4 px-0.5 flex items-center justify-center rounded-full text-[8px] font-black bg-red-500 text-white" style={{ border: '1.5px solid var(--theme-bg)', lineHeight: 1 }}>
                                     {unreadCount > 9 ? "9+" : unreadCount}
                                 </span>
                             )}
-                        </Link>
+                        </button>
 
                         <Link href="/talent/settings"
                             className="w-9 h-9 rounded-xl flex items-center justify-center transition-all" style={{ color: 'var(--theme-text-muted)' }}>
@@ -450,12 +454,12 @@ export default function TalentShell({
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82" /></svg>
                                             Settings
                                         </Link>
-                                        <Link href="/talent/notifications" onClick={() => setProfileDropdown(false)}
-                                            className="flex items-center gap-3 px-4 py-2.5 text-[12px] hover:text-[#3CF91A] transition-colors no-underline" style={{ color: 'var(--theme-text-tertiary)' }}>
+                                        <button onClick={() => { setProfileDropdown(false); setNotifPanelOpen(true); }}
+                                            className="flex items-center gap-3 px-4 py-2.5 text-[12px] hover:text-[#3CF91A] transition-colors w-full text-left bg-transparent border-none cursor-pointer" style={{ color: 'var(--theme-text-tertiary)' }}>
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
                                             Notifications
-                                            <span className="ml-auto text-[9px] px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-500 font-bold">5</span>
-                                        </Link>
+                                            {unreadCount > 0 && <span className="ml-auto text-[9px] px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-500 font-bold">{unreadCount > 9 ? "9+" : unreadCount}</span>}
+                                        </button>
                                     </div>
                                     <div className="pt-1" style={{ borderTop: '1px solid var(--theme-border-light)' }}>
                                         <button onClick={handleLogout}
@@ -499,6 +503,22 @@ export default function TalentShell({
 
                             const active = isActive(item.href);
                             const showBadge = item.label === "Alerts" && unreadCount > 0;
+                            if (item.label === "Alerts") {
+                                return (
+                                    <button key={item.label} onClick={() => setNotifPanelOpen(true)}
+                                        className={`relative flex flex-col items-center justify-center gap-0.5 py-1 px-2 transition-colors bg-transparent border-none cursor-pointer
+                                        ${notifPanelOpen ? "text-[#2edb13]" : ""}`}
+                                        style={notifPanelOpen ? {} : { color: 'var(--theme-text-muted)' }}>
+                                        {notifPanelOpen ? item.iconFilled : item.icon}
+                                        {showBadge && (
+                                            <span className="absolute top-0 right-1.5 min-w-3.5 h-3.5 px-0.5 flex items-center justify-center rounded-full text-[7px] font-black bg-red-500 text-white" style={{ lineHeight: 1 }}>
+                                                {unreadCount > 9 ? "9+" : unreadCount}
+                                            </span>
+                                        )}
+                                        <span className="text-[9px] font-medium">{item.label}</span>
+                                    </button>
+                                );
+                            }
                             return (
                                 <Link key={item.label} href={item.href}
                                     className={`relative flex flex-col items-center justify-center gap-0.5 py-1 px-2 no-underline transition-colors
@@ -532,6 +552,15 @@ export default function TalentShell({
                 toasts={toasts}
                 onDismiss={dismissToast}
                 accentColor={accent}
+            />
+
+            {/* ── Notification slide-in panel ── */}
+            <NotificationPanel
+                open={notifPanelOpen}
+                onClose={() => setNotifPanelOpen(false)}
+                accent={accent}
+                newNotif={latestNotif}
+                onUnreadChange={setUnreadCount}
             />
 
         </div>
