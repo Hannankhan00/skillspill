@@ -29,7 +29,7 @@ function BookmarkIcon() {
 const settingsTabs = [
     { key: "company", label: "Company", icon: <BuildingIcon />, desc: "Company profile" },
     { key: "security", label: "Security", icon: <ShieldIcon />, desc: "Account safety" },
-    { key: "saved", label: "Saved Items", icon: <BookmarkIcon />, desc: "Your bookmarked posts", href: "/feed/saved" },
+    { key: "saved", label: "Saved Items", icon: <BookmarkIcon />, desc: "Your bookmarked posts", href: "/recruiter?tab=Saved" },
     { key: "notifications", label: "Notifications", icon: <BellIcon />, desc: "Alert preferences" },
     { key: "connections", label: "Connections", icon: <LinkIcon />, desc: "Linked accounts" },
 ];

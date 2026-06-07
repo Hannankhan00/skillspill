@@ -11,8 +11,63 @@ export async function GET(req: NextRequest) {
         const { searchParams } = new URL(req.url);
         const cursor = searchParams.get("cursor"); // ISO date string
         const limit = Math.min(parseInt(searchParams.get("limit") || "10"), 20);
-        const filter = searchParams.get("filter") || "all"; // all, following, trending
+        const filter = searchParams.get("filter") || "all"; // all, following, trending, code, saved
         const hashtag = searchParams.get("hashtag");
+
+        // Saved filter: fetch saved post IDs first, then query those posts
+        if (filter === "saved") {
+            const savedRecords = await prisma.spillSave.findMany({
+                where: { userId: session.userId },
+                select: { postId: true },
+                orderBy: { createdAt: "desc" },
+            });
+            const savedIds = savedRecords.map((s) => s.postId);
+            if (savedIds.length === 0) {
+                return NextResponse.json({ posts: [], nextCursor: null, hasMore: false });
+            }
+            const savedWhere: any = {
+                id: { in: savedIds },
+                status: "published",
+                visibility: "public",
+            };
+            if (cursor) {
+                savedWhere.createdAt = { lt: new Date(cursor) };
+            }
+            const savedPosts = await prisma.spillPost.findMany({
+                where: savedWhere,
+                orderBy: { createdAt: "desc" },
+                take: limit,
+                include: {
+                    user: {
+                        select: {
+                            id: true, fullName: true, username: true, avatarUrl: true, role: true,
+                            recruiterProfile: { select: { companyName: true } },
+                            talentProfile: { select: { githubConnected: true, githubStars: true } },
+                            followers: { where: { followerId: session.userId }, select: { id: true } },
+                        },
+                    },
+                    media: { orderBy: { sortOrder: "asc" } },
+                    likes: { where: { userId: session.userId }, select: { id: true } },
+                    saves: { where: { userId: session.userId }, select: { id: true } },
+                    reposts: { where: { userId: session.userId }, select: { id: true } },
+                },
+            });
+            const formattedSaved = savedPosts.map((post) => ({
+                ...post,
+                hashtags: post.hashtags ? JSON.parse(post.hashtags) : [],
+                hiringSkills: post.hiringSkills ? JSON.parse(post.hiringSkills) : [],
+                isLiked: post.likes.length > 0,
+                isSaved: post.saves.length > 0,
+                isReposted: post.reposts.length > 0,
+                isFollowing: post.user.followers?.length > 0,
+                user: { ...post.user, followers: undefined },
+                likes: undefined, saves: undefined, reposts: undefined,
+            }));
+            const nextCursorSaved = savedPosts.length === limit
+                ? savedPosts[savedPosts.length - 1].createdAt.toISOString()
+                : null;
+            return NextResponse.json({ posts: formattedSaved, nextCursor: nextCursorSaved, hasMore: savedPosts.length === limit });
+        }
 
         const where: any = {
             status: "published",
@@ -33,6 +88,10 @@ export async function GET(req: NextRequest) {
                 select: { followingId: true },
             });
             where.userId = { in: followed.map(f => f.followingId) };
+        }
+
+        if (filter === "code") {
+            where.postType = "code";
         }
 
         let orderBy: any = { createdAt: "desc" as const };

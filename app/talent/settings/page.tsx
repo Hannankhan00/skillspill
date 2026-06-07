@@ -38,7 +38,7 @@ const settingsTabs = [
     { key: "security", label: "Security", icon: <ShieldIcon />, desc: "Account safety" },
     { key: "privacy", label: "Privacy", icon: <EyeIcon />, desc: "Profile visibility" },
     { key: "experience", label: "Experience", icon: <BriefcaseIconSm />, desc: "Work history" },
-    { key: "saved", label: "Saved Items", icon: <BookmarkIcon />, desc: "Your bookmarked posts", href: "/feed/saved" },
+    { key: "saved", label: "Saved Items", icon: <BookmarkIcon />, desc: "Your bookmarked posts", href: "/talent?tab=Saved" },
     { key: "notifications", label: "Notifications", icon: <BellIcon />, desc: "Alert preferences" },
     { key: "connections", label: "Connections", icon: <LinkIcon />, desc: "Linked accounts" },
 ];

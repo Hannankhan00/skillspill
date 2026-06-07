@@ -169,7 +169,11 @@ export default function TalentFeed() {
     const router = useRouter();
     const [modalPost, setModalPost] = useState<any>(null);
     const [modalLoading, setModalLoading] = useState(false);
-    const [feedTab, setFeedTab] = useState("For You");
+    const [feedTab, setFeedTab] = useState(() => {
+        const validTabs = ["For You", "Following", "Trending", "Code", "Saved"];
+        const param = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("tab") : null;
+        return param && validTabs.includes(param) ? param : "For You";
+    });
     const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
     const [savedPosts, setSavedPosts] = useState<Record<string, boolean>>({});
     const [copiedStatus, setCopiedStatus] = useState<Record<string, boolean>>({});
@@ -246,6 +250,8 @@ export default function TalentFeed() {
         let filter = "all";
         if (feedTab === "Following") filter = "following";
         if (feedTab === "Trending") filter = "trending";
+        if (feedTab === "Code") filter = "code";
+        if (feedTab === "Saved") filter = "saved";
         fetch(`/api/spill/posts?limit=10&filter=${filter}`)
             .then(res => res.json())
             .then(data => {
@@ -264,6 +270,8 @@ export default function TalentFeed() {
         let filter = "all";
         if (feedTab === "Following") filter = "following";
         if (feedTab === "Trending") filter = "trending";
+        if (feedTab === "Code") filter = "code";
+        if (feedTab === "Saved") filter = "saved";
         try {
             const res = await fetch(`/api/spill/posts?limit=10&filter=${filter}&cursor=${cursorRef.current}`);
             const data = await res.json();
@@ -353,7 +361,7 @@ export default function TalentFeed() {
         setOpenMenu(null);
     };
 
-    const tabs = ["For You", "Following", "Trending", "Code", "Jobs"];
+    const tabs = ["For You", "Following", "Trending", "Code", "Saved"];
 
     // Compute user data or fallbacks
     const username = userData?.username || "Guest";

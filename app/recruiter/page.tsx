@@ -133,7 +133,11 @@ export default function RecruiterFeed() {
     const router = useRouter();
     const [modalPost, setModalPost] = useState<any>(null);
     const [modalLoading, setModalLoading] = useState(false);
-    const [feedTab, setFeedTab] = useState("Discover");
+    const [feedTab, setFeedTab] = useState(() => {
+        const validTabs = ["Discover", "My Network", "Trending", "Code", "Saved"];
+        const param = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("tab") : null;
+        return param && validTabs.includes(param) ? param : "Discover";
+    });
     const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
     const [savedPosts, setSavedPosts] = useState<Record<string, boolean>>({});
     const [copiedStatus, setCopiedStatus] = useState<Record<string, boolean>>({});
@@ -206,6 +210,8 @@ export default function RecruiterFeed() {
         let filter = "all";
         if (feedTab === "My Network") filter = "following";
         if (feedTab === "Trending") filter = "trending";
+        if (feedTab === "Code") filter = "code";
+        if (feedTab === "Saved") filter = "saved";
         fetch(`/api/spill/posts?limit=10&filter=${filter}`)
             .then(res => res.json())
             .then(data => {
@@ -224,6 +230,8 @@ export default function RecruiterFeed() {
         let filter = "all";
         if (feedTab === "My Network") filter = "following";
         if (feedTab === "Trending") filter = "trending";
+        if (feedTab === "Code") filter = "code";
+        if (feedTab === "Saved") filter = "saved";
         try {
             const res = await fetch(`/api/spill/posts?limit=10&filter=${filter}&cursor=${cursorRef.current}`);
             const data = await res.json();
