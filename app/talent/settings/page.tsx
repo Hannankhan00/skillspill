@@ -37,7 +37,6 @@ const settingsTabs = [
     { key: "profile", label: "Profile", icon: <UserIcon />, desc: "Edit your info" },
     { key: "security", label: "Security", icon: <ShieldIcon />, desc: "Account safety" },
     { key: "privacy", label: "Privacy", icon: <EyeIcon />, desc: "Profile visibility" },
-    { key: "experience", label: "Experience", icon: <BriefcaseIconSm />, desc: "Work history" },
     { key: "saved", label: "Saved Items", icon: <BookmarkIcon />, desc: "Your bookmarked posts", href: "/talent?tab=Saved" },
     { key: "notifications", label: "Notifications", icon: <BellIcon />, desc: "Alert preferences" },
     { key: "connections", label: "Connections", icon: <LinkIcon />, desc: "Linked accounts" },
@@ -795,41 +794,6 @@ export default function SettingsPage() {
                                                     </div>
                                                 </div>
 
-                                                {/* Skills */}
-                                                <div>
-                                                    <h3 className="text-[11px] uppercase tracking-widest font-semibold mb-3" style={{ color: 'var(--theme-text-muted)' }}>Skills</h3>
-                                                    {/* Tag input */}
-                                                    <div className="flex gap-2 mb-3">
-                                                        <input
-                                                            value={skillInput}
-                                                            onChange={e => setSkillInput(e.target.value)}
-                                                            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addSkill(); } }}
-                                                            placeholder="Type a skill and press Enter"
-                                                            className="flex-1 px-3.5 py-2.5 rounded-xl text-[13px] outline-none focus:ring-2 focus:ring-[#3CF91A]/20"
-                                                            style={{ background: 'var(--theme-input-bg)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
-                                                        />
-                                                        <button onClick={addSkill}
-                                                            className="px-4 py-2.5 rounded-xl text-[12px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105"
-                                                            style={{ background: '#3CF91A' }}>
-                                                            Add
-                                                        </button>
-                                                    </div>
-                                                    {skills.length > 0 ? (
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {skills.map(s => (
-                                                                <span key={s} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium"
-                                                                    style={{ background: '#3CF91A10', color: '#3CF91A', border: '1px solid #3CF91A25' }}>
-                                                                    {s}
-                                                                    <button onClick={() => removeSkill(s)} className="border-none bg-transparent cursor-pointer text-[10px] leading-none opacity-70 hover:opacity-100 p-0"
-                                                                        style={{ color: '#3CF91A' }}>✕</button>
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                    ) : (
-                                                        <p className="text-[11px]" style={{ color: 'var(--theme-text-muted)' }}>No skills added yet. Type above and press Enter or Add.</p>
-                                                    )}
-                                                </div>
-
                                                 {/* Project Links */}
                                                 <div>
                                                     <div className="flex items-center justify-between mb-3">
@@ -960,135 +924,6 @@ export default function SettingsPage() {
                                 </div>
                             )}
 
-                            {/*  Experience  */}
-                            {activeTab === "experience" && (
-                                <div className="p-6 space-y-6">
-                                    <Section title="Work Experience" desc="Your career history — shown on your profile just like LinkedIn">
-
-                                        {/* Add button */}
-                                        {!showExpForm && (
-                                            <button onClick={openAddForm}
-                                                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105"
-                                                style={{ background: '#3CF91A', boxShadow: '0 4px 15px rgba(60,249,26,0.3)' }}>
-                                                + Add Experience
-                                            </button>
-                                        )}
-
-                                        {/* Inline Add/Edit form */}
-                                        {showExpForm && (
-                                            <div className="rounded-2xl p-5 space-y-4 border" style={{ background: 'var(--theme-bg)', borderColor: 'var(--theme-border)' }}>
-                                                <h3 className="text-[13px] font-bold" style={{ color: 'var(--theme-text-primary)' }}>
-                                                    {editingExp ? "Edit Experience" : "Add Experience"}
-                                                </h3>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                    <InputField label="Company Name" value={expForm.companyName}
-                                                        onChange={v => setExpForm(f => ({ ...f, companyName: v }))}
-                                                        placeholder="e.g. NastecSol" />
-                                                    <InputField label="Your Role / Title" value={expForm.role}
-                                                        onChange={v => setExpForm(f => ({ ...f, role: v }))}
-                                                        placeholder="e.g. CEO, HR Manager, SWE" />
-                                                </div>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                    <InputField label="Start Date" value={expForm.startDate} type="date"
-                                                        onChange={v => setExpForm(f => ({ ...f, startDate: v }))} />
-                                                    {!expForm.isCurrent && (
-                                                        <InputField label="End Date" value={expForm.endDate} type="date"
-                                                            onChange={v => setExpForm(f => ({ ...f, endDate: v }))} />
-                                                    )}
-                                                </div>
-                                                {/* isCurrent toggle */}
-                                                <div className="flex items-center gap-3">
-                                                    <Toggle enabled={expForm.isCurrent}
-                                                        onToggle={() => setExpForm(f => ({ ...f, isCurrent: !f.isCurrent, endDate: "" }))} />
-                                                    <span className="text-[12px] font-medium" style={{ color: 'var(--theme-text-secondary)' }}>
-                                                        I currently work here
-                                                    </span>
-                                                </div>
-                                                {/* Description */}
-                                                <div>
-                                                    <label className="text-[10px] uppercase tracking-widest font-semibold block mb-1.5" style={{ color: 'var(--theme-text-muted)' }}>
-                                                        Description (optional)
-                                                    </label>
-                                                    <textarea
-                                                        value={expForm.description}
-                                                        onChange={e => setExpForm(f => ({ ...f, description: e.target.value }))}
-                                                        rows={3}
-                                                        placeholder="Briefly describe your role and key achievements..."
-                                                        className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none resize-none focus:ring-2 focus:ring-[#3CF91A]/20"
-                                                        style={{ background: 'var(--theme-input-bg)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
-                                                    />
-                                                </div>
-                                                <div className="flex gap-3 pt-1">
-                                                    <button onClick={saveExperience} disabled={savingExp || !expForm.companyName || !expForm.role || !expForm.startDate}
-                                                        className="px-5 py-2.5 rounded-xl text-[12px] font-bold text-black border-none cursor-pointer transition-all hover:scale-105 disabled:opacity-50"
-                                                        style={{ background: '#3CF91A' }}>
-                                                        {savingExp ? "Saving..." : editingExp ? "Save Changes" : "Add"}
-                                                    </button>
-                                                    <button onClick={() => setShowExpForm(false)}
-                                                        className="px-5 py-2.5 rounded-xl text-[12px] font-medium border-none cursor-pointer transition-all hover:opacity-80"
-                                                        style={{ background: 'var(--theme-input-bg)', color: 'var(--theme-text-muted)', border: '1px solid var(--theme-border)' }}>
-                                                        Cancel
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Experience list */}
-                                        {loadingExp ? (
-                                            <div className="text-center py-8 text-[12px]" style={{ color: 'var(--theme-text-muted)' }}>Loading...</div>
-                                        ) : experiences.length === 0 ? (
-                                            <div className="rounded-2xl border border-dashed p-8 text-center" style={{ borderColor: 'var(--theme-border)' }}>
-                                                <p className="text-[13px] font-medium" style={{ color: 'var(--theme-text-muted)' }}>No work experience added yet.</p>
-                                                <p className="text-[11px] mt-1" style={{ color: 'var(--theme-text-muted)' }}>Add your current and past roles — they&apos;ll appear on your profile.</p>
-                                            </div>
-                                        ) : (
-                                            <div className="space-y-3">
-                                                {experiences.map((exp) => (
-                                                    <div key={exp.id} className="rounded-2xl border p-4 flex gap-4 group transition-all"
-                                                        style={{ background: 'var(--theme-bg)', borderColor: 'var(--theme-border)' }}
-                                                        onMouseEnter={e => (e.currentTarget.style.borderColor = '#3CF91A33')}
-                                                        onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--theme-border)')}>
-                                                        {/* Company initial badge */}
-                                                        <div className="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center text-[13px] font-bold text-white bg-linear-to-br from-[#3CF91A] to-[#00C853]" style={{ color: '#000' }}>
-                                                            {exp.companyName[0].toUpperCase()}
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="flex items-start justify-between gap-2">
-                                                                <div>
-                                                                    <p className="text-[13px] font-bold" style={{ color: 'var(--theme-text-primary)' }}>{exp.role}</p>
-                                                                    <p className="text-[12px] font-medium" style={{ color: 'var(--theme-text-secondary)' }}>{exp.companyName}</p>
-                                                                    <p className="text-[10px] mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>{formatDateRange(exp)}</p>
-                                                                </div>
-                                                                <div className="flex gap-1.5 shrink-0">
-                                                                    {exp.isCurrent && (
-                                                                        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full"
-                                                                            style={{ background: '#3CF91A15', color: '#3CF91A', border: '1px solid #3CF91A30' }}>
-                                                                            Current
-                                                                        </span>
-                                                                    )}
-                                                                    <button onClick={() => openEditForm(exp)} title="Edit"
-                                                                        className="p-1.5 rounded-lg border-none cursor-pointer text-[10px] transition-all hover:opacity-80"
-                                                                        style={{ background: 'var(--theme-input-bg)', color: 'var(--theme-text-muted)' }}>
-                                                                        ✏️
-                                                                    </button>
-                                                                    <button onClick={() => deleteExperience(exp.id)} title="Remove"
-                                                                        className="p-1.5 rounded-lg border-none cursor-pointer transition-all hover:opacity-80"
-                                                                        style={{ background: 'rgba(239,68,68,0.08)', color: '#EF4444' }}>
-                                                                        <TrashIcon />
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                            {exp.description && (
-                                                                <p className="text-[11px] mt-2 leading-relaxed" style={{ color: 'var(--theme-text-muted)' }}>{exp.description}</p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </Section>
-                                </div>
-                            )}
 
 
                             {activeTab === "notifications" && (
