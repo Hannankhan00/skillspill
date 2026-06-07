@@ -1099,7 +1099,7 @@ export default function SettingsPage() {
                                         ) : (
                                             <>
                                                 {notifSaving && (
-                                                    <p className="text-[11px]" style={{ color: accent }}>Saving…</p>
+                                                    <p className="text-[11px]" style={{ color: '#A855F7' }}>Saving…</p>
                                                 )}
                                                 <div>
                                                     <h3 className="text-[11px] uppercase tracking-widest font-semibold mb-2" style={{ color: 'var(--theme-text-muted)' }}>Activity</h3>
@@ -1128,9 +1128,9 @@ export default function SettingsPage() {
                                         {linkedinMsg && (
                                             <div className="rounded-xl px-4 py-3 text-[12px] font-medium"
                                                 style={{
-                                                    background: linkedinMsg.type === "ok" ? `${accent}10` : 'rgba(239,68,68,0.08)',
-                                                    border: `1px solid ${linkedinMsg.type === "ok" ? `${accent}30` : 'rgba(239,68,68,0.2)'}`,
-                                                    color: linkedinMsg.type === "ok" ? accent : '#EF4444',
+                                                    background: linkedinMsg.type === "ok" ? `${'#A855F7'}10` : 'rgba(239,68,68,0.08)',
+                                                    border: `1px solid ${linkedinMsg.type === "ok" ? `${'#A855F7'}30` : 'rgba(239,68,68,0.2)'}`,
+                                                    color: linkedinMsg.type === "ok" ? '#A855F7' : '#EF4444',
                                                 }}>
                                                 {linkedinMsg.text}
                                             </div>
@@ -1160,7 +1160,7 @@ export default function SettingsPage() {
                                                     onClick={() => saveLinkedin(linkedinInput.trim())}
                                                     disabled={linkedinSaving}
                                                     className="px-4 py-2 rounded-xl text-[11px] font-bold text-white border-none cursor-pointer transition-all disabled:opacity-50 hover:scale-105"
-                                                    style={{ background: accent, boxShadow: `0 4px 15px ${accent}50` }}
+                                                    style={{ background: '#A855F7', boxShadow: `0 4px 15px ${'#A855F7'}50` }}
                                                 >
                                                     {linkedinSaving ? "Saving…" : "Save"}
                                                 </button>
