@@ -376,6 +376,7 @@ model RecruiterProfile {
   companyName    String   @unique
   companyWebsite String?
   companySize    String?
+  linkedinUrl    String?
   addressLine1   String?
   addressLine2   String?
   city           String?
