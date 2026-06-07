@@ -279,9 +279,35 @@ export default function SettingsPage() {
     /* Notifications */
     const [notifBounty, setNotifBounty] = useState(true);
     const [notifSpill, setNotifSpill] = useState(true);
-    const [notifJob, setNotifJob] = useState(false);
+    const [notifJob, setNotifJob] = useState(true);
     const [notifEmail, setNotifEmail] = useState(true);
-    const [notifPush, setNotifPush] = useState(false);
+    const [notifLoaded, setNotifLoaded] = useState(false);
+    const [notifSaving, setNotifSaving] = useState(false);
+
+    useEffect(() => {
+        fetch("/api/user/notif-settings")
+            .then(r => r.json())
+            .then(d => {
+                if (d.settings) {
+                    setNotifBounty(d.settings.newApplications);
+                    setNotifSpill(d.settings.spillInteractions);
+                    setNotifJob(d.settings.jobUpdates);
+                    setNotifEmail(d.settings.emailNotifications);
+                }
+                setNotifLoaded(true);
+            })
+            .catch(() => setNotifLoaded(true));
+    }, []);
+
+    const saveNotif = async (patch: Record<string, boolean>) => {
+        setNotifSaving(true);
+        await fetch("/api/user/notif-settings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(patch),
+        }).catch(() => {});
+        setNotifSaving(false);
+    };
 
     /* Connections */
     const [githubConnected, setGithubConnected] = useState(false);
@@ -1048,18 +1074,29 @@ export default function SettingsPage() {
                             {activeTab === "notifications" && (
                                 <div className="p-6 space-y-6">
                                     <Section title="Notifications" desc="Choose what alerts you want to receive">
-                                        <div>
-                                            <h3 className="text-[11px] uppercase tracking-widest font-semibold mb-2" style={{ color: 'var(--theme-text-muted)' }}>Activity</h3>
-                                            <ToggleRow label="Bounty Updates" desc="When bounties you applied to change status" enabled={notifBounty} onToggle={() => setNotifBounty(!notifBounty)} />
-                                            <ToggleRow label="Spill Interactions" desc="Likes, comments, and shares on your spills" enabled={notifSpill} onToggle={() => setNotifSpill(!notifSpill)} />
-                                            <ToggleRow label="Job Recommendations" desc="New jobs matching your skill profile" enabled={notifJob} onToggle={() => setNotifJob(!notifJob)} />
-                                        </div>
-
-                                        <div>
-                                            <h3 className="text-[11px] uppercase tracking-widest font-semibold mb-2" style={{ color: 'var(--theme-text-muted)' }}>Delivery</h3>
-                                            <ToggleRow label="Email Notifications" desc="Receive notifications via email" enabled={notifEmail} onToggle={() => setNotifEmail(!notifEmail)} />
-                                            <ToggleRow label="Push Notifications" desc="Browser push notifications" enabled={notifPush} onToggle={() => setNotifPush(!notifPush)} />
-                                        </div>
+                                        {!notifLoaded ? (
+                                            <div className="text-center py-8 text-[12px]" style={{ color: 'var(--theme-text-muted)' }}>Loading preferences...</div>
+                                        ) : (
+                                            <>
+                                                {notifSaving && (
+                                                    <p className="text-[11px]" style={{ color: accent }}>Saving…</p>
+                                                )}
+                                                <div>
+                                                    <h3 className="text-[11px] uppercase tracking-widest font-semibold mb-2" style={{ color: 'var(--theme-text-muted)' }}>Activity</h3>
+                                                    <ToggleRow label="Bounty Updates" desc="When bounties you applied to change status" enabled={notifBounty}
+                                                        onToggle={() => { const v = !notifBounty; setNotifBounty(v); saveNotif({ newApplications: v }); }} />
+                                                    <ToggleRow label="Spill Interactions" desc="Likes, comments, and shares on your spills" enabled={notifSpill}
+                                                        onToggle={() => { const v = !notifSpill; setNotifSpill(v); saveNotif({ spillInteractions: v }); }} />
+                                                    <ToggleRow label="Job Recommendations" desc="New jobs matching your skill profile" enabled={notifJob}
+                                                        onToggle={() => { const v = !notifJob; setNotifJob(v); saveNotif({ jobUpdates: v }); }} />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-[11px] uppercase tracking-widest font-semibold mb-2" style={{ color: 'var(--theme-text-muted)' }}>Delivery</h3>
+                                                    <ToggleRow label="Email Notifications" desc="Receive notifications via email" enabled={notifEmail}
+                                                        onToggle={() => { const v = !notifEmail; setNotifEmail(v); saveNotif({ emailNotifications: v }); }} />
+                                                </div>
+                                            </>
+                                        )}
                                     </Section>
                                 </div>
                             )}

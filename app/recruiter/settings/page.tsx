@@ -229,7 +229,33 @@ export default function RecruiterSettingsPage() {
     const [notifSpill, setNotifSpill] = useState(true);
     const [notifJob, setNotifJob] = useState(true);
     const [notifEmail, setNotifEmail] = useState(true);
-    const [notifPush, setNotifPush] = useState(false);
+    const [notifLoaded, setNotifLoaded] = useState(false);
+    const [notifSaving, setNotifSaving] = useState(false);
+
+    useEffect(() => {
+        fetch("/api/user/notif-settings")
+            .then(r => r.json())
+            .then(d => {
+                if (d.settings) {
+                    setNotifApplication(d.settings.newApplications);
+                    setNotifSpill(d.settings.spillInteractions);
+                    setNotifJob(d.settings.jobUpdates);
+                    setNotifEmail(d.settings.emailNotifications);
+                }
+                setNotifLoaded(true);
+            })
+            .catch(() => setNotifLoaded(true));
+    }, []);
+
+    const saveNotif = async (patch: Record<string, boolean>) => {
+        setNotifSaving(true);
+        await fetch("/api/user/notif-settings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(patch),
+        }).catch(() => {});
+        setNotifSaving(false);
+    };
 
     /* Connections */
     const [githubConnected, setGithubConnected] = useState(false);
@@ -237,7 +263,7 @@ export default function RecruiterSettingsPage() {
 
     return (
         <div className="min-h-full" style={{ background: 'var(--theme-bg)' }}>
-            <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-4 pb-24 lg:pb-8">
+            <div className="max-w-275 mx-auto px-4 sm:px-6 py-4 pb-24 lg:pb-8">
 
                 {/*  Header  */}
                 <div className="mb-6">
@@ -251,7 +277,7 @@ export default function RecruiterSettingsPage() {
 
                 <div className="flex flex-col lg:flex-row gap-6">
                     {/*  Sidebar Tabs  */}
-                    <div className="w-full lg:w-[220px] shrink-0">
+                    <div className="w-full lg:w-55 shrink-0">
                         <div className="rounded-2xl border p-2 lg:sticky lg:top-6" style={{ background: 'var(--theme-card)', borderColor: 'var(--theme-border)' }}>
                             <nav className="flex lg:flex-col gap-1 overflow-x-auto pb-1 lg:pb-0">
                                 {settingsTabs.map((tab) => (
@@ -489,18 +515,29 @@ export default function RecruiterSettingsPage() {
                             {activeTab === "notifications" && (
                                 <div className="p-6 space-y-6">
                                     <Section title="Notifications" desc="Choose what alerts you want to receive">
-                                        <div>
-                                            <h3 className="text-[11px] uppercase tracking-widest font-semibold mb-2" style={{ color: 'var(--theme-text-muted)' }}>Activity</h3>
-                                            <ToggleRow label="New Applications" desc="When candidates apply to your jobs" enabled={notifApplication} onToggle={() => setNotifApplication(!notifApplication)} />
-                                            <ToggleRow label="Spill Interactions" desc="Likes, comments, and shares on your spills" enabled={notifSpill} onToggle={() => setNotifSpill(!notifSpill)} />
-                                            <ToggleRow label="Job Updates" desc="Status changes on your posted jobs" enabled={notifJob} onToggle={() => setNotifJob(!notifJob)} />
-                                        </div>
-
-                                        <div>
-                                            <h3 className="text-[11px] uppercase tracking-widest font-semibold mb-2" style={{ color: 'var(--theme-text-muted)' }}>Delivery</h3>
-                                            <ToggleRow label="Email Notifications" desc="Receive notifications via email" enabled={notifEmail} onToggle={() => setNotifEmail(!notifEmail)} />
-                                            <ToggleRow label="Push Notifications" desc="Browser push notifications" enabled={notifPush} onToggle={() => setNotifPush(!notifPush)} />
-                                        </div>
+                                        {!notifLoaded ? (
+                                            <div className="text-center py-8 text-[12px]" style={{ color: 'var(--theme-text-muted)' }}>Loading preferences...</div>
+                                        ) : (
+                                            <>
+                                                {notifSaving && (
+                                                    <p className="text-[11px]" style={{ color: accent }}>Saving…</p>
+                                                )}
+                                                <div>
+                                                    <h3 className="text-[11px] uppercase tracking-widest font-semibold mb-2" style={{ color: 'var(--theme-text-muted)' }}>Activity</h3>
+                                                    <ToggleRow label="New Applications" desc="When candidates apply to your jobs" enabled={notifApplication}
+                                                        onToggle={() => { const v = !notifApplication; setNotifApplication(v); saveNotif({ newApplications: v }); }} />
+                                                    <ToggleRow label="Spill Interactions" desc="Likes, comments, and shares on your spills" enabled={notifSpill}
+                                                        onToggle={() => { const v = !notifSpill; setNotifSpill(v); saveNotif({ spillInteractions: v }); }} />
+                                                    <ToggleRow label="Job Updates" desc="Status changes on your posted jobs" enabled={notifJob}
+                                                        onToggle={() => { const v = !notifJob; setNotifJob(v); saveNotif({ jobUpdates: v }); }} />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-[11px] uppercase tracking-widest font-semibold mb-2" style={{ color: 'var(--theme-text-muted)' }}>Delivery</h3>
+                                                    <ToggleRow label="Email Notifications" desc="Receive notifications via email" enabled={notifEmail}
+                                                        onToggle={() => { const v = !notifEmail; setNotifEmail(v); saveNotif({ emailNotifications: v }); }} />
+                                                </div>
+                                            </>
+                                        )}
                                     </Section>
                                 </div>
                             )}
