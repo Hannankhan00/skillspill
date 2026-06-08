@@ -53,8 +53,8 @@ export default function TalentProfileViewPage() {
     }
 
     const { fullName, username, talentProfile, avatarUrl, coverUrl, _count } = talentData;
-    const { bio, experienceLevel, skills, projectLinks, githubUsername, githubConnected, githubRepos, linkedinUrl, portfolioUrl, resumeUrl, isAvailable, contactEmail, contactPhone, showEmail, showPhone, showSocials, workExperience } = talentProfile || {};
-    const { spills } = talentData;
+    const { bio, experienceLevel, skills, projectLinks, githubUsername, githubConnected, githubRepos, githubStars, linkedinUrl, portfolioUrl, resumeUrl, isAvailable, contactEmail, contactPhone, showEmail, showPhone, showSocials, workExperience } = talentProfile || {};
+    const spills = talentData.spillPosts;
     const followersCount: number = _count?.followers ?? 0;
     const followingCount: number = _count?.following ?? 0;
 
@@ -221,6 +221,37 @@ export default function TalentProfileViewPage() {
                                 </div>
                             </div>
 
+                            {/* GitHub Stats */}
+                            {githubConnected && githubUsername && (
+                                <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm p-4 sm:p-5">
+                                    <h2 className="text-[14px] font-bold text-(--theme-text-primary) mb-3 flex items-center gap-2">
+                                        <Github className="w-4 h-4" /> GitHub Activity
+                                    </h2>
+                                    <div className="flex flex-wrap gap-4 mb-4">
+                                        {githubRepos != null && (
+                                            <div className="text-center px-3 py-2 rounded-xl bg-(--theme-bg-secondary) border border-(--theme-border-light)">
+                                                <p className="text-[16px] font-bold text-(--theme-text-primary)">{githubRepos}</p>
+                                                <p className="text-[10px] text-(--theme-text-muted) uppercase tracking-wider">Repos</p>
+                                            </div>
+                                        )}
+                                        {githubStars != null && (
+                                            <div className="text-center px-3 py-2 rounded-xl bg-(--theme-bg-secondary) border border-(--theme-border-light)">
+                                                <p className="text-[16px] font-bold text-(--theme-text-primary)">{githubStars}</p>
+                                                <p className="text-[10px] text-(--theme-text-muted) uppercase tracking-wider">Stars</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <a
+                                        href={`https://github.com/${githubUsername}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-semibold border border-(--theme-border) bg-(--theme-bg-secondary) text-(--theme-text-secondary) hover:text-primary hover:border-primary/40 transition-all no-underline"
+                                    >
+                                        <Github className="w-3.5 h-3.5" /> View @{githubUsername} on GitHub →
+                                    </a>
+                                </div>
+                            )}
+
                             {/* Links & Socials & Contact */}
                             <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm p-4 sm:p-5">
                                 <h2 className="text-[14px] font-bold text-(--theme-text-primary) mb-3 flex items-center gap-2">
@@ -246,7 +277,7 @@ export default function TalentProfileViewPage() {
                                         </a>
                                     )}
                                     {showSocials && githubUsername && (
-                                        <a href={`https://github./${githubUsername}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-xl bg-(--theme-bg-secondary) hover:bg-primary/10 transition-colors border border-(--theme-border-light) hover:border-primary/30 group">
+                                        <a href={`https://github.com/${githubUsername}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-xl bg-(--theme-bg-secondary) hover:bg-primary/10 transition-colors border border-(--theme-border-light) hover:border-primary/30 group">
                                             <Github className="w-5 h-5 text-(--theme-text-secondary) group-hover:text-primary" />
                                             <div>
                                                 <p className="text-[12px] font-bold text-(--theme-text-primary)">GitHub</p>
@@ -346,15 +377,19 @@ export default function TalentProfileViewPage() {
                                         <div key={spill.id} className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm overflow-hidden hover:border-primary/30 transition-all flex flex-col h-full">
                                             <div className="p-4 sm:p-5 flex-1">
                                                 <div className="flex items-center gap-3 mb-3">
-                                                    <div className="w-8 h-8 rounded-full bg-linear-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-(--theme-bg) text-[9px] font-bold shrink-0">
-                                                        {initials}
-                                                    </div>
+                                                    {avatarUrl ? (
+                                                        <img src={avatarUrl} alt={fullName} className="w-8 h-8 rounded-full object-cover shrink-0" />
+                                                    ) : (
+                                                        <div className="w-8 h-8 rounded-full bg-linear-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-(--theme-bg) text-[9px] font-bold shrink-0">
+                                                            {initials}
+                                                        </div>
+                                                    )}
                                                     <div>
                                                         <p className="text-[12px] font-bold text-(--theme-text-primary)">@{username}</p>
                                                         <p className="text-[9px] text-(--theme-text-muted)">{new Date(spill.createdAt).toLocaleDateString()}</p>
                                                     </div>
                                                 </div>
-                                                <p className="text-[12px] text-(--theme-text-secondary) leading-relaxed mb-3 line-clamp-4">{spill.content}</p>
+                                                <p className="text-[12px] text-(--theme-text-secondary) leading-relaxed mb-3 line-clamp-4">{spill.caption}</p>
                                                 {spill.code && (
                                                     <div className="rounded-xl bg-[#0D1117] border border-(--theme-code-border) overflow-hidden mb-3">
                                                         <pre className="px-3 py-3 text-[10px] text-green-400 font-mono overflow-hidden h-20 relative cursor-pointer" style={{ margin: 0 }}>
@@ -363,19 +398,19 @@ export default function TalentProfileViewPage() {
                                                         </pre>
                                                     </div>
                                                 )}
-                                                {spill.tags && (
+                                                {spill.hashtags && spill.hashtags.length > 0 && (
                                                     <div className="flex flex-wrap gap-1.5 mt-auto">
-                                                        {spill.tags.split(',').slice(0, 3).map((tag: string) => (
-                                                            <span key={tag} className="text-[9px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">#{tag.trim()}</span>
+                                                        {spill.hashtags.slice(0, 3).map((tag: string) => (
+                                                            <span key={tag} className="text-[9px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">#{tag}</span>
                                                         ))}
                                                     </div>
                                                 )}
                                             </div>
                                             <div className="px-4 py-3 border-t border-(--theme-border-light) bg-(--theme-bg-secondary) flex flex-wrap items-center gap-4 text-[11px] text-(--theme-text-muted)">
-                                                <span className="flex items-center gap-1"><Heart className="w-3.5 h-3.5" /> {spill.likes}</span>
-                                                <span className="flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5" /> {spill.comments}</span>
-                                                <span className="flex items-center gap-1"><Share2 className="w-3.5 h-3.5" /> {spill.shares}</span>
-                                                <span className="flex items-center gap-1 ml-auto"><Eye className="w-3.5 h-3.5" /> {spill.views}</span>
+                                                <span className="flex items-center gap-1"><Heart className="w-3.5 h-3.5" /> {spill.likesCount ?? 0}</span>
+                                                <span className="flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5" /> {spill.commentsCount ?? 0}</span>
+                                                <span className="flex items-center gap-1"><Share2 className="w-3.5 h-3.5" /> {spill.repostsCount ?? 0}</span>
+                                                <span className="flex items-center gap-1 ml-auto"><Eye className="w-3.5 h-3.5" /> {spill.viewsCount ?? 0}</span>
                                             </div>
                                         </div>
                                     ))}

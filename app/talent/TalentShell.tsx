@@ -304,7 +304,7 @@ export default function TalentShell({
                         )}
                         <div className="flex-1 min-w-0">
                             <p className="text-xs font-semibold truncate" style={{ color: 'var(--theme-text-secondary)' }}>{username}</p>
-                            <p className="text-[10px] font-mono text-[#2edb13]">Lv.1 {roleLine}</p>
+                            <p className="text-[10px] font-mono text-[#2edb13]">{roleLine}</p>
                         </div>
                     </div>
 
@@ -418,7 +418,7 @@ export default function TalentShell({
                                 )}
                                 <div className="text-left">
                                     <p className="text-[11px] font-semibold leading-tight" style={{ color: 'var(--theme-text-secondary)' }}>{username}</p>
-                                    <p className="text-[9px] leading-tight" style={{ color: 'var(--theme-text-muted)' }}>Lv.1 {roleLine}</p>
+                                    <p className="text-[9px] leading-tight" style={{ color: 'var(--theme-text-muted)' }}>{roleLine}</p>
                                 </div>
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2">
                                     <polyline points="6 9 12 15 18 9" />
@@ -439,7 +439,7 @@ export default function TalentShell({
                                             )}
                                             <div>
                                                 <p className="text-[12px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>{username}</p>
-                                                <p className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>Lv.1 {roleLine}</p>
+                                                <p className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>{roleLine}</p>
                                             </div>
                                         </div>
                                     </div>

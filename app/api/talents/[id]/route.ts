@@ -22,6 +22,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
                 fullName: true,
                 username: true,
                 email: true,
+                avatarUrl: true,
+                coverUrl: true,
                 spillPosts: {
                     where: { status: "published" },
                     orderBy: { createdAt: "desc" },

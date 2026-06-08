@@ -589,11 +589,6 @@ export default function TalentFeed() {
                                             <button onClick={() => setOpenComments(p => ({ ...p, [post.id]: !p[post.id] }))} className="flex items-center gap-1.5 text-[12px] font-medium text-(--theme-text-muted) hover:text-blue-500 transition-all bg-transparent border-none cursor-pointer">
                                                 <CommentIcon /> {(overrideCommentsCount[post.id] !== undefined ? overrideCommentsCount[post.id] : post.commentsCount) || 0}
                                             </button>
-                                            <button
-                                                onClick={() => setOpenShare({ id: post.id, caption: post.caption })}
-                                                className="flex items-center gap-1.5 text-[12px] font-medium text-(--theme-text-muted) hover:text-primary transition-all bg-transparent border-none cursor-pointer">
-                                                <ShareIcon /> {post.repostsCount || 0}
-                                            </button>
                                         </div>
                                         <button onClick={() => toggleSave(post.id, isSaved)}
                                             className={`transition-all bg-transparent border-none cursor-pointer ${isSaved ? "text-secondary" : "text-(--theme-text-muted) hover:text-secondary"}`}>
@@ -658,7 +653,7 @@ export default function TalentFeed() {
                                 <h3 className="text-[14px] font-bold text-(--theme-text-primary) mt-2">
                                     <Link href="/talent/profile" className="text-(--theme-text-primary) hover:text-primary no-underline transition-colors">{username}</Link>
                                 </h3>
-                                <p className="text-[11px] text-(--theme-text-muted) mb-3">{roleLine} &bull; Lv.1</p>
+                                <p className="text-[11px] text-(--theme-text-muted) mb-3">{roleLine}</p>
                                 <div className="flex items-center gap-4 text-center">
                                     <div>
                                         <p className="text-[14px] font-bold text-(--theme-text-secondary)">{fmtCount(spillsCount)}</p>
