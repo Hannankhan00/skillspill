@@ -660,16 +660,18 @@ export default function TalentFeed() {
                                     [...Array(3)].map((_, i) => <SidebarJobSkeleton key={i} />)
                                 ) : (
                                     displayJobs.map((job) => (
-                                        <div key={job.title} className="px-4 py-3 hover:bg-primary/10 transition-colors cursor-pointer group" style={{ borderColor: "var(--theme-border-light)" }}>
-                                            <div className="flex items-start justify-between">
-                                                <div>
-                                                    <p className="text-[12px] font-semibold text-(--theme-text-secondary) group-hover:text-(--theme-text-primary) transition-colors">{job.title}</p>
-                                                    <p className="text-[10px] text-(--theme-text-muted)">{job.company} &bull; {job.budget}</p>
+                                        <Link key={job.id || job.title} href={`/talent/jobs/${job.id}`} className="no-underline">
+                                            <div className="px-4 py-3 hover:bg-primary/10 transition-colors cursor-pointer group" style={{ borderColor: "var(--theme-border-light)" }}>
+                                                <div className="flex items-start justify-between">
+                                                    <div>
+                                                        <p className="text-[12px] font-semibold text-(--theme-text-secondary) group-hover:text-(--theme-text-primary) transition-colors">{job.title}</p>
+                                                        <p className="text-[10px] text-(--theme-text-muted)">{job.company} &bull; {job.budget}</p>
+                                                    </div>
+                                                    <span className="text-[10px] font-bold text-primary px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20"
+                                                        style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{job.match}</span>
                                                 </div>
-                                                <span className="text-[10px] font-bold text-primary px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20"
-                                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{job.match}</span>
                                             </div>
-                                        </div>
+                                        </Link>
                                     ))
                                 )}
                             </div>
