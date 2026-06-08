@@ -60,8 +60,12 @@ export async function GET(req: Request) {
             });
         }
 
-        // Talent: browse OPEN jobs
-        const where: any = { status: "OPEN" };
+        // Talent: browse OPEN jobs (exclude past-deadline jobs)
+        const now = new Date();
+        const where: any = {
+            status: "OPEN",
+            OR: [{ deadline: null }, { deadline: { gt: now } }],
+        };
         if (search) {
             where.OR = [
                 { title: { contains: search } },
