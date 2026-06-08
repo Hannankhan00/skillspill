@@ -3,11 +3,52 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Sparkles, Trophy, Target, Zap, Gem, CheckCircle, Github, Linkedin, Briefcase, FileText, Loader2, Link as LinkIcon, Phone, Mail, MessageSquare, Heart, Eye, Share2 } from "lucide-react";
+import { Sparkles, Zap, CheckCircle, Github, Linkedin, Briefcase, FileText, Loader2, Link as LinkIcon, Phone, Mail, MessageSquare, Heart, Eye, Share2 } from "lucide-react";
 import FollowButton from "@/app/components/FollowButton";
 import { CoverBanner } from "@/app/components/CoverBanners";
 
-const accent = "#3CF91A"; // Talent primary accent
+const accent = "#3CF91A";
+
+/* ── Language colours (same as talent github page) ── */
+const langColors: Record<string, string> = {
+    TypeScript: "#3178C6", JavaScript: "#F1E05A", Python: "#3572A5", Rust: "#DEA584",
+    Go: "#00ADD8", Java: "#B07219", "C++": "#f34b7d", C: "#555555", "C#": "#178600",
+    Ruby: "#701516", PHP: "#4F5D95", Shell: "#89e051", HTML: "#e34c26", CSS: "#563d7c",
+    Swift: "#F05138", Kotlin: "#A97BFF", Dart: "#00B4AB", Vue: "#41b883", SCSS: "#c6538c",
+};
+
+function ActivityIcon({ type }: { type: string }) {
+    const icons: Record<string, React.ReactNode> = {
+        PushEvent: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="16 3 21 3 21 8" /><line x1="4" y1="20" x2="21" y2="3" /></svg>,
+        PullRequestEvent: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="18" r="3" /><circle cx="6" cy="6" r="3" /><path d="M6 21V9a9 9 0 0 0 9 9" /></svg>,
+        IssuesEvent: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>,
+        CreateEvent: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>,
+        ForkEvent: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="6" y1="3" x2="6" y2="15" /><circle cx="18" cy="6" r="3" /><circle cx="6" cy="18" r="3" /><path d="M18 9a9 9 0 0 1-9 9" /></svg>,
+        WatchEvent: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>,
+    };
+    const colors: Record<string, string> = { PushEvent: accent, PullRequestEvent: "#A855F7", IssuesEvent: "#EF4444", CreateEvent: "#22C55E", ForkEvent: "#3B82F6", WatchEvent: "#EAB308" };
+    return (
+        <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+            style={{ background: `${colors[type] || "#737373"}15`, color: colors[type] || "#737373" }}>
+            {icons[type] || <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /></svg>}
+        </div>
+    );
+}
+
+function activityLabel(type: string) {
+    const map: Record<string, string> = { PushEvent: "Pushed to", PullRequestEvent: "PR on", CreateEvent: "Created", IssuesEvent: "Issue on", IssueCommentEvent: "Commented on", ForkEvent: "Forked", WatchEvent: "Starred" };
+    return map[type] || type.replace("Event", "");
+}
+
+function timeAgoGh(dateStr: string) {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    return days < 7 ? `${days}d ago` : `${Math.floor(days / 7)}w ago`;
+}
 
 export default function TalentProfileViewPage() {
     const params = useParams();
@@ -15,24 +56,38 @@ export default function TalentProfileViewPage() {
     const [talentData, setTalentData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("Overview");
-    const tabs = ["Overview", "Experience", "Projects", "Skills", "Spills"];
+
+    // GitHub tab state
+    const [ghData, setGhData] = useState<any>(null);
+    const [ghScore, setGhScore] = useState<any>(null);
+    const [ghLoading, setGhLoading] = useState(false);
+    const [ghError, setGhError] = useState<string | null>(null);
+    const [ghSearch, setGhSearch] = useState("");
+    const [showContrib, setShowContrib] = useState(true);
 
     useEffect(() => {
         if (!id) return;
-
         fetch(`/api/talents/${id}`)
             .then(res => res.json())
-            .then(data => {
-                if (data.talent) {
-                    setTalentData(data.talent);
-                }
-                setIsLoading(false);
-            })
-            .catch(err => {
-                console.error("Failed to fetch talent", err);
-                setIsLoading(false);
-            });
+            .then(data => { if (data.talent) setTalentData(data.talent); setIsLoading(false); })
+            .catch(() => setIsLoading(false));
     }, [id]);
+
+    // Fetch GitHub data lazily when the tab is opened
+    useEffect(() => {
+        if (activeTab !== "GitHub" || ghData || ghLoading || !id) return;
+        setGhLoading(true);
+        setGhError(null);
+        Promise.all([
+            fetch(`/api/talents/${id}/github`).then(r => r.json()),
+            fetch(`/api/github/scorecard?userId=${id}`).then(r => r.json()),
+        ]).then(([live, score]) => {
+            if (live.error) setGhError(live.error);
+            else setGhData(live);
+            setGhScore(score);
+        }).catch(() => setGhError("Failed to load GitHub data"))
+          .finally(() => setGhLoading(false));
+    }, [activeTab, id, ghData, ghLoading]);
 
     if (isLoading) {
         return (
@@ -62,6 +117,24 @@ export default function TalentProfileViewPage() {
 
     const initials = fullName ? fullName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) : "??";
     const role = experienceLevel ? `${experienceLevel} Developer` : "Developer";
+    const tabs = ["Overview", "Experience", "Projects", "Skills", "Spills", ...(githubConnected ? ["GitHub"] : [])];
+
+    // Derived GitHub data
+    const ghRepos = ghData?.repos || [];
+    const ghProfile = ghData?.githubProfile || null;
+    const ghContribs = ghData?.contributionData || null;
+    const ghActivity = ghData?.recentActivity || [];
+    const ghTotalStars = ghData?.totalStars || 0;
+    const ghTotalRepos = ghData?.totalRepos || ghRepos.length;
+    const ghLangStats = ghData?.languageStats || {};
+    const totalLangRepos = Object.values(ghLangStats).reduce((s: number, c) => s + (c as number), 0) as number;
+    const langChartData = Object.entries(ghLangStats)
+        .sort(([, a], [, b]) => (b as number) - (a as number))
+        .map(([name, count]) => ({ name, count: count as number, pct: totalLangRepos > 0 ? Math.round(((count as number) / totalLangRepos) * 100) : 0, color: langColors[name] || "#737373" }));
+    const filteredRepos = ghRepos.filter((r: any) =>
+        r.name.toLowerCase().includes(ghSearch.toLowerCase()) ||
+        (r.description || "").toLowerCase().includes(ghSearch.toLowerCase())
+    );
 
     return (
         <div style={{ background: "var(--theme-bg)" }} className="min-h-full">
@@ -427,6 +500,233 @@ export default function TalentProfileViewPage() {
                         </div>
                     )}
 
+                    {activeTab === "GitHub" && (
+                        <div>
+                            {ghLoading && (
+                                <div className="flex flex-col items-center justify-center py-20 gap-3">
+                                    <Loader2 className="w-8 h-8 animate-spin" style={{ color: accent }} />
+                                    <p className="text-[13px] text-(--theme-text-muted)">Loading GitHub profile...</p>
+                                </div>
+                            )}
+                            {!ghLoading && ghError && (
+                                <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) p-10 text-center">
+                                    <Github className="w-10 h-10 mx-auto mb-3 text-(--theme-text-muted) opacity-40" />
+                                    <p className="text-[14px] font-bold text-(--theme-text-primary) mb-1">GitHub Not Available</p>
+                                    <p className="text-[12px] text-(--theme-text-muted)">{ghError}</p>
+                                </div>
+                            )}
+                            {!ghLoading && !ghError && ghData && (
+                                <div className="space-y-5">
+                                    {/* Score card */}
+                                    {ghScore && ghScore.githubScore > 0 && (
+                                        <div className="rounded-2xl border border-(--theme-border) bg-(--theme-card) p-4 sm:p-5">
+                                            <h2 className="text-[14px] font-bold text-(--theme-text-primary) mb-4 flex items-center gap-2">
+                                                <Github className="w-4 h-4" /> GitHub Score
+                                            </h2>
+                                            <div className="flex items-center gap-6 mb-4">
+                                                <div className="text-center">
+                                                    <p className="text-4xl font-bold" style={{ color: accent, fontFamily: "var(--font-jetbrains-mono)" }}>{ghScore.githubScore}</p>
+                                                    <p className="text-[10px] text-(--theme-text-muted) uppercase tracking-wider mt-1">/ 100</p>
+                                                </div>
+                                                {ghScore.topRepo && (
+                                                    <div className="flex-1">
+                                                        <p className="text-[11px] text-(--theme-text-muted) mb-1">Top Repository</p>
+                                                        <a href={ghScore.topRepo.url} target="_blank" rel="noopener noreferrer"
+                                                            className="text-[13px] font-bold no-underline hover:underline" style={{ color: accent }}>
+                                                            {ghScore.topRepo.name}
+                                                        </a>
+                                                        <p className="text-[10px] text-(--theme-text-muted) mt-0.5">{ghScore.topRepo.language} · Score {ghScore.topRepo.scores?.final ?? "—"}</p>
+                                                        {ghScore.topRepo.feedback && (
+                                                            <p className="text-[11px] text-(--theme-text-secondary) mt-2 leading-relaxed line-clamp-3">{ghScore.topRepo.feedback}</p>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {ghScore.otherRepos?.length > 0 && (
+                                                <div>
+                                                    <p className="text-[11px] text-(--theme-text-muted) mb-2">Other analysed repos</p>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {ghScore.otherRepos.map((r: any) => (
+                                                            <a key={r.name} href={r.url} target="_blank" rel="noopener noreferrer"
+                                                                className="text-[10px] px-2 py-1 rounded-lg no-underline border border-(--theme-border) text-(--theme-text-secondary) hover:border-primary/40 hover:text-primary transition-colors">
+                                                                {r.name} <span className="opacity-60">({r.finalScore})</span>
+                                                            </a>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Stats */}
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                        {[
+                                            { label: "Contributions", value: ghContribs?.totalContributions?.toLocaleString() ?? "—", icon: "🔥", sub: "this year" },
+                                            { label: "Commits", value: ghContribs?.totalCommits?.toLocaleString() ?? "—", icon: "⚡", sub: `${ghContribs?.totalPRs ?? 0} PRs · ${ghContribs?.totalIssues ?? 0} issues` },
+                                            { label: "Total Stars", value: ghTotalStars.toLocaleString(), icon: "⭐", sub: `${ghTotalRepos} repos` },
+                                            { label: "Followers", value: ghProfile?.followers?.toLocaleString() ?? "—", icon: "👥", sub: `following ${ghProfile?.following ?? 0}` },
+                                        ].map(stat => (
+                                            <div key={stat.label} className="rounded-2xl border p-4" style={{ background: "var(--theme-card)", borderColor: "var(--theme-border)" }}>
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <span className="text-lg">{stat.icon}</span>
+                                                    <span className="text-[9px] uppercase tracking-widest font-semibold text-(--theme-text-muted)">{stat.label}</span>
+                                                </div>
+                                                <p className="text-xl font-bold text-(--theme-text-primary)" style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{stat.value}</p>
+                                                <p className="text-[10px] mt-0.5 text-(--theme-text-muted)">{stat.sub}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="flex flex-col lg:flex-row gap-5">
+                                        {/* Left — heatmap + repos */}
+                                        <div className="flex-1 min-w-0 space-y-5">
+                                            {/* Contribution heatmap */}
+                                            <div className="rounded-2xl border p-4 sm:p-5" style={{ background: "var(--theme-card)", borderColor: "var(--theme-border)" }}>
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <h2 className="text-[13px] font-bold text-(--theme-text-primary)">
+                                                        Contribution Activity
+                                                        {ghContribs && <span className="font-normal ml-2 text-[11px] text-(--theme-text-muted)">{ghContribs.totalContributions.toLocaleString()} in the last year</span>}
+                                                    </h2>
+                                                    <button onClick={() => setShowContrib(v => !v)} className="text-[10px] font-medium bg-transparent border-none cursor-pointer text-(--theme-text-muted)">{showContrib ? "Hide" : "Show"}</button>
+                                                </div>
+                                                {showContrib && ghContribs?.weeks ? (
+                                                    <div>
+                                                        <div className="flex gap-[2px]">
+                                                            {ghContribs.weeks.map((week: any, wi: number) => (
+                                                                <div key={wi} className="flex flex-col gap-[2px] flex-1">
+                                                                    {week.days.map((day: any, di: number) => (
+                                                                        <div key={di} className="w-full rounded-[2px]" title={`${day.date}: ${day.count}`}
+                                                                            style={{ backgroundColor: day.count === 0 ? "var(--theme-input-bg)" : day.color, aspectRatio: "1/1" }} />
+                                                                    ))}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                        <div className="flex items-center justify-between mt-2">
+                                                            <span className="text-[9px] text-(--theme-text-muted)">Less</span>
+                                                            <div className="flex gap-[3px]">
+                                                                {["var(--theme-input-bg)", "#0e4429", "#006d32", "#26a641", "#39d353"].map((c, i) => (
+                                                                    <div key={i} className="w-[11px] h-[11px] rounded-[2px]" style={{ backgroundColor: c }} />
+                                                                ))}
+                                                            </div>
+                                                            <span className="text-[9px] text-(--theme-text-muted)">More</span>
+                                                        </div>
+                                                    </div>
+                                                ) : showContrib && (
+                                                    <p className="text-[11px] text-(--theme-text-muted)">No contribution data available.</p>
+                                                )}
+                                            </div>
+
+                                            {/* Repos */}
+                                            <div className="rounded-2xl border overflow-hidden" style={{ background: "var(--theme-card)", borderColor: "var(--theme-border)" }}>
+                                                <div className="p-4 sm:p-5" style={{ borderBottom: "1px solid var(--theme-border)" }}>
+                                                    <h2 className="text-[13px] font-bold text-(--theme-text-primary) mb-2">
+                                                        Repositories <span className="font-normal text-(--theme-text-muted)">({ghRepos.length} public)</span>
+                                                    </h2>
+                                                    <div className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ background: "var(--theme-input-bg)", border: "1px solid var(--theme-border)" }}>
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--theme-text-muted)" strokeWidth="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+                                                        <input type="text" value={ghSearch} onChange={e => setGhSearch(e.target.value)} placeholder="Search repositories..."
+                                                            className="flex-1 bg-transparent border-none outline-none text-[12px] text-(--theme-text-primary)" />
+                                                    </div>
+                                                </div>
+                                                <div className="divide-y" style={{ borderColor: "var(--theme-border-light)" }}>
+                                                    {filteredRepos.map((repo: any) => (
+                                                        <div key={repo.id} className="p-4 sm:px-5">
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <a href={repo.html_url} target="_blank" rel="noopener noreferrer"
+                                                                    className="text-[13px] font-bold no-underline hover:underline" style={{ color: accent }}>{repo.name}</a>
+                                                            </div>
+                                                            <p className="text-[11px] mb-2 leading-relaxed text-(--theme-text-muted)">{repo.description || "No description"}</p>
+                                                            <div className="flex items-center gap-4 text-[10px] text-(--theme-text-muted)">
+                                                                {repo.language && <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ background: langColors[repo.language] || "#737373" }} />{repo.language}</span>}
+                                                                <span className="flex items-center gap-1">⭐ {repo.stargazers_count}</span>
+                                                                <span>Updated {new Date(repo.updated_at).toLocaleDateString()}</span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                    {filteredRepos.length === 0 && <p className="text-[13px] text-(--theme-text-muted) text-center py-10">No repositories found</p>}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Right — profile card + languages + activity */}
+                                        <div className="w-full lg:w-[300px] shrink-0 space-y-5">
+                                            {/* Profile */}
+                                            <div className="rounded-2xl border p-4 sm:p-5" style={{ background: "var(--theme-card)", borderColor: "var(--theme-border)" }}>
+                                                <div className="flex items-center gap-3 mb-3">
+                                                    {ghProfile?.avatarUrl ? (
+                                                        <img src={ghProfile.avatarUrl} alt="GitHub" className="w-12 h-12 rounded-xl" style={{ border: `1px solid ${accent}30` }} />
+                                                    ) : (
+                                                        <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "var(--theme-input-bg)", color: "var(--theme-text-primary)" }}>
+                                                            <Github className="w-6 h-6" />
+                                                        </div>
+                                                    )}
+                                                    <div>
+                                                        <p className="text-[13px] font-bold text-(--theme-text-primary)">{ghData.githubUsername}</p>
+                                                        <span className="text-[10px] font-medium" style={{ color: accent }}>● Connected</span>
+                                                    </div>
+                                                </div>
+                                                {ghProfile?.bio && <p className="text-[11px] text-(--theme-text-muted) mb-3 leading-relaxed">{ghProfile.bio}</p>}
+                                                <div className="grid grid-cols-3 gap-2 mb-3">
+                                                    {[{ label: "Repos", value: ghTotalRepos }, { label: "Stars", value: ghTotalStars }, { label: "Followers", value: ghProfile?.followers ?? 0 }].map(s => (
+                                                        <div key={s.label} className="text-center rounded-xl p-2" style={{ background: "var(--theme-bg-secondary)" }}>
+                                                            <p className="text-[14px] font-bold text-(--theme-text-primary)" style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{s.value}</p>
+                                                            <p className="text-[9px] uppercase tracking-widest text-(--theme-text-muted)">{s.label}</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                <a href={`https://github.com/${ghData.githubUsername}`} target="_blank" rel="noopener noreferrer"
+                                                    className="flex items-center gap-2 justify-center px-3 py-2 rounded-xl text-[11px] font-semibold border border-(--theme-border) no-underline text-(--theme-text-secondary) hover:text-primary hover:border-primary/40 transition-all">
+                                                    <Github className="w-3.5 h-3.5" /> View on GitHub →
+                                                </a>
+                                            </div>
+
+                                            {/* Language breakdown */}
+                                            {langChartData.length > 0 && (
+                                                <div className="rounded-2xl border p-4 sm:p-5" style={{ background: "var(--theme-card)", borderColor: "var(--theme-border)" }}>
+                                                    <h2 className="text-[13px] font-bold text-(--theme-text-primary) mb-3">Language Breakdown</h2>
+                                                    <div className="h-3 rounded-full overflow-hidden flex mb-3" style={{ background: "var(--theme-input-bg)" }}>
+                                                        {langChartData.map(l => <div key={l.name} className="h-full" style={{ width: `${l.pct}%`, background: l.color }} />)}
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        {langChartData.map(l => (
+                                                            <div key={l.name} className="flex items-center justify-between">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="w-2.5 h-2.5 rounded-full" style={{ background: l.color }} />
+                                                                    <span className="text-[11px] font-medium text-(--theme-text-secondary)">{l.name}</span>
+                                                                </div>
+                                                                <span className="text-[11px] font-bold text-(--theme-text-primary)" style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{l.pct}%</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Recent activity */}
+                                            {ghActivity.length > 0 && (
+                                                <div className="rounded-2xl border p-4 sm:p-5" style={{ background: "var(--theme-card)", borderColor: "var(--theme-border)" }}>
+                                                    <h2 className="text-[13px] font-bold text-(--theme-text-primary) mb-3">Recent Activity</h2>
+                                                    <div className="space-y-3">
+                                                        {ghActivity.slice(0, 8).map((event: any, i: number) => (
+                                                            <div key={i} className="flex items-start gap-2.5">
+                                                                <ActivityIcon type={event.type} />
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-[11px] leading-snug text-(--theme-text-secondary)">
+                                                                        <span className="font-medium text-(--theme-text-muted)">{activityLabel(event.type)}</span>{" "}
+                                                                        <span className="font-bold" style={{ color: accent }}>{event.repo?.split("/").pop()}</span>
+                                                                    </p>
+                                                                    <span className="text-[9px] text-(--theme-text-muted)">{timeAgoGh(event.createdAt)}</span>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
