@@ -1489,6 +1489,7 @@ export default function TalentProfilePage() {
                 count={followModal === "followers" ? (userData._count?.followers ?? 0) : (userData._count?.following ?? 0)}
                 accent={accent}
                 profileBasePath="/talent"
+                isOwnProfile={true}
             />
         )}
         </>

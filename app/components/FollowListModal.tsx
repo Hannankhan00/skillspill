@@ -22,6 +22,7 @@ interface FollowListModalProps {
     count: number;
     accent: string;
     profileBasePath: string; // e.g. "/talent" or "/recruiter"
+    isOwnProfile?: boolean;
 }
 
 export default function FollowListModal({
@@ -32,15 +33,30 @@ export default function FollowListModal({
     count,
     accent,
     profileBasePath,
+    isOwnProfile = false,
 }: FollowListModalProps) {
     const [users, setUsers] = useState<FollowUser[]>([]);
     const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState("");
+    const [unfollowingIds, setUnfollowingIds] = useState<Set<string>>(new Set());
     const searchRef = useRef<HTMLInputElement>(null);
+
+    const handleUnfollow = async (targetId: string) => {
+        setUnfollowingIds(prev => new Set(prev).add(targetId));
+        try {
+            const res = await fetch(`/api/user/${targetId}/follow`, { method: "DELETE" });
+            if (res.ok) {
+                setUsers(prev => prev.filter(u => u.id !== targetId));
+            }
+        } finally {
+            setUnfollowingIds(prev => { const next = new Set(prev); next.delete(targetId); return next; });
+        }
+    };
 
     useEffect(() => {
         if (!isOpen) {
             setSearch("");
+            setUnfollowingIds(new Set());
             return;
         }
         setLoading(true);
@@ -155,48 +171,67 @@ export default function FollowListModal({
                         </div>
                     ) : (
                         filtered.map(u => (
-                            <Link
+                            <div
                                 key={u.id}
-                                href={getUserPath(u)}
-                                onClick={onClose}
-                                className="flex items-center gap-3 px-2 py-2.5 rounded-xl transition-all no-underline group"
-                                style={{ color: "inherit" }}
+                                className="flex items-center gap-3 px-2 py-2.5 rounded-xl transition-all group"
                                 onMouseEnter={e => (e.currentTarget.style.background = "var(--theme-bg-secondary)")}
                                 onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                             >
-                                {/* Avatar */}
-                                {u.avatarUrl ? (
-                                    <img src={u.avatarUrl} alt={u.fullName} className="w-10 h-10 rounded-full object-cover shrink-0" style={{ border: `1px solid ${accent}30` }} />
-                                ) : (
-                                    <div
-                                        className="w-10 h-10 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
+                                <Link
+                                    href={getUserPath(u)}
+                                    onClick={onClose}
+                                    className="flex items-center gap-3 flex-1 min-w-0 no-underline"
+                                    style={{ color: "inherit" }}
+                                >
+                                    {/* Avatar */}
+                                    {u.avatarUrl ? (
+                                        <img src={u.avatarUrl} alt={u.fullName} className="w-10 h-10 rounded-full object-cover shrink-0" style={{ border: `1px solid ${accent}30` }} />
+                                    ) : (
+                                        <div
+                                            className="w-10 h-10 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
+                                            style={{
+                                                background: u.role === "TALENT"
+                                                    ? "linear-gradient(135deg, #22C55E, #16A34A)"
+                                                    : "linear-gradient(135deg, #A855F7, #7C3AED)",
+                                                color: "#fff",
+                                            }}
+                                        >
+                                            {u.fullName?.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "??"}
+                                        </div>
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-[13px] font-semibold truncate" style={{ color: "var(--theme-text-primary)" }}>{u.fullName}</p>
+                                        <p className="text-[11px] truncate" style={{ color: "var(--theme-text-muted)" }}>
+                                            @{u.username} · {getSubtitle(u)}
+                                        </p>
+                                    </div>
+                                </Link>
+                                {isOwnProfile && type === "following" ? (
+                                    <button
+                                        onClick={() => handleUnfollow(u.id)}
+                                        disabled={unfollowingIds.has(u.id)}
+                                        className="shrink-0 px-3 py-1 rounded-lg text-[10px] font-bold border cursor-pointer transition-all disabled:opacity-50"
                                         style={{
-                                            background: u.role === "TALENT"
-                                                ? "linear-gradient(135deg, #22C55E, #16A34A)"
-                                                : "linear-gradient(135deg, #A855F7, #7C3AED)",
-                                            color: "#fff",
+                                            color: "var(--theme-text-muted)",
+                                            background: "var(--theme-input-bg)",
+                                            borderColor: "var(--theme-border)",
                                         }}
                                     >
-                                        {u.fullName?.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "??"}
-                                    </div>
+                                        {unfollowingIds.has(u.id) ? "..." : "Unfollow"}
+                                    </button>
+                                ) : (
+                                    <span
+                                        className="text-[9px] font-bold px-2 py-0.5 rounded-full shrink-0"
+                                        style={{
+                                            background: u.role === "TALENT" ? "#3CF91A15" : `${accent}15`,
+                                            color: u.role === "TALENT" ? "#3CF91A" : accent,
+                                            border: u.role === "TALENT" ? "1px solid #3CF91A30" : `1px solid ${accent}30`,
+                                        }}
+                                    >
+                                        {u.role === "TALENT" ? "Talent" : "Recruiter"}
+                                    </span>
                                 )}
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-[13px] font-semibold truncate" style={{ color: "var(--theme-text-primary)" }}>{u.fullName}</p>
-                                    <p className="text-[11px] truncate" style={{ color: "var(--theme-text-muted)" }}>
-                                        @{u.username} · {getSubtitle(u)}
-                                    </p>
-                                </div>
-                                <span
-                                    className="text-[9px] font-bold px-2 py-0.5 rounded-full shrink-0"
-                                    style={{
-                                        background: u.role === "TALENT" ? "#3CF91A15" : `${accent}15`,
-                                        color: u.role === "TALENT" ? "#3CF91A" : accent,
-                                        border: u.role === "TALENT" ? "1px solid #3CF91A30" : `1px solid ${accent}30`,
-                                    }}
-                                >
-                                    {u.role === "TALENT" ? "Talent" : "Recruiter"}
-                                </span>
-                            </Link>
+                            </div>
                         ))
                     )}
                 </div>
