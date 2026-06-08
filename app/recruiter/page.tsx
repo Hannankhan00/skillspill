@@ -584,7 +584,7 @@ export default function RecruiterFeed() {
                                 <h3 className="text-[11px] font-bold text-(--theme-text-muted) uppercase tracking-[2px]"
                                     style={{ fontFamily: "var(--font-jetbrains-mono)" }}><Briefcase className="inline-block w-4 h-4 mr-1.5 align-text-bottom" />Your Jobs</h3>
                                 <Link href="/recruiter/applications"
-                                    className="block p-3 rounded-xl hover:bg-(--theme-bg-secondary) transition-colors border border-transparent hover:border-(--theme-border-light) no-underline">
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl hover:bg-(--theme-bg-secondary) transition-colors border border-transparent hover:border-(--theme-border-light) no-underline text-[11px] font-bold tracking-[1.5px]">
                                     MANAGE <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
                                 </Link>
                             </div>
@@ -633,9 +633,9 @@ export default function RecruiterFeed() {
                                 {sidebarLoading ? (
                                     [...Array(3)].map((_, i) => <SidebarUserSkeleton key={i} />)
                                 ) : (
-                                    displayCandidates.map((c: any) => (
-                                        <div key={c.name} className="flex items-center justify-between px-4 py-3 hover:bg-(--theme-bg-secondary) transition-colors">
-                                            <Link href={`/recruiter/${c.type === 'RECRUITER' ? 'recruiter' : 'talent'}/${c.id || 'u1'}`} className="flex items-center gap-2.5 no-underline">
+                                    displayCandidates.filter((c: any) => c.type !== 'RECRUITER').map((c: any) => (
+                                        <div key={c.id} className="flex items-center justify-between px-4 py-3 hover:bg-(--theme-bg-secondary) transition-colors">
+                                            <Link href={`/recruiter/talent/${c.id}`} className="flex items-center gap-2.5 no-underline">
                                                 {c.avatarUrl ? (
                                                     <img src={c.avatarUrl} alt={c.name} className="w-8 h-8 rounded-full object-cover shadow-sm border border-(--theme-border-light)" />
                                                 ) : (
@@ -649,11 +649,13 @@ export default function RecruiterFeed() {
                                                 </div>
                                             </Link>
                                             <div className="flex items-center gap-2">
-                                                <span className="text-[10px] font-bold text-secondary"
-                                                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{c.score}%</span>
-                                                <button className="px-2.5 py-1 rounded-md text-[9px] font-bold text-secondary border border-secondary/30 bg-secondary/10 cursor-pointer hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all">
+                                                {c.score != null && (
+                                                    <span className="text-[10px] font-bold text-secondary"
+                                                        style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{c.score}%</span>
+                                                )}
+                                                <Link href={`/recruiter/talent/${c.id}`} className="px-2.5 py-1 rounded-md text-[9px] font-bold text-secondary border border-secondary/30 bg-secondary/10 hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all no-underline">
                                                     View
-                                                </button>
+                                                </Link>
                                             </div>
                                         </div>
                                     ))
