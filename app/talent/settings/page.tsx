@@ -719,123 +719,7 @@ export default function SettingsPage() {
                                                         <InputField label="GitHub Username" value={profileForm.githubUsername}
                                                             onChange={v => setProfileForm(f => ({ ...f, githubUsername: v }))}
                                                             placeholder="e.g. ghost-protocol" />
-                                                        <div>
-                                                            <label className="text-[10px] uppercase tracking-widest font-semibold block mb-1.5" style={{ color: 'var(--theme-text-muted)' }}>
-                                                                Resume (PDF)
-                                                            </label>
-                                                            <div className="flex items-center gap-2">
-                                                                <input
-                                                                    type="file"
-                                                                    accept=".pdf,application/pdf"
-                                                                    id="resume-upload-settings"
-                                                                    className="hidden"
-                                                                    onChange={async (e) => {
-                                                                        const file = e.target.files?.[0];
-                                                                        if (!file) return;
-                                                                        if (file.type !== "application/pdf") { alert("Only PDF files are allowed."); return; }
-                                                                        if (file.size > 10 * 1024 * 1024) { alert("File must be under 10MB."); return; }
-
-                                                                        setProfileForm(f => ({ ...f, resumeUrl: "uploading..." }));
-                                                                        try {
-                                                                            const fd = new FormData();
-                                                                            fd.append("file", file);
-                                                                            fd.append("category", "resumes");
-                                                                            fd.append("folder", "resumes");
-                                                                            if (profileForm.resumeUrl && profileForm.resumeUrl !== "uploading...") {
-                                                                                fd.append("oldFileUrl", profileForm.resumeUrl);
-                                                                            }
-                                                                            const res = await fetch("/api/upload", { method: "POST", body: fd });
-                                                                            const data = await res.json();
-                                                                            if (res.ok && data.url) {
-                                                                                setProfileForm(f => ({ ...f, resumeUrl: data.url }));
-                                                                            } else {
-                                                                                setProfileForm(f => ({ ...f, resumeUrl: "" }));
-                                                                                alert(data.error || "Upload failed.");
-                                                                            }
-                                                                        } catch {
-                                                                            setProfileForm(f => ({ ...f, resumeUrl: "" }));
-                                                                            alert("Network error during upload.");
-                                                                        }
-                                                                    }}
-                                                                />
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => document.getElementById("resume-upload-settings")?.click()}
-                                                                    disabled={profileForm.resumeUrl === "uploading..."}
-                                                                    className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none transition-all text-left flex items-center justify-between gap-2 cursor-pointer border-none"
-                                                                    style={{
-                                                                        background: 'var(--theme-input-bg)',
-                                                                        border: '1px solid var(--theme-border)',
-                                                                        color: profileForm.resumeUrl && profileForm.resumeUrl !== "uploading..."
-                                                                            ? '#3CF91A'
-                                                                            : 'var(--theme-text-muted)',
-                                                                    }}
-                                                                >
-                                                                    <span className="truncate">
-                                                                        {profileForm.resumeUrl === "uploading..."
-                                                                            ? "⏳ Uploading..."
-                                                                            : profileForm.resumeUrl
-                                                                                ? "✅ Resume uploaded"
-                                                                                : "Click to upload PDF"}
-                                                                    </span>
-                                                                    <span className="text-[10px] shrink-0 opacity-60">
-                                                                        {profileForm.resumeUrl && profileForm.resumeUrl !== "uploading..." ? "Replace" : "Browse"}
-                                                                    </span>
-                                                                </button>
-                                                            </div>
-                                                            {profileForm.resumeUrl && profileForm.resumeUrl !== "uploading..." && (
-                                                                <a href={profileForm.resumeUrl} target="_blank" rel="noopener noreferrer"
-                                                                    className="text-[10px] mt-1 inline-block hover:underline"
-                                                                    style={{ color: '#3CF91A' }}>
-                                                                    View uploaded resume ↗
-                                                                </a>
-                                                            )}
-                                                        </div>
                                                     </div>
-                                                </div>
-
-                                                {/* Project Links */}
-                                                <div>
-                                                    <div className="flex items-center justify-between mb-3">
-                                                        <h3 className="text-[11px] uppercase tracking-widest font-semibold" style={{ color: 'var(--theme-text-muted)' }}>Project Links</h3>
-                                                        <button onClick={addProject}
-                                                            className="text-[11px] font-bold px-3 py-1.5 rounded-lg border-none cursor-pointer transition-all hover:scale-105"
-                                                            style={{ background: '#3CF91A15', color: '#3CF91A' }}>
-                                                            + Add Project
-                                                        </button>
-                                                    </div>
-                                                    {projects.length === 0 ? (
-                                                        <p className="text-[11px]" style={{ color: 'var(--theme-text-muted)' }}>No projects added. Click &quot;Add Project&quot; to showcase your work.</p>
-                                                    ) : (
-                                                        <div className="space-y-3">
-                                                            {projects.map((p, i) => (
-                                                                <div key={i} className="rounded-xl p-4 relative space-y-2"
-                                                                    style={{ background: 'var(--theme-bg)', border: '1px solid var(--theme-border)' }}>
-                                                                    <button onClick={() => removeProject(i)}
-                                                                        className="absolute top-3 right-3 p-1 rounded-lg border-none cursor-pointer"
-                                                                        style={{ background: 'rgba(239,68,68,0.08)', color: '#EF4444' }}>
-                                                                        <TrashIcon />
-                                                                    </button>
-                                                                    <InputField label="URL *" value={p.url}
-                                                                        onChange={v => updateProject(i, 'url', v)}
-                                                                        placeholder="https://github.com/you/project" />
-                                                                    <InputField label="Title" value={p.title}
-                                                                        onChange={v => updateProject(i, 'title', v)}
-                                                                        placeholder="e.g. My Awesome App" />
-                                                                    <div>
-                                                                        <label className="text-[10px] uppercase tracking-widest font-semibold block mb-1.5" style={{ color: 'var(--theme-text-muted)' }}>Description</label>
-                                                                        <textarea value={p.description}
-                                                                            onChange={e => updateProject(i, 'description', e.target.value)}
-                                                                            rows={2}
-                                                                            placeholder="Brief description of the project..."
-                                                                            className="w-full px-3.5 py-2.5 rounded-xl text-[13px] outline-none resize-none focus:ring-2 focus:ring-[#3CF91A]/20"
-                                                                            style={{ background: 'var(--theme-input-bg)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    )}
                                                 </div>
 
                                                 {/* Save button */}
@@ -938,12 +822,10 @@ export default function SettingsPage() {
                                                 )}
                                                 <div>
                                                     <h3 className="text-[11px] uppercase tracking-widest font-semibold mb-2" style={{ color: 'var(--theme-text-muted)' }}>Activity</h3>
-                                                    <ToggleRow label="Bounty Updates" desc="When bounties you applied to change status" enabled={notifBounty}
-                                                        onToggle={() => { const v = !notifBounty; setNotifBounty(v); saveNotif({ newApplications: v }); }} />
+                                                    <ToggleRow label="Job Updates" desc="When jobs you applied to have status changes" enabled={notifBounty}
+                                                        onToggle={() => { const v = !notifBounty; setNotifBounty(v); saveNotif({ jobUpdates: v }); }} />
                                                     <ToggleRow label="Spill Interactions" desc="Likes, comments, and shares on your spills" enabled={notifSpill}
                                                         onToggle={() => { const v = !notifSpill; setNotifSpill(v); saveNotif({ spillInteractions: v }); }} />
-                                                    <ToggleRow label="Job Recommendations" desc="New jobs matching your skill profile" enabled={notifJob}
-                                                        onToggle={() => { const v = !notifJob; setNotifJob(v); saveNotif({ jobUpdates: v }); }} />
                                                 </div>
                                                 <div>
                                                     <h3 className="text-[11px] uppercase tracking-widest font-semibold mb-2" style={{ color: 'var(--theme-text-muted)' }}>Delivery</h3>
