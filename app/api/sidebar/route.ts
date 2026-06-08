@@ -7,11 +7,18 @@ export async function GET(req: Request) {
         const session = await getSession();
         if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-        // Get suggested users (excluding self)
+        // Get IDs the current user already follows
+        const alreadyFollowing = await prisma.follow.findMany({
+            where: { followerId: session.userId },
+            select: { followingId: true },
+        });
+        const followingIds = alreadyFollowing.map(f => f.followingId);
+
+        // Get suggested users (excluding self and already-followed)
         const suggestedUsersRaw = await prisma.user.findMany({
             where: {
                 isActive: true,
-                id: { not: session.userId },
+                id: { notIn: [session.userId, ...followingIds] },
             },
             select: {
                 id: true,

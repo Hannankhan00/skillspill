@@ -423,7 +423,8 @@ export default function TalentFeed() {
     };
 
     const displayJobs = sidebarData?.jobSuggestions?.length ? sidebarData.jobSuggestions : defaultJobSuggestions;
-    const displayUsers = sidebarData?.suggestedUsers?.length ? sidebarData.suggestedUsers : defaultSuggestedUsers;
+    const displayUsers = (sidebarData?.suggestedUsers?.length ? sidebarData.suggestedUsers : defaultSuggestedUsers)
+        .filter(u => !followedUsers.has(u.id));
 
     return (
         <div style={{ background: "var(--theme-bg)" }} className="min-h-full">

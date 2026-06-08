@@ -226,6 +226,7 @@ export default function PostCard({ post, currentUserId, currentUserRole, onDelet
 
     const handleShare = () => {
         navigator.clipboard.writeText(`${window.location.origin}/feed/${post.id}`);
+        setShowMenu(false);
         setToast("Link copied!"); setTimeout(() => setToast(""), 2000);
     };
 
@@ -284,11 +285,13 @@ export default function PostCard({ post, currentUserId, currentUserRole, onDelet
                             <div className="absolute right-0 top-10 w-44 rounded-xl shadow-xl py-1 z-20" style={{ background: "var(--theme-surface)", border: "1px solid var(--theme-border)" }}>
                                 {isOwn ? (
                                     <>
+                                        <button onClick={handleShare} className="w-full px-4 py-2 text-left text-[12px] hover:bg-(--theme-input-bg) bg-transparent border-none cursor-pointer" style={{ color: "var(--theme-text-tertiary)" }}>Copy link</button>
                                         <button className="w-full px-4 py-2 text-left text-[12px] hover:bg-(--theme-input-bg) bg-transparent border-none cursor-pointer" style={{ color: "var(--theme-text-tertiary)" }}>Edit caption</button>
                                         <button onClick={handleDelete} className="w-full px-4 py-2 text-left text-[12px] text-red-500 hover:bg-red-500/10 bg-transparent border-none cursor-pointer">Delete post</button>
                                     </>
                                 ) : (
                                     <>
+                                        <button onClick={handleShare} className="w-full px-4 py-2 text-left text-[12px] hover:bg-(--theme-input-bg) bg-transparent border-none cursor-pointer" style={{ color: "var(--theme-text-tertiary)" }}>Copy link</button>
                                         <button onClick={() => handleReport("POST", post.id)} className="w-full px-4 py-2 text-left text-[12px] hover:bg-(--theme-input-bg) bg-transparent border-none cursor-pointer" style={{ color: "var(--theme-text-tertiary)" }}>Report post</button>
                                         <button onClick={() => handleReport("USER", user.id)} className="w-full px-4 py-2 text-left text-[12px] hover:bg-(--theme-input-bg) bg-transparent border-none cursor-pointer" style={{ color: "var(--theme-text-tertiary)" }}>Report account</button>
                                         <button className="w-full px-4 py-2 text-left text-[12px] hover:bg-(--theme-input-bg) bg-transparent border-none cursor-pointer" style={{ color: "var(--theme-text-tertiary)" }}>Not interested</button>
@@ -351,9 +354,6 @@ export default function PostCard({ post, currentUserId, currentUserRole, onDelet
                         </button>
                         <button onClick={toggleSave} className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-transparent border-none cursor-pointer transition-all hover:bg-(--theme-input-bg) ${saved ? "text-yellow-500" : ""}`} style={saved ? {} : { color: "var(--theme-text-muted)" }}>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill={saved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>
-                        </button>
-                        <button onClick={handleShare} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-transparent border-none cursor-pointer transition-all hover:bg-(--theme-input-bg)" style={{ color: "var(--theme-text-muted)" }}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
                         </button>
                     </div>
                     <span className="text-[10px] flex items-center gap-1" style={{ color: "var(--theme-text-muted)" }}>👁 {post.viewsCount}</span>
