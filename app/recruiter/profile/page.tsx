@@ -662,7 +662,6 @@ export default function RecruiterProfilePage() {
                                 <h1 className="text-xl sm:text-2xl font-bold text-(--theme-text-primary)">{fullName}</h1>
                                 <span className="text-[12px] font-medium text-(--theme-text-muted)">@{username}</span>
                             </div>
-                            <p className="text-[13px] text-(--theme-text-muted) mt-0.5">{displayTitle}</p>
                             <p className="text-[11px] font-medium flex items-center gap-1 mt-1" style={{ color: accent }}>
                                 <Sparkles className="w-3 h-3" /> Company Profile
                             </p>
@@ -677,7 +676,6 @@ export default function RecruiterProfilePage() {
                     <h1 className="text-lg font-bold text-(--theme-text-primary)">{fullName}</h1>
                     <span className="text-[11px] font-medium text-(--theme-text-muted)">@{username}</span>
                 </div>
-                <p className="text-[12px] text-(--theme-text-muted)">{displayTitle}</p>
             </div>
 
             {/* ── MAIN CONTENT ── */}
