@@ -159,17 +159,14 @@ export default function RecruiterFeed() {
     const [userData, setUserData] = useState<any>(null);
     const [sidebarData, setSidebarData] = useState<{ suggestedUsers: any[], jobSuggestions: any[] } | null>(null);
     const [sidebarLoading, setSidebarLoading] = useState(true);
+    const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         fetch("/api/user/profile")
             .then(res => res.json())
-            .then(data => {
-                if (data.user) {
-                    setUserData(data.user);
-                }
-            })
+            .then(data => { if (data.user) setUserData(data.user); })
             .catch(() => {});
-            
+
         fetch("/api/sidebar")
             .then(res => res.json())
             .then(data => {
@@ -177,7 +174,26 @@ export default function RecruiterFeed() {
                 setSidebarLoading(false);
             })
             .catch(() => setSidebarLoading(false));
+
+        fetch("/api/user/following")
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data.following)) {
+                    setFollowingIds(new Set(data.following.map((u: any) => u.id)));
+                }
+            })
+            .catch(() => {});
     }, []);
+
+    const handleFollow = async (targetId: string) => {
+        setFollowingIds(prev => new Set([...prev, targetId]));
+        try {
+            const res = await fetch(`/api/user/${targetId}/follow`, { method: "POST" });
+            if (!res.ok) setFollowingIds(prev => { const s = new Set(prev); s.delete(targetId); return s; });
+        } catch {
+            setFollowingIds(prev => { const s = new Set(prev); s.delete(targetId); return s; });
+        }
+    };
 
     // Open post modal when ?post= is present in URL
     useEffect(() => {
@@ -378,10 +394,8 @@ export default function RecruiterFeed() {
                             const pTime = timeAgo(post.createdAt);
                             const pGrad = getGrad(pFullName);
                             const pTags = Array.isArray(post.hashtags) ? post.hashtags : [];
-                            
-                            // Mock match score only for talent profiles
-                            const isTalent = post.user?.role === "TALENT";
-                            const mockMatchScore = isTalent ? Math.floor(Math.random() * 20) + 80 : null;
+                            const isOwnPost = userData?.id === post.userId;
+                            const isFollowed = followingIds.has(post.userId);
 
                             return (
                                 <article key={post.id} className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
@@ -404,12 +418,6 @@ export default function RecruiterFeed() {
                                                     {pVerified && (
                                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="#8B5CF6"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#fff" strokeWidth="2" /></svg>
                                                     )}
-                                                    {mockMatchScore && (
-                                                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-secondary/10 text-secondary border border-secondary/20 font-bold"
-                                                            style={{ fontFamily: "var(--font-jetbrains-mono)" }}>
-                                                            {mockMatchScore}% match
-                                                        </span>
-                                                    )}
                                                 </div>
                                                 <p className="text-[11px] text-(--theme-text-muted)">
                                                     {pRole} • <span style={{ fontFamily: "var(--font-jetbrains-mono)" }}>{pTime} ago</span>
@@ -417,9 +425,11 @@ export default function RecruiterFeed() {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            {mockMatchScore && (
-                                                <button className="px-3 py-1 rounded-lg text-[10px] font-bold text-secondary border border-secondary/30 bg-secondary/10 cursor-pointer hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all">
-                                                    Connect
+                                            {!isOwnPost && !isFollowed && (
+                                                <button
+                                                    onClick={() => handleFollow(post.userId)}
+                                                    className="px-3 py-1 rounded-lg text-[10px] font-bold text-secondary border border-secondary/30 bg-secondary/10 cursor-pointer hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all">
+                                                    Follow
                                                 </button>
                                             )}
                                             <button className="text-(--theme-text-muted) hover:text-(--theme-text-muted) transition-colors bg-transparent border-none cursor-pointer p-1">

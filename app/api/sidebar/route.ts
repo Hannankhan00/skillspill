@@ -50,7 +50,7 @@ export async function GET(req: Request) {
 
                 suggestedUsers = top.map(m => {
                     const u = m.talentProfile.user;
-                    const score = Math.round(m.matchScore * 100);
+                    const score = Math.round(m.matchScore);
                     return {
                         id: u.id,
                         name: u.fullName || u.username || "User",
