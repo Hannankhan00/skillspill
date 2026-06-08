@@ -1,144 +1,240 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
+import { Loader2, Sparkles, ChevronRight } from "lucide-react";
 
 const accent = "#A855F7";
 
-const applications = [
-    {
-        id: 1, name: "Sarah Codes", role: "Sr. Rust Engineer", initials: "SC", grad: "from-violet-500 to-purple-600",
-        match: 94, status: "Review", appliedAt: "2 hours ago",
-        source: "SkillSpill Match", tags: ["Rust", "Systems"]
-    },
-    {
-        id: 2, name: "Rust Wizard", role: "Sr. Rust Engineer", initials: "RW", grad: "from-orange-400 to-red-500",
-        match: 91, status: "Interview", appliedAt: "1 day ago",
-        source: "Direct Apply", tags: ["C++", "Linux"]
-    },
-    {
-        id: 3, name: "Data Ninja", role: "ML Engineer", initials: "DN", grad: "from-blue-400 to-indigo-500",
-        match: 88, status: "Review", appliedAt: "2 days ago",
-        source: "Referral", tags: ["Python", "PyTorch"]
-    },
-    {
-        id: 4, name: "Cloud Native", role: "DevOps / SRE Lead", initials: "CN", grad: "from-cyan-400 to-blue-500",
-        match: 65, status: "Rejected", appliedAt: "3 days ago",
-        source: "Direct Apply", tags: ["Kubernetes", "AWS"]
+const STATUS_LABELS: Record<string, string> = {
+    PENDING: "Pending",
+    REVIEWED: "Reviewed",
+    SHORTLISTED: "Shortlisted",
+    ACCEPTED: "Accepted",
+    REJECTED: "Rejected",
+};
+
+const STATUS_STYLES: Record<string, string> = {
+    PENDING:     "bg-amber-500/10 text-amber-500 border-amber-500/20",
+    REVIEWED:    "bg-blue-500/10 text-blue-500 border-blue-500/20",
+    SHORTLISTED: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+    ACCEPTED:    "bg-green-500/10 text-green-500 border-green-500/20",
+    REJECTED:    "bg-red-500/10 text-red-500 border-red-500/20",
+};
+
+const FILTERS = ["All", "PENDING", "REVIEWED", "SHORTLISTED", "ACCEPTED", "REJECTED"];
+
+function timeAgo(dateStr: string) {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return "Just now";
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    if (days < 30) return `${days}d ago`;
+    return `${Math.floor(days / 30)}mo ago`;
+}
+
+function Avatar({ user }: { user: any }) {
+    const initials = (user.fullName || user.username || "?")
+        .split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
+    if (user.avatarUrl) {
+        return <img src={user.avatarUrl} alt={user.fullName} className="w-11 h-11 rounded-full object-cover shrink-0 border border-(--theme-border)" />;
     }
-];
+    return (
+        <div className="w-11 h-11 rounded-full flex items-center justify-center text-white text-[12px] font-bold shrink-0"
+            style={{ background: "linear-gradient(135deg, #A855F7, #7C3AED)" }}>
+            {initials}
+        </div>
+    );
+}
 
 export default function RecruiterApplicationsPage() {
-    const [activeFilter, setActiveFilter] = useState("Review");
-    const filters = ["All", "Review", "Interview", "Offer", "Rejected"];
+    const [applications, setApplications] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [activeFilter, setActiveFilter] = useState("All");
+    const [updatingId, setUpdatingId] = useState<string | null>(null);
+    const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
-    const filtered = activeFilter === "All" ? applications : applications.filter(a => a.status === activeFilter);
+    const fetchApplications = useCallback(() => {
+        setLoading(true);
+        fetch("/api/recruiter/applications")
+            .then(r => r.json())
+            .then(d => { setApplications(d.applications || []); })
+            .catch(() => {})
+            .finally(() => setLoading(false));
+    }, []);
+
+    useEffect(() => { fetchApplications(); }, [fetchApplications]);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handler = () => setOpenMenuId(null);
+        document.addEventListener("click", handler);
+        return () => document.removeEventListener("click", handler);
+    }, []);
+
+    const updateStatus = async (applicationId: string, status: string) => {
+        setUpdatingId(applicationId);
+        setOpenMenuId(null);
+        try {
+            const res = await fetch("/api/recruiter/applications", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ applicationId, status }),
+            });
+            if (res.ok) {
+                setApplications(prev =>
+                    prev.map(a => a.id === applicationId ? { ...a, status } : a)
+                );
+            }
+        } finally {
+            setUpdatingId(null);
+        }
+    };
+
+    const filtered = activeFilter === "All"
+        ? applications
+        : applications.filter(a => a.status === activeFilter);
+
+    const countFor = (f: string) => f === "All" ? applications.length : applications.filter(a => a.status === f).length;
 
     return (
-        <div style={{ background: "var(--theme-bg)" }} className="min-h-full flex flex-col">
-            <div className="max-w-[1000px] w-full mx-auto px-4 sm:px-6 py-4 pb-24 lg:pb-8 flex-1 flex flex-col">
+        <div style={{ background: "var(--theme-bg)" }} className="min-h-full">
+            <div className="max-w-[1000px] w-full mx-auto px-4 sm:px-6 py-4 pb-24 lg:pb-8">
 
-                {/* HEADER */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 sm:mb-6 shrink-0">
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 sm:mb-6">
                     <div>
                         <h1 className="text-xl sm:text-2xl font-bold text-(--theme-text-primary)">Applicant Tracking</h1>
-                        <p className="text-[12px] sm:text-[13px] text-(--theme-text-muted) mt-0.5 sm:mt-1">Manage pipeline across all active jobs</p>
-                    </div>
-                    <div className="flex bg-(--theme-input-bg) border border-(--theme-border) rounded-xl p-1 shrink-0 w-max sm:w-auto">
-                        <button className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-[11px] font-bold bg-[#A855F7]/10 text-[#A855F7] border border-[#A855F7]/30 transition-all cursor-pointer">List</button>
-                        <button className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-[11px] font-medium text-(--theme-text-muted) cursor-pointer hover:bg-(--theme-bg-secondary) transition-all bg-transparent border-none">Board</button>
+                        <p className="text-[12px] sm:text-[13px] text-(--theme-text-muted) mt-0.5">
+                            {loading ? "Loading..." : `${applications.length} total application${applications.length !== 1 ? "s" : ""} across all jobs`}
+                        </p>
                     </div>
                 </div>
 
-                {/* FILTERS TABS */}
-                <div className="flex gap-2 lg:gap-3 overflow-x-auto pb-1 lg:pb-0 mb-5 sm:mb-6 border-b border-(--theme-border) scrollbar-none shrink-0 w-[calc(100vw-32px)] sm:w-auto">
-                    {filters.map(filter => {
-                        const count = filter === "All" ? applications.length : applications.filter(a => a.status === filter).length;
-                        return (
-                            <button key={filter} onClick={() => setActiveFilter(filter)}
-                                className={`px-3 sm:px-5 py-2.5 sm:py-3 text-[11px] sm:text-[13px] font-semibold border-b-2 transition-all cursor-pointer bg-transparent whitespace-nowrap flex items-center gap-1.5
-                                    ${activeFilter === filter ? "border-purple-500 text-[#A855F7]" : "border-transparent text-(--theme-text-muted) hover:text-(--theme-text-tertiary)"}`}>
-                                {filter}
-                                <span className={`text-[8px] sm:text-[9px] px-1.5 py-0.5 rounded-full font-bold
-                                    ${activeFilter === filter ? "bg-[#A855F7]/20 text-[#A855F7]" : "bg-(--theme-input-bg) text-(--theme-text-muted)"}`}>
-                                    {count}
-                                </span>
-                            </button>
-                        );
-                    })}
+                {/* Filter tabs */}
+                <div className="flex gap-1 overflow-x-auto pb-1 mb-5 border-b border-(--theme-border) scrollbar-none">
+                    {FILTERS.map(f => (
+                        <button key={f} onClick={() => setActiveFilter(f)}
+                            className={`px-3 sm:px-5 py-2.5 text-[11px] sm:text-[12px] font-semibold border-b-2 transition-all cursor-pointer bg-transparent whitespace-nowrap flex items-center gap-1.5
+                                ${activeFilter === f ? "border-purple-500 text-[#A855F7]" : "border-transparent text-(--theme-text-muted) hover:text-(--theme-text-tertiary)"}`}>
+                            {f === "All" ? "All" : STATUS_LABELS[f]}
+                            <span className={`text-[8px] sm:text-[9px] px-1.5 py-0.5 rounded-full font-bold
+                                ${activeFilter === f ? "bg-[#A855F7]/20 text-[#A855F7]" : "bg-(--theme-input-bg) text-(--theme-text-muted)"}`}>
+                                {countFor(f)}
+                            </span>
+                        </button>
+                    ))}
                 </div>
 
-                {/* PIPELINE LIST */}
-                <div className="space-y-3 sm:space-y-4">
-                    {filtered.map(app => (
-                        <div key={app.id} className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm p-4 sm:p-5 hover:border-[#A855F7]/30 transition-all cursor-pointer group flex flex-col md:flex-row md:items-center gap-4">
+                {/* List */}
+                {loading ? (
+                    <div className="flex flex-col items-center justify-center py-20 gap-3">
+                        <Loader2 className="w-8 h-8 animate-spin" style={{ color: accent }} />
+                        <p className="text-[13px] text-(--theme-text-muted)">Loading applications...</p>
+                    </div>
+                ) : filtered.length === 0 ? (
+                    <div className="py-14 text-center rounded-2xl border-2 border-dashed border-(--theme-border)">
+                        <p className="text-[14px] font-bold text-(--theme-text-secondary) mb-1">
+                            {activeFilter === "All" ? "No applications yet" : `No ${STATUS_LABELS[activeFilter] || activeFilter} applications`}
+                        </p>
+                        <p className="text-[12px] text-(--theme-text-muted)">
+                            {activeFilter === "All" ? "Applications will appear here once talents apply to your jobs." : "Try another filter."}
+                        </p>
+                    </div>
+                ) : (
+                    <div className="space-y-3">
+                        {filtered.map(app => {
+                            const talent = app.talentProfile?.user;
+                            const skills: any[] = app.talentProfile?.skills || [];
+                            const isUpdating = updatingId === app.id;
 
-                            {/* APPLICANT BASE INFO */}
-                            <div className="flex items-start md:items-center gap-3 w-full md:w-[250px] shrink-0">
-                                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-linear-to-br ${app.grad} flex items-center justify-center text-white text-[12px] font-bold shrink-0 shadow-sm border border-(--theme-surface)`}>
-                                    {app.initials}
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <div className="flex items-center justify-between md:hidden mb-0.5">
-                                        <div className="px-2 py-0.5 rounded-lg text-[9px] font-bold flex items-center gap-1 shrink-0" style={{ background: `linear-gradient(135deg, ${accent}20, ${accent}05)`, color: accent, border: `1px solid ${accent}30` }}>
-                                            <Sparkles className="w-3 h-3 inline-block" /> {app.match}%
+                            return (
+                                <div key={app.id}
+                                    className="rounded-2xl border border-(--theme-border) bg-(--theme-card) shadow-sm p-4 sm:p-5 hover:border-[#A855F7]/30 transition-all flex flex-col md:flex-row md:items-center gap-4">
+
+                                    {/* Talent info */}
+                                    <div className="flex items-center gap-3 w-full md:w-[240px] shrink-0">
+                                        {talent && <Avatar user={talent} />}
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-[14px] font-bold text-(--theme-text-primary) truncate">
+                                                {talent?.fullName || talent?.username || "Unknown"}
+                                            </p>
+                                            <p className="text-[10px] text-(--theme-text-muted) truncate">
+                                                {app.talentProfile?.experienceLevel
+                                                    ? `${app.talentProfile.experienceLevel} Developer`
+                                                    : "Developer"}
+                                            </p>
                                         </div>
                                     </div>
-                                    <p className="text-[13px] sm:text-[15px] font-bold text-(--theme-text-primary) truncate">{app.name}</p>
-                                    <p className="text-[9px] sm:text-[10px] text-(--theme-text-muted) uppercase tracking-wider mt-0.5">{app.source}</p>
-                                </div>
-                            </div>
 
-                            {/* ROLE INFO */}
-                            <div className="flex-1 w-full bg-(--theme-input-bg) rounded-xl py-2 sm:py-3 px-3 sm:px-4 border border-(--theme-border-light) break-words lg:mx-4">
-                                <p className="text-[12px] sm:text-[14px] font-bold text-(--theme-text-secondary) truncate">{app.role}</p>
-                                <div className="flex items-center justify-between mt-1 sm:mt-1.5">
-                                    <p className="text-[9px] sm:text-[11px] text-(--theme-text-muted) font-medium">Applied {app.appliedAt}</p>
-                                    <div className="flex gap-1">
-                                        {app.tags.map(t => (
-                                            <span key={t} className="px-1.5 py-0.5 rounded text-[8px] bg-(--theme-card) text-(--theme-text-tertiary) border border-(--theme-border)">{t}</span>
-                                        ))}
+                                    {/* Job info */}
+                                    <div className="flex-1 bg-(--theme-input-bg) rounded-xl py-2.5 px-3.5 border border-(--theme-border-light)">
+                                        <p className="text-[13px] font-bold text-(--theme-text-secondary) truncate">{app.bounty?.title || "Untitled Job"}</p>
+                                        <div className="flex items-center justify-between mt-1">
+                                            <p className="text-[10px] text-(--theme-text-muted)">Applied {timeAgo(app.appliedAt)}</p>
+                                            {skills.length > 0 && (
+                                                <div className="flex gap-1">
+                                                    {skills.slice(0, 3).map((s: any) => (
+                                                        <span key={s.skillName} className="px-1.5 py-0.5 rounded text-[8px] bg-(--theme-card) text-(--theme-text-tertiary) border border-(--theme-border)">{s.skillName}</span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Actions */}
+                                    <div className="flex items-center gap-2 shrink-0 mt-2 md:mt-0 pt-3 md:pt-0 border-t md:border-none border-(--theme-border-light)">
+                                        {/* GitHub score badge */}
+                                        {app.talentProfile?.githubScore > 0 && (
+                                            <div className="hidden sm:flex flex-col items-center px-2.5 py-1 rounded-lg text-center"
+                                                style={{ background: `${accent}15`, border: `1px solid ${accent}30` }}>
+                                                <span className="text-[11px] font-bold" style={{ color: accent }}>
+                                                    <Sparkles className="w-3 h-3 inline-block" /> {app.talentProfile.githubScore}
+                                                </span>
+                                                <span className="text-[8px] tracking-widest" style={{ color: accent }}>GH Score</span>
+                                            </div>
+                                        )}
+
+                                        {/* Status badge + dropdown */}
+                                        <div className="relative" onClick={e => e.stopPropagation()}>
+                                            <button
+                                                onClick={() => setOpenMenuId(openMenuId === app.id ? null : app.id)}
+                                                disabled={isUpdating}
+                                                className={`text-[11px] font-bold px-3 py-1.5 rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 ${STATUS_STYLES[app.status] || STATUS_STYLES.PENDING}`}>
+                                                {isUpdating ? <Loader2 className="w-3 h-3 animate-spin" /> : STATUS_LABELS[app.status] || app.status}
+                                                <ChevronRight className="w-3 h-3 rotate-90" />
+                                            </button>
+                                            {openMenuId === app.id && (
+                                                <div className="absolute right-0 top-10 w-40 rounded-xl shadow-xl py-1 z-20"
+                                                    style={{ background: "var(--theme-surface)", border: "1px solid var(--theme-border)" }}>
+                                                    {Object.entries(STATUS_LABELS).map(([val, label]) => (
+                                                        <button key={val}
+                                                            onClick={() => updateStatus(app.id, val)}
+                                                            className={`w-full px-4 py-2 text-left text-[12px] hover:bg-(--theme-input-bg) bg-transparent border-none cursor-pointer transition-colors ${app.status === val ? "font-bold" : ""}`}
+                                                            style={{ color: app.status === val ? accent : "var(--theme-text-tertiary)" }}>
+                                                            {label}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* View profile */}
+                                        {talent?.id && (
+                                            <Link href={`/recruiter/talent/${talent.id}`}
+                                                className="w-9 h-9 rounded-xl flex items-center justify-center bg-(--theme-input-bg) border border-(--theme-border-light) text-(--theme-text-muted) hover:text-[#A855F7] hover:border-[#A855F7]/40 transition-all no-underline">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
+                                            </Link>
+                                        )}
                                     </div>
                                 </div>
-                            </div>
-
-                            {/* ACTIONS / STATUS */}
-                            <div className="flex items-center justify-between md:justify-end gap-2 sm:gap-4 shrink-0 mt-2 md:mt-0 pt-3 md:pt-0 border-t md:border-none border-(--theme-border-light)">
-
-                                {/* DESKTOP MATCH */}
-                                <div className="hidden md:flex flex-col items-center">
-                                    <div className="px-2.5 py-1 rounded-lg text-[10px] sm:text-[11px] font-bold flex flex-col justify-center min-w-[70px] text-center shrink-0" style={{ background: `linear-gradient(135deg, ${accent}20, ${accent}05)`, color: accent, border: `1px solid ${accent}30` }}>
-                                        <span><Sparkles className="w-3 h-3 inline-block" /> {app.match}%</span>
-                                    </div>
-                                    <span className="text-[8px] mt-1 font-bold tracking-widest text-[#A855F7] uppercase uppercase">Match</span>
-                                </div>
-
-                                <div className="w-px h-8 bg-(--theme-border) mx-1 hidden min-[1100px]:block"></div>
-
-                                <span className={`text-[10px] sm:text-[11px] font-bold px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl flex justify-center flex-1 md:flex-none md:min-w-[100px] border shrink-0 transition-colors
-                                    ${app.status === "Review" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" :
-                                        app.status === "Interview" ? "bg-blue-500/10 text-blue-500 border-blue-500/20" :
-                                            app.status === "Rejected" ? "bg-red-500/10 text-red-500 border-red-500/20" :
-                                                "bg-green-500/10 text-green-500 border-green-500/20"}`}>
-                                    {app.status}
-                                </span>
-
-                                <button className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center bg-(--theme-input-bg) border border-(--theme-border-light) text-(--theme-text-muted) hover:text-[#A855F7] hover:border-[#A855F7]/40 transition-all shrink-0 cursor-pointer">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-
-                    {filtered.length === 0 && (
-                        <div className="py-12 sm:py-16 text-center rounded-2xl border-2 border-dashed border-(--theme-border)">
-                            <p className="text-[13px] sm:text-[15px] font-bold text-(--theme-text-secondary)">No applications found in this stage.</p>
-                            <p className="text-[11px] sm:text-[12px] mt-1 text-(--theme-text-muted)">Check back later or adjust your jobs.</p>
-                        </div>
-                    )}
-                </div>
-
+                            );
+                        })}
+                    </div>
+                )}
             </div>
         </div>
     );
