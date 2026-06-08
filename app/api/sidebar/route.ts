@@ -14,10 +14,11 @@ export async function GET(req: Request) {
         });
         const followingIds = alreadyFollowing.map(f => f.followingId);
 
-        // Get suggested users (excluding self and already-followed)
+        // Get suggested users (excluding self, already-followed, and admins)
         const suggestedUsersRaw = await prisma.user.findMany({
             where: {
                 isActive: true,
+                role: { not: "ADMIN" },
                 id: { notIn: [session.userId, ...followingIds] },
             },
             select: {
