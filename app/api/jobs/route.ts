@@ -61,10 +61,11 @@ export async function GET(req: Request) {
         }
 
         // Talent: browse OPEN jobs (exclude past-deadline jobs)
-        const now = new Date();
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
         const where: any = {
             status: "OPEN",
-            OR: [{ deadline: null }, { deadline: { gt: now } }],
+            OR: [{ deadline: null }, { deadline: { gte: startOfToday } }],
         };
         if (search) {
             where.OR = [

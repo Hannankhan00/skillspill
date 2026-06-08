@@ -49,9 +49,14 @@ export async function GET(req: Request) {
             };
         });
 
-        // Get suggested jobs (bounties)
+        // Get suggested jobs (bounties) — exclude past-deadline jobs
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
         const jobsRaw = await prisma.bounty.findMany({
-            where: { status: "OPEN" },
+            where: {
+                status: "OPEN",
+                OR: [{ deadline: null }, { deadline: { gte: startOfToday } }],
+            },
             include: {
                 recruiterProfile: {
                     include: { user: true }
