@@ -186,6 +186,9 @@ export default function TalentFeed() {
     // In-flight guards — keyed by post ID to prevent double-tap race conditions
     const likeInFlight = useRef<Record<string, boolean>>({});
     const saveInFlight = useRef<Record<string, boolean>>({});
+    const followInFlight = useRef<Record<string, boolean>>({});
+
+    const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
 
     // Real feed data
     const [posts, setPosts] = useState<Post[]>([]);
@@ -360,6 +363,37 @@ export default function TalentFeed() {
         setReportModalData({ isOpen: true, targetType, targetId });
         setOpenMenu(null);
     };
+
+    const handleFollow = useCallback(async (userId: string) => {
+        if (followInFlight.current[userId]) return;
+        followInFlight.current[userId] = true;
+        const isFollowing = followedUsers.has(userId);
+        setFollowedUsers(prev => {
+            const next = new Set(prev);
+            isFollowing ? next.delete(userId) : next.add(userId);
+            return next;
+        });
+        try {
+            const res = await fetch(`/api/user/${userId}/follow`, {
+                method: isFollowing ? "DELETE" : "POST",
+            });
+            if (!res.ok) {
+                setFollowedUsers(prev => {
+                    const next = new Set(prev);
+                    isFollowing ? next.add(userId) : next.delete(userId);
+                    return next;
+                });
+            }
+        } catch {
+            setFollowedUsers(prev => {
+                const next = new Set(prev);
+                isFollowing ? next.add(userId) : next.delete(userId);
+                return next;
+            });
+        } finally {
+            followInFlight.current[userId] = false;
+        }
+    }, [followedUsers]);
 
     const tabs = ["For You", "Following", "Trending", "Code", "Saved"];
 
@@ -702,8 +736,14 @@ export default function TalentFeed() {
                                                     <p className="text-[10px] text-(--theme-text-muted)">{user.role}</p>
                                                 </div>
                                             </Link>
-                                            <button className="px-3 py-1 rounded-lg text-[10px] font-bold text-[#2edb13] border border-primary/20 bg-primary/10 cursor-pointer hover:bg-[#2edb13] hover:text-white hover:border-[#2edb13] transition-all">
-                                                Follow
+                                            <button
+                                                onClick={() => handleFollow(user.id)}
+                                                className={`px-3 py-1 rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${followedUsers.has(user.id)
+                                                    ? "text-white bg-[#2edb13] border-[#2edb13] hover:bg-red-500 hover:border-red-500"
+                                                    : "text-[#2edb13] border-primary/20 bg-primary/10 hover:bg-[#2edb13] hover:text-white hover:border-[#2edb13]"
+                                                }`}
+                                            >
+                                                {followedUsers.has(user.id) ? "Following" : "Follow"}
                                             </button>
                                         </div>
                                     ))
