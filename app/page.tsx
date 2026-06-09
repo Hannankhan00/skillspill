@@ -127,10 +127,17 @@ function AnimatedStat({ target, label, suffix = "" }: { target: number; label: s
 export default function Home() {
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [talentCount, setTalentCount] = useState(0);
+  const [recruiterCount, setRecruiterCount] = useState(0);
 
   const ripple = useRipple();
 
-
+  useEffect(() => {
+    fetch("/api/stats").then(r => r.json()).then(d => {
+      if (d.talentCount !== undefined) setTalentCount(d.talentCount);
+      if (d.recruiterCount !== undefined) setRecruiterCount(d.recruiterCount);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => { const fn = () => setScrolled(window.scrollY > 30); window.addEventListener("scroll", fn); return () => window.removeEventListener("scroll", fn); }, []);
 
@@ -150,8 +157,8 @@ export default function Home() {
           </a>
 
           <div className="hidden md:flex gap-8">
-            {["Find Talent", "Post Job", "How it works"].map((t) => (
-              <a key={t} href={`#${t.toLowerCase().replace(/ /g, "-")}`} className="text-[#888] no-underline text-sm font-semibold uppercase tracking-wide hover:text-[#3CF91A] transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-[#3CF91A] after:transition-all hover:after:w-full">{t}</a>
+            {[["Find Talent", "find-talent"], ["Find Jobs", "find-jobs"], ["How it works", "how-it-works"]].map(([label, anchor]) => (
+              <a key={anchor} href={`#${anchor}`} className="text-[#888] no-underline text-sm font-semibold uppercase tracking-wide hover:text-[#3CF91A] transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-[#3CF91A] after:transition-all hover:after:w-full">{label}</a>
             ))}
           </div>
 
@@ -170,8 +177,8 @@ export default function Home() {
         {/* Mobile Menu */}
         <div className={`mobile-menu-overlay fixed inset-0 bg-[#050505]/95 backdrop-blur-2xl z-55 flex flex-col justify-center items-center ${isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
           <div className="flex flex-col items-center gap-8">
-            {["Find Talent", "Post Job", "How it works"].map((t) => (
-              <a key={t} href={`#${t.toLowerCase().replace(/ /g, "-")}`} className="text-2xl font-bold text-[#888] no-underline hover:text-[#3CF91A] transition-colors" onClick={() => setIsMobileMenuOpen(false)}>{t}</a>
+            {[["Find Talent", "find-talent"], ["Find Jobs", "find-jobs"], ["How it works", "how-it-works"]].map(([label, anchor]) => (
+              <a key={anchor} href={`#${anchor}`} className="text-2xl font-bold text-[#888] no-underline hover:text-[#3CF91A] transition-colors" onClick={() => setIsMobileMenuOpen(false)}>{label}</a>
             ))}
             <div className="w-12 h-px bg-[#3CF91A]/20 my-4" />
             <a href="/login" className="text-2xl font-bold text-[#888] no-underline hover:text-[#3CF91A] transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Log In</a>
@@ -290,15 +297,15 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ───── POST JOB ───── */}
-      <section className="min-h-screen py-20 md:py-32 px-6 max-w-[1200px] mx-auto flex flex-col md:flex-row-reverse items-center justify-center gap-12 scroll-mt-20" id="post-job">
+      {/* ───── FIND JOBS ───── */}
+      <section className="min-h-screen py-20 md:py-32 px-6 max-w-[1200px] mx-auto flex flex-col md:flex-row-reverse items-center justify-center gap-12 scroll-mt-20" id="find-jobs">
         <div className="flex-1 space-y-6">
-          <h2 className="text-3xl md:text-5xl font-bold">Post a <span className="text-[#A855F7]">Mission</span></h2>
+          <h2 className="text-3xl md:text-5xl font-bold">Find Jobs Based on <span className="text-[#A855F7]">Your Skills</span></h2>
           <p className="text-[#888] text-lg leading-relaxed">
-            Create a mission brief and let our engine match you with the perfect candidates based on their verified coding capabilities. Reach a highly curated network of proven engineers.
+            No more applying into the void. Our AI matches you to roles where your verified GitHub skills are exactly what companies need. Let your code speak — get discovered by the right team.
           </p>
-          <a href="/signup/recruiter" className="inline-flex items-center gap-2 bg-[#A855F7]/10 text-[#A855F7] border border-[#A855F7]/30 px-6 py-3 rounded-lg font-bold hover:bg-[#A855F7] hover:text-white hover:shadow-neon-purple transition-all no-underline mt-4 cursor-pointer">
-            Create Your Mission <IconArrowRight />
+          <a href="/signup/talent" className="inline-flex items-center gap-2 bg-[#A855F7]/10 text-[#A855F7] border border-[#A855F7]/30 px-6 py-3 rounded-lg font-bold hover:bg-[#A855F7] hover:text-white hover:shadow-neon-purple transition-all no-underline mt-4 cursor-pointer">
+            Explore Matched Jobs <IconArrowRight />
           </a>
         </div>
         <div className="flex-1 w-full relative">
@@ -309,33 +316,36 @@ export default function Home() {
                 <IconBriefcase />
               </div>
               <div>
-                <h4 className="font-bold text-white text-lg">Senior Protocol Engineer</h4>
-                <p className="text-[#A855F7] text-sm font-mono">$180k - $240k • Remote</p>
+                <h4 className="font-bold text-white text-lg">3 New Matches Today</h4>
+                <p className="text-[#A855F7] text-sm font-mono">Based on your GitHub profile</p>
               </div>
             </div>
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <span className="flex-1 h-2 bg-[#A855F7]/10 rounded-full overflow-hidden">
-                  <span className="block h-full bg-[#A855F7]" style={{ width: '85%' }}></span>
-                </span>
-                <span className="text-xs text-[#888] font-mono whitespace-nowrap">C++ • 85%</span>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center bg-black/40 p-3 rounded-lg border border-white/5">
+                <div>
+                  <p className="text-sm font-bold text-white">Senior Rust Engineer</p>
+                  <p className="text-xs text-[#888]">Remote • $160k–$200k</p>
+                </div>
+                <span className="text-xs font-bold text-[#A855F7] bg-[#A855F7]/10 px-2 py-1 rounded">97% Match</span>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="flex-1 h-2 bg-[#A855F7]/10 rounded-full overflow-hidden">
-                  <span className="block h-full bg-[#A855F7]" style={{ width: '70%' }}></span>
-                </span>
-                <span className="text-xs text-[#888] font-mono whitespace-nowrap">CUDA • 70%</span>
+              <div className="flex justify-between items-center bg-black/40 p-3 rounded-lg border border-white/5">
+                <div>
+                  <p className="text-sm font-bold text-white">Full-Stack Next.js Dev</p>
+                  <p className="text-xs text-[#888]">Hybrid • $120k–$150k</p>
+                </div>
+                <span className="text-xs font-bold text-[#A855F7] bg-[#A855F7]/10 px-2 py-1 rounded">91% Match</span>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="flex-1 h-2 bg-[#A855F7]/10 rounded-full overflow-hidden">
-                  <span className="block h-full bg-[#A855F7]" style={{ width: '90%' }}></span>
-                </span>
-                <span className="text-xs text-[#888] font-mono whitespace-nowrap">Rust • 90%</span>
+              <div className="flex justify-between items-center bg-black/40 p-3 rounded-lg border border-white/5">
+                <div>
+                  <p className="text-sm font-bold text-white">Smart Contract Auditor</p>
+                  <p className="text-xs text-[#888]">Remote • $140k–$180k</p>
+                </div>
+                <span className="text-xs font-bold text-[#A855F7] bg-[#A855F7]/10 px-2 py-1 rounded">88% Match</span>
               </div>
             </div>
             <div className="mt-6 pt-6 border-t border-white/5 flex justify-between items-center">
-              <span className="text-[#888] text-sm">45 AI-Matched Candidates</span>
-              <span className="text-[#A855F7] text-xs uppercase tracking-wider font-bold">Live AI Scan</span>
+              <span className="text-[#888] text-sm">Matched to your skill tree</span>
+              <span className="text-[#A855F7] text-xs uppercase tracking-wider font-bold">AI Powered</span>
             </div>
           </div>
         </div>
@@ -377,9 +387,9 @@ export default function Home() {
       {/* ───── STATS ───── */}
       <section className="py-16 md:py-24 px-6 border-t border-b border-[#3CF91A]/10 bg-[#3CF91A]/[0.02]" id="stats">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-[1200px] mx-auto text-center">
-          <AnimatedStat target={12400} label="Verified Devs" suffix="+" />
-          <AnimatedStat target={3200} label="Companies" suffix="+" />
-          <AnimatedStat target={98} label="Accuracy" suffix="%" />
+          <AnimatedStat target={talentCount} label="Verified Devs" suffix="+" />
+          <AnimatedStat target={recruiterCount} label="Companies" suffix="+" />
+          <AnimatedStat target={98} label="Match Accuracy" suffix="%" />
           <AnimatedStat target={50} label="Skills Tracked" suffix="+" />
         </div>
       </section>
