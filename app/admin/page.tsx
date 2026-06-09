@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 import { ThemeToggle } from "@/app/components/ThemeProvider";
@@ -153,18 +153,26 @@ export default function AdminPage() {
     const [adminProfile, setAdminProfile] = useState<{ fullName: string, avatarUrl: string } | null>(null);
     const [avatarUploading, setAvatarUploading] = useState(false);
 
-    const fetchUsers = useCallback(async (page = 1) => {
+    // Refs so fetchUsers is stable and never goes stale
+    const roleFilterRef = useRef(roleFilter);
+    const searchQueryRef = useRef(searchQuery);
+    useEffect(() => { roleFilterRef.current = roleFilter; }, [roleFilter]);
+    useEffect(() => { searchQueryRef.current = searchQuery; }, [searchQuery]);
+
+    const fetchUsers = useCallback(async (page = 1, overrideRole?: string, overrideSearch?: string) => {
         setUsersLoading(true);
         try {
+            const role = overrideRole !== undefined ? overrideRole : roleFilterRef.current;
+            const search = overrideSearch !== undefined ? overrideSearch : searchQueryRef.current;
             const params = new URLSearchParams({ page: String(page), limit: "20" });
-            if (roleFilter) params.set("role", roleFilter);
-            if (searchQuery) params.set("search", searchQuery);
+            if (role) params.set("role", role);
+            if (search) params.set("search", search);
             const res = await fetch(`/api/admin/users?${params}`);
             const data = await res.json();
             if (res.ok) { setUsers(data.users); setPagination(data.pagination); }
         } catch { console.error("Failed to fetch users"); }
         finally { setUsersLoading(false); }
-    }, [roleFilter, searchQuery]);
+    }, []); // stable — reads live values from refs
 
     const fetchAppeals = useCallback(async (page = 1) => {
         setAppealsLoading(true);
@@ -597,24 +605,25 @@ export default function AdminPage() {
                                     <div className="flex-1 flex items-center gap-3 rounded-lg px-4 py-2.5" style={{ background: T.bg, border: `1px solid ${T.cardBorder}` }}>
                                         {I.search()}
                                         <input type="text" placeholder="Search by name, email, or username..." value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && fetchUsers()}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            onKeyDown={(e) => { if (e.key === "Enter") { const v = (e.target as HTMLInputElement).value; setSearchQuery(v); fetchUsers(1, undefined, v); } }}
                                             className="flex-1 bg-transparent border-none outline-none text-sm" style={{ color: T.textPrimary, ...mono }} id="admin-user-search" />
                                     </div>
                                     <div className="flex gap-2">
                                         <div className="relative">
-                                            <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} id="admin-role-filter"
+                                            <select value={roleFilter} onChange={(e) => { setRoleFilter(e.target.value); fetchUsers(1, e.target.value); }} id="admin-role-filter"
                                                 className="appearance-none rounded-lg px-4 py-2.5 pr-8 text-sm cursor-pointer outline-none"
                                                 style={{ background: T.bg, border: `1px solid ${T.cardBorder}`, color: T.textPrimary, ...mono }}>
                                                 <option value="">All Roles</option><option value="TALENT">Talent</option><option value="RECRUITER">Company</option>
                                             </select>
                                             <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: T.textSecondary }}>{I.chevDown()}</span>
                                         </div>
-                                        <button onClick={() => fetchUsers()} className="px-5 py-2.5 rounded-lg text-sm font-bold border-none cursor-pointer" style={{ background: T.admin, color: "#0a1415", ...mono }} id="admin-search-btn">Search</button>
+                                        <button onClick={() => fetchUsers(1, undefined, searchQuery)} className="px-5 py-2.5 rounded-lg text-sm font-bold border-none cursor-pointer" style={{ background: T.admin, color: "#0a1415", ...mono }} id="admin-search-btn">Search</button>
                                     </div>
                                 </div>
                                 <div className="flex gap-2 mt-3 flex-wrap">
                                     {[{ l: "All", v: "", c: T.admin }, { l: "Talent", v: "TALENT", c: T.talent }, { l: "Company", v: "RECRUITER", c: T.recruiter }].map((tag) => (
-                                        <button key={tag.v} onClick={() => { setRoleFilter(tag.v); setTimeout(() => fetchUsers(), 0); }}
+                                        <button key={tag.v} onClick={() => { setRoleFilter(tag.v); fetchUsers(1, tag.v); }}
                                             className="px-3 py-1.5 rounded-md text-[11px] font-bold border-none cursor-pointer transition-all"
                                             style={roleFilter === tag.v ? { background: tag.c, color: "#0a1415", ...mono } : { background: T.cardBorder, color: T.textSecondary, ...mono }}>{tag.l}</button>
                                     ))}
