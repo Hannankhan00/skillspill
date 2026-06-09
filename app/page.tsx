@@ -420,8 +420,8 @@ export default function Home() {
                 name: "Hannan Khan",
                 role: "Full-Stack Developer",
                 initials: "HK",
-                github: "https://github.com/8hannankhan",
-                linkedin: "https://linkedin.com/in/hannankhan",
+                github: "https://github.com/Hannankhan00",
+                linkedin: "https://www.linkedin.com/in/muhammadhannankhan",
                 portfolio: "https://hannankhan.dev",
               },
               {
@@ -480,19 +480,91 @@ export default function Home() {
       </div>
 
       {/* ───── FOOTER ───── */}
-      <footer className="py-12 md:py-16 px-6 text-center" id="footer">
-        <div className="flex flex-col md:flex-row justify-center gap-4 md:gap-8 mb-8">
-          <a href="/privacy" className="text-[#555] no-underline text-xs hover:text-[#3CF91A] transition-colors">PRIVACY POLICY</a>
-          <a href="/terms" className="text-[#555] no-underline text-xs hover:text-[#3CF91A] transition-colors">TERMS OF SERVICE</a>
-          <a href="/status" className="text-[#555] no-underline text-xs hover:text-[#3CF91A] transition-colors">SYSTEM STATUS</a>
+      <footer className="border-t border-white/5 bg-[#030303] px-6 pt-16 pb-8" id="footer">
+        <div className="max-w-[1200px] mx-auto">
+
+          {/* Top grid */}
+          <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr] gap-12 mb-14">
+
+            {/* Brand column */}
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <img src="/assets/logo 2.png" alt="SkillSpill" className="h-8" />
+              </div>
+              <p className="text-[#555] text-sm leading-relaxed max-w-xs mb-6">
+                The AI-powered career marketplace where verified code speaks louder than résumés. Built for the next generation of developers and companies.
+              </p>
+              <div className="flex gap-2">
+                <a href="https://github.com/Hannankhan00" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[#666] hover:bg-[#3CF91A] hover:text-black hover:border-[#3CF91A] transition-all">
+                  <IconGithub />
+                </a>
+                <a href="https://www.linkedin.com/in/muhammadhannankhan" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[#666] hover:bg-[#0A66C2] hover:text-white hover:border-[#0A66C2] transition-all">
+                  <IconLinkedIn />
+                </a>
+              </div>
+            </div>
+
+            {/* Platform column */}
+            <div>
+              <p className="text-[#3CF91A] text-xs font-mono tracking-widest uppercase mb-5">Platform</p>
+              <ul className="space-y-3 list-none p-0 m-0">
+                {[
+                  { label: "For Talent", href: "/register?role=talent" },
+                  { label: "For Recruiters", href: "/register?role=recruiter" },
+                  { label: "AI Matching", href: "/#how" },
+                  { label: "Browse Jobs", href: "/jobs" },
+                  { label: "Skill Bounties", href: "/bounties" },
+                ].map(l => (
+                  <li key={l.label}><a href={l.href} className="text-[#666] text-sm no-underline hover:text-white transition-colors">{l.label}</a></li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Company column */}
+            <div>
+              <p className="text-[#3CF91A] text-xs font-mono tracking-widest uppercase mb-5">Company</p>
+              <ul className="space-y-3 list-none p-0 m-0">
+                {[
+                  { label: "About", href: "/#team" },
+                  { label: "The Team", href: "/#team" },
+                  { label: "FYP Project", href: "https://github.com/Hannankhan00" },
+                  { label: "Contact", href: "mailto:skillspill@gmail.com" },
+                ].map(l => (
+                  <li key={l.label}><a href={l.href} className="text-[#666] text-sm no-underline hover:text-white transition-colors">{l.label}</a></li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Status column */}
+            <div>
+              <p className="text-[#3CF91A] text-xs font-mono tracking-widest uppercase mb-5">System</p>
+              <ul className="space-y-3 list-none p-0 m-0">
+                {[
+                  { label: "Status Page", href: "/status" },
+                  { label: "Privacy Policy", href: "/privacy" },
+                  { label: "Terms of Service", href: "/terms" },
+                ].map(l => (
+                  <li key={l.label}><a href={l.href} className="text-[#666] text-sm no-underline hover:text-white transition-colors">{l.label}</a></li>
+                ))}
+              </ul>
+              <div className="mt-6 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#3CF91A]/10 border border-[#3CF91A]/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#3CF91A] animate-pulse" />
+                <span className="text-[#3CF91A] text-xs font-mono">All systems up</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-white/5 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-[#444] text-xs" style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }}>
+              © 2026 SKILLSPILL INC. — BUILT AS A FINAL YEAR PROJECT, UNIVERSITY OF GUJRAT
+            </p>
+            <p className="text-[#333] text-xs" style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }}>
+              v1.0.0
+            </p>
+          </div>
+
         </div>
-        <div className="flex justify-center gap-3 mb-8">
-          {[<IconShare key="s" />, <IconSettings key="st" />, <IconTerminal key="t" />].map((icon, i) => (
-            <button key={i} onClick={ripple} className="bg-white/5 border border-white/10 w-10 h-10 rounded-full text-[#888] flex items-center justify-center cursor-pointer hover:bg-[#3CF91A] hover:text-black hover:border-[#3CF91A] hover:shadow-neon-green transition-all">{icon}</button>
-          ))}
-        </div>
-        <div className="flex justify-center mb-4"><img src="/assets/logo 2.png" alt="SkillSpill" className="h-8 opacity-40" /></div>
-        <p className="text-[#555] text-xs" style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }}>© 2026 SKILLSPILL INC.</p>
       </footer>
     </div>
   );
