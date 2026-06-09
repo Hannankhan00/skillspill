@@ -484,7 +484,7 @@ export default function Home() {
         <div className="max-w-[1200px] mx-auto">
 
           {/* Top grid */}
-          <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr] gap-12 mb-14">
+          <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr] gap-12 mb-14">
 
             {/* Brand column */}
             <div>
@@ -504,31 +504,13 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Platform column */}
-            <div>
-              <p className="text-[#3CF91A] text-xs font-mono tracking-widest uppercase mb-5">Platform</p>
-              <ul className="space-y-3 list-none p-0 m-0">
-                {[
-                  { label: "For Talent", href: "/register?role=talent" },
-                  { label: "For Recruiters", href: "/register?role=recruiter" },
-                  { label: "AI Matching", href: "/#how" },
-                  { label: "Browse Jobs", href: "/jobs" },
-                  { label: "Skill Bounties", href: "/bounties" },
-                ].map(l => (
-                  <li key={l.label}><a href={l.href} className="text-[#666] text-sm no-underline hover:text-white transition-colors">{l.label}</a></li>
-                ))}
-              </ul>
-            </div>
-
             {/* Company column */}
             <div>
               <p className="text-[#3CF91A] text-xs font-mono tracking-widest uppercase mb-5">Company</p>
               <ul className="space-y-3 list-none p-0 m-0">
                 {[
-                  { label: "About", href: "/#team" },
-                  { label: "The Team", href: "/#team" },
-                  { label: "FYP Project", href: "https://github.com/Hannankhan00" },
-                  { label: "Contact", href: "mailto:skillspill@gmail.com" },
+                  { label: "About", href: "#hero" },
+                  { label: "The Team", href: "#team" },
                 ].map(l => (
                   <li key={l.label}><a href={l.href} className="text-[#666] text-sm no-underline hover:text-white transition-colors">{l.label}</a></li>
                 ))}
