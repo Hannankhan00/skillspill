@@ -60,6 +60,9 @@ interface User { id: string; email: string; username: string | null; fullName: s
 interface Pagination { total: number; page: number; limit: number; totalPages: number; }
 interface AppealUser { id: string; email: string; username: string | null; fullName: string; role: string; isActive: boolean; avatarUrl: string | null; createdAt: string; }
 interface Appeal { id: string; userId: string; reason: string; status: "PENDING" | "APPROVED" | "REJECTED"; adminResponse: string | null; reviewedAt: string | null; createdAt: string; updatedAt: string; user: AppealUser; }
+interface SystemService { id: string; name: string; status: string; uptime: number; latency: number; updatedAt: string; }
+interface IncidentUpdate { id: string; message: string; status: string; createdAt: string; }
+interface StatusIncident { id: string; title: string; description: string; severity: string; status: string; affectedServices: string | null; resolvedAt: string | null; createdAt: string; updatedAt: string; updates: IncidentUpdate[]; }
 
 /* ═══════════════════════════════════════════
    ROLE BADGE
@@ -119,7 +122,7 @@ function ProgressBar({ value, color, label, metric }: { value: number; color: st
    ═══════════════════════════════════════════ */
 export default function AdminPage() {
     const _router = useRouter();
-    const [activeTab, setActiveTab] = useState<"dashboard" | "users" | "appeals" | "reports">("dashboard");
+    const [activeTab, setActiveTab] = useState<"dashboard" | "users" | "appeals" | "reports" | "health">("dashboard");
     const [users, setUsers] = useState<User[]>([]);
     const [pagination, setPagination] = useState<Pagination>({ total: 0, page: 1, limit: 20, totalPages: 0 });
     const [usersLoading, setUsersLoading] = useState(false);
@@ -152,6 +155,20 @@ export default function AdminPage() {
     // Admin Profile State for Avatar
     const [adminProfile, setAdminProfile] = useState<{ fullName: string, avatarUrl: string } | null>(null);
     const [avatarUploading, setAvatarUploading] = useState(false);
+
+    // System Health state
+    const [services, setServices] = useState<SystemService[]>([]);
+    const [incidents, setIncidents] = useState<StatusIncident[]>([]);
+    const [healthLoading, setHealthLoading] = useState(false);
+    const [editServiceId, setEditServiceId] = useState<string | null>(null);
+    const [editServiceData, setEditServiceData] = useState<{ status: string; uptime: string; latency: string }>({ status: "operational", uptime: "100", latency: "0" });
+    const [serviceUpdateLoading, setServiceUpdateLoading] = useState(false);
+    const [showNewIncident, setShowNewIncident] = useState(false);
+    const [newIncident, setNewIncident] = useState({ title: "", description: "", severity: "minor", affectedServices: [] as string[] });
+    const [incidentLoading, setIncidentLoading] = useState(false);
+    const [editIncidentId, setEditIncidentId] = useState<string | null>(null);
+    const [incidentUpdate, setIncidentUpdate] = useState({ status: "investigating", message: "" });
+    const [incidentUpdateLoading, setIncidentUpdateLoading] = useState(false);
 
     // Refs so fetchUsers is stable and never goes stale
     const roleFilterRef = useRef(roleFilter);
@@ -196,6 +213,74 @@ export default function AdminPage() {
         } catch { console.error("Failed to fetch reports"); }
         finally { setReportsLoading(false); }
     }, []);
+
+    const fetchHealth = useCallback(async () => {
+        setHealthLoading(true);
+        try {
+            const [sRes, iRes] = await Promise.all([
+                fetch("/api/admin/status/services"),
+                fetch("/api/admin/status/incidents"),
+            ]);
+            const sData = await sRes.json();
+            const iData = await iRes.json();
+            if (sRes.ok) setServices(sData.services);
+            if (iRes.ok) setIncidents(iData.incidents);
+        } catch { console.error("Failed to fetch health"); }
+        finally { setHealthLoading(false); }
+    }, []);
+
+    const handleServiceUpdate = async () => {
+        if (!editServiceId) return;
+        setServiceUpdateLoading(true);
+        try {
+            const res = await fetch("/api/admin/status/services", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: editServiceId, ...editServiceData }),
+            });
+            if (res.ok) { setEditServiceId(null); fetchHealth(); }
+        } catch {} finally { setServiceUpdateLoading(false); }
+    };
+
+    const handleCreateIncident = async () => {
+        if (!newIncident.title || !newIncident.description) return;
+        setIncidentLoading(true);
+        try {
+            const res = await fetch("/api/admin/status/incidents", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(newIncident),
+            });
+            if (res.ok) {
+                setShowNewIncident(false);
+                setNewIncident({ title: "", description: "", severity: "minor", affectedServices: [] });
+                fetchHealth();
+            }
+        } catch {} finally { setIncidentLoading(false); }
+    };
+
+    const handleIncidentUpdate = async () => {
+        if (!editIncidentId || !incidentUpdate.message) return;
+        setIncidentUpdateLoading(true);
+        try {
+            const res = await fetch(`/api/admin/status/incidents/${editIncidentId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: incidentUpdate.status, updateMessage: incidentUpdate.message }),
+            });
+            if (res.ok) {
+                setEditIncidentId(null);
+                setIncidentUpdate({ status: "investigating", message: "" });
+                fetchHealth();
+            }
+        } catch {} finally { setIncidentUpdateLoading(false); }
+    };
+
+    const handleDeleteIncident = async (id: string) => {
+        if (!confirm("Delete this incident?")) return;
+        await fetch(`/api/admin/status/incidents/${id}`, { method: "DELETE" });
+        fetchHealth();
+    };
 
     const handlePreviewPost = async (reportId: string, postId: string) => {
         setPreviewReportId(reportId);
@@ -245,6 +330,7 @@ export default function AdminPage() {
     useEffect(() => { if (activeTab === "users" || activeTab === "dashboard") fetchUsers(); }, [activeTab, fetchUsers]);
     useEffect(() => { if (activeTab === "appeals") fetchAppeals(); }, [activeTab, fetchAppeals]);
     useEffect(() => { if (activeTab === "reports") fetchReports(); }, [activeTab, fetchReports]);
+    useEffect(() => { if (activeTab === "health") fetchHealth(); }, [activeTab, fetchHealth]);
     useEffect(() => {
         fetch("/api/user/profile").then(r => r.json()).then(d => {
             if (d.user) setAdminProfile({ fullName: d.user.fullName, avatarUrl: d.user.avatarUrl || "" });
@@ -360,14 +446,10 @@ export default function AdminPage() {
         { key: "users" as const, icon: I.users(), label: "User Management" },
         { key: "appeals" as const, icon: I.gavel(), label: "Appeals" },
         { key: "reports" as const, icon: I.shield(), label: "Reports" },
+        { key: "health" as const, icon: I.server(), label: "System Health" },
     ];
 
     const timeLabels = ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00", "23:59"];
-    const logLines = [
-        { type: "OK", color: T.talent, text: "Node-04 synced with global cluster." },
-        { type: "INFO", color: T.admin, text: "Session refresh executed for admin." },
-        { type: "WARN", color: "#F59E0B", text: `Unauthorized API attempt from 192.168.42.x` },
-    ];
 
     return (
         <div className="h-screen w-screen flex bg-(--theme-bg) overflow-hidden">
@@ -419,17 +501,7 @@ export default function AdminPage() {
                             {item.icon}<span>{item.label}</span>
                         </button>
                     ))}
-                    <button className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] font-medium border-none cursor-default w-full text-left"
-                        style={{ ...sans, background: "transparent", color: T.textSecondary }}>
-                        {I.server()}<span>System Health</span>
-                    </button>
                 </nav>
-
-                {/* System Uptime */}
-                <div className="px-5 pb-3">
-                    <div className="text-[9px] uppercase tracking-[1.5px] mb-1" style={{ color: T.textSecondary, ...mono }}>System Uptime</div>
-                    <div className="text-xl font-bold" style={{ color: T.admin, ...mono }}>99.998%</div>
-                </div>
 
                 {/* Terminate */}
                 <div className="px-3 pb-4">
@@ -447,10 +519,10 @@ export default function AdminPage() {
                 <div className="flex items-center justify-between px-6 md:px-8 py-5 border-b" style={{ borderColor: T.cardBorder }}>
                     <div>
                         <h1 className="text-xl font-bold" style={{ color: T.textPrimary, ...sans }}>
-                            {activeTab === "dashboard" ? "Executive Dashboard" : activeTab === "users" ? "User Management" : activeTab === "appeals" ? "Appeal Management" : "Network Reports"}
+                            {activeTab === "dashboard" ? "Executive Dashboard" : activeTab === "users" ? "User Management" : activeTab === "appeals" ? "Appeal Management" : activeTab === "health" ? "System Health" : "Network Reports"}
                         </h1>
                         <p className="text-[12px] mt-0.5" style={{ color: T.textSecondary, ...sans }}>
-                            {activeTab === "dashboard" ? "Real-time platform vitality and administrative control." : activeTab === "users" ? "Browse, search, and manage user accounts." : activeTab === "appeals" ? "Review and manage user account appeals." : "View incoming reports of posts and users."}
+                            {activeTab === "dashboard" ? "Real-time platform vitality and administrative control." : activeTab === "users" ? "Browse, search, and manage user accounts." : activeTab === "appeals" ? "Review and manage user account appeals." : activeTab === "health" ? "Monitor services and manage outage incidents." : "View incoming reports of posts and users."}
                         </p>
                     </div>
                     <div className="hidden sm:flex items-center gap-2">
@@ -573,24 +645,40 @@ export default function AdminPage() {
 
                                 {/* System Health (2 cols) */}
                                 <div className="lg:col-span-2 rounded-xl" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
-                                    <div className="px-5 py-4 border-b" style={{ borderColor: T.cardBorder }}>
+                                    <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: T.cardBorder }}>
                                         <h3 className="text-sm font-bold flex items-center gap-2" style={{ color: T.textPrimary, ...sans }}>{I.server()} System Health</h3>
+                                        <a href="/status" target="_blank" className="text-[10px] font-bold uppercase tracking-wider no-underline" style={{ color: T.admin, ...mono }}>Public Page ↗</a>
                                     </div>
-                                    <div className="p-5 flex flex-col gap-4">
-                                        <ProgressBar label="Mainframe Load" value={24} color={T.admin} metric="24%" />
-                                        <ProgressBar label="Database Latency" value={8} color={T.talent} metric="12ms" />
-                                        <ProgressBar label="Storage API" value={68} color={T.recruiter} metric="68%" />
+                                    <div className="divide-y" style={{ borderColor: `${T.cardBorder}` }}>
+                                        {services.length === 0 ? (
+                                            <div className="p-5 text-[12px] text-center" style={{ color: T.textSecondary }}>
+                                                {healthLoading ? "Loading..." : <button onClick={fetchHealth} className="cursor-pointer border-none bg-transparent underline" style={{ color: T.admin, ...mono }}>Load</button>}
+                                            </div>
+                                        ) : services.map((s) => {
+                                            const sc = s.status === "operational" ? T.talent : s.status === "degraded" ? "#F59E0B" : T.danger;
+                                            return (
+                                                <div key={s.id} className="flex items-center justify-between px-5 py-3">
+                                                    <span className="text-[12px] font-medium" style={{ color: T.textPrimary, ...sans }}>{s.name}</span>
+                                                    <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider" style={{ background: `${sc}15`, color: sc, border: `1px solid ${sc}25`, ...mono }}>{s.status}</span>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
-                                    <div className="px-5 pb-5">
-                                        <div className="text-[9px] uppercase tracking-[1.5px] font-bold mb-2.5" style={{ color: T.textSecondary, ...mono }}>Live Log Stream</div>
-                                        <div className="flex flex-col gap-1.5 rounded-lg p-3" style={{ background: T.sidebar }}>
-                                            {logLines.map((l, i) => (
-                                                <div key={i} className="text-[10px] leading-relaxed" style={{ ...mono }}>
-                                                    <span className="font-bold" style={{ color: l.color }}>[{l.type}]</span>{" "}
-                                                    <span style={{ color: T.textSecondary }}>{l.text}</span>
+                                    {incidents.filter(i => i.status !== "resolved").length > 0 && (
+                                        <div className="px-5 py-3 border-t" style={{ borderColor: T.cardBorder }}>
+                                            <div className="text-[9px] uppercase tracking-[1.5px] font-bold mb-2" style={{ color: T.danger, ...mono }}>Active Incidents</div>
+                                            {incidents.filter(i => i.status !== "resolved").slice(0, 2).map(i => (
+                                                <div key={i.id} className="flex items-center gap-2 py-1">
+                                                    <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: T.danger }} />
+                                                    <span className="text-[11px] truncate" style={{ color: T.textSecondary, ...mono }}>{i.title}</span>
                                                 </div>
                                             ))}
                                         </div>
+                                    )}
+                                    <div className="px-5 py-3 border-t" style={{ borderColor: T.cardBorder }}>
+                                        <button onClick={() => setActiveTab("health")} className="text-[10px] font-bold uppercase tracking-wider cursor-pointer border-none bg-transparent" style={{ color: T.admin, ...mono }}>
+                                            Manage Health →
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -796,6 +884,246 @@ export default function AdminPage() {
                                         </div>
                                     </div>
                                 )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ══════════ HEALTH TAB ══════════ */}
+                    {activeTab === "health" && (
+                        <div className="flex flex-col gap-5">
+
+                            {/* Services */}
+                            <div className="rounded-xl overflow-hidden" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
+                                <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: T.cardBorder }}>
+                                    <h3 className="text-sm font-bold flex items-center gap-2" style={{ color: T.textPrimary, ...sans }}>{I.server()} Services</h3>
+                                    <a href="/status" target="_blank" className="text-[10px] font-bold no-underline px-3 py-1.5 rounded-lg" style={{ background: `${T.admin}15`, color: T.admin, border: `1px solid ${T.admin}25`, ...mono }}>View Public Page ↗</a>
+                                </div>
+                                {healthLoading ? (
+                                    <div className="text-center py-10 text-sm" style={{ color: T.textSecondary }}><span className="inline-block w-4 h-4 border-2 rounded-full animate-spin mr-2 align-middle" style={{ borderColor: `${T.admin}30`, borderTopColor: T.admin }} />Loading...</div>
+                                ) : (
+                                    <table className="w-full text-left">
+                                        <thead><tr style={{ borderBottom: `1px solid ${T.cardBorder}` }}>
+                                            {["Service", "Status", "Uptime", "Latency", "Updated", "Actions"].map((h, i) => (
+                                                <th key={h} className={`text-[10px] uppercase tracking-[1.5px] font-bold py-3.5 px-5 ${i >= 2 && i < 4 ? "hidden md:table-cell" : ""} ${i === 5 ? "text-right" : ""}`} style={{ color: T.textSecondary, ...mono }}>{h}</th>
+                                            ))}
+                                        </tr></thead>
+                                        <tbody>
+                                            {services.map((s) => {
+                                                const sc = s.status === "operational" ? T.talent : s.status === "degraded" ? "#F59E0B" : T.danger;
+                                                return (
+                                                    <tr key={s.id} className="group transition-all" style={{ borderBottom: `1px solid ${T.cardBorder}20` }}>
+                                                        <td className="py-3.5 px-5 group-hover:bg-white/[0.02]"><span className="text-[13px] font-medium" style={{ color: T.textPrimary, ...sans }}>{s.name}</span></td>
+                                                        <td className="py-3.5 px-5 group-hover:bg-white/[0.02]">
+                                                            <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider inline-flex items-center gap-1.5" style={{ background: `${sc}15`, color: sc, border: `1px solid ${sc}25`, ...mono }}>
+                                                                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: sc }} />{s.status}
+                                                            </span>
+                                                        </td>
+                                                        <td className="py-3.5 px-5 hidden md:table-cell group-hover:bg-white/[0.02]"><span className="text-[12px]" style={{ color: T.textSecondary, ...mono }}>{s.uptime.toFixed(2)}%</span></td>
+                                                        <td className="py-3.5 px-5 hidden md:table-cell group-hover:bg-white/[0.02]"><span className="text-[12px]" style={{ color: T.textSecondary, ...mono }}>{s.latency > 0 ? `${s.latency}ms` : "—"}</span></td>
+                                                        <td className="py-3.5 px-5 group-hover:bg-white/[0.02]"><span className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>{new Date(s.updatedAt).toLocaleDateString()}</span></td>
+                                                        <td className="py-3.5 px-5 text-right group-hover:bg-white/[0.02]">
+                                                            <button onClick={() => { setEditServiceId(s.id); setEditServiceData({ status: s.status, uptime: String(s.uptime), latency: String(s.latency) }); }}
+                                                                className="px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider border cursor-pointer transition-all"
+                                                                style={{ background: `${T.admin}15`, borderColor: `${T.admin}30`, color: T.admin, ...mono }}>Edit</button>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                )}
+                            </div>
+
+                            {/* Incidents */}
+                            <div className="rounded-xl overflow-hidden" style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
+                                <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: T.cardBorder }}>
+                                    <h3 className="text-sm font-bold flex items-center gap-2" style={{ color: T.textPrimary, ...sans }}>{I.shield()} Incidents</h3>
+                                    <button onClick={() => setShowNewIncident(true)} className="px-3.5 py-2 rounded-lg text-[11px] font-bold border-none cursor-pointer" style={{ background: T.danger, color: "#fff", ...mono }}>
+                                        + Post Outage
+                                    </button>
+                                </div>
+                                {incidents.length === 0 && !healthLoading ? (
+                                    <div className="text-center py-12 text-sm" style={{ color: T.textSecondary }}>No incidents reported</div>
+                                ) : (
+                                    <div className="divide-y" style={{ borderColor: `${T.cardBorder}20` }}>
+                                        {incidents.map((inc) => {
+                                            const sevC = inc.severity === "critical" ? T.danger : inc.severity === "major" ? "#F97316" : "#F59E0B";
+                                            const stC = inc.status === "resolved" ? T.talent : inc.status === "monitoring" ? T.admin : inc.status === "identified" ? "#F97316" : "#F59E0B";
+                                            return (
+                                                <div key={inc.id} className="px-5 py-4 hover:bg-white/[0.02] transition-all">
+                                                    <div className="flex items-start justify-between gap-3">
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                                                <span className="text-[13px] font-semibold" style={{ color: T.textPrimary, ...sans }}>{inc.title}</span>
+                                                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase" style={{ background: `${sevC}15`, color: sevC, border: `1px solid ${sevC}25`, ...mono }}>{inc.severity}</span>
+                                                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase" style={{ background: `${stC}15`, color: stC, border: `1px solid ${stC}25`, ...mono }}>{inc.status}</span>
+                                                            </div>
+                                                            <p className="text-[11px] mb-2 line-clamp-2" style={{ color: T.textSecondary }}>{inc.description}</p>
+                                                            {inc.affectedServices && (
+                                                                <div className="text-[10px] mb-2" style={{ color: T.textSecondary, ...mono }}>
+                                                                    Affected: {(JSON.parse(inc.affectedServices) as string[]).join(", ")}
+                                                                </div>
+                                                            )}
+                                                            <div className="text-[10px]" style={{ color: T.textSecondary, ...mono }}>
+                                                                {new Date(inc.createdAt).toLocaleString()} · {inc.updates.length} update(s)
+                                                                {inc.resolvedAt && ` · Resolved ${new Date(inc.resolvedAt).toLocaleString()}`}
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex gap-2 shrink-0">
+                                                            {inc.status !== "resolved" && (
+                                                                <button onClick={() => { setEditIncidentId(inc.id); setIncidentUpdate({ status: inc.status, message: "" }); }}
+                                                                    className="px-2.5 py-1.5 rounded-md text-[10px] font-bold border cursor-pointer"
+                                                                    style={{ background: `${T.admin}15`, borderColor: `${T.admin}30`, color: T.admin, ...mono }}>Update</button>
+                                                            )}
+                                                            <button onClick={() => handleDeleteIncident(inc.id)}
+                                                                className="px-2.5 py-1.5 rounded-md text-[10px] font-bold border cursor-pointer"
+                                                                style={{ background: `${T.danger}15`, borderColor: `${T.danger}30`, color: T.danger, ...mono }}>Delete</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ══════════ NEW INCIDENT MODAL ══════════ */}
+                    {showNewIncident && (
+                        <div className="fixed inset-0 z-100 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
+                            <div className="w-full max-w-lg rounded-2xl overflow-hidden" style={{ background: T.card, border: `1px solid ${T.danger}30`, boxShadow: `0 0 60px ${T.danger}10` }}>
+                                <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: T.cardBorder }}>
+                                    <h2 className="text-base font-bold flex items-center gap-2" style={{ color: T.textPrimary, ...sans }}>{I.shield()} Post Outage / Incident</h2>
+                                    <button onClick={() => setShowNewIncident(false)} className="w-8 h-8 rounded-lg flex items-center justify-center border-none cursor-pointer hover:bg-white/10" style={{ color: T.textSecondary, background: "transparent" }}>{I.x()}</button>
+                                </div>
+                                <div className="p-6 flex flex-col gap-4">
+                                    <div>
+                                        <div className="text-[10px] uppercase tracking-[1.5px] font-bold mb-1.5" style={{ color: T.textSecondary, ...mono }}>Title <span style={{ color: T.danger }}>*</span></div>
+                                        <input value={newIncident.title} onChange={e => setNewIncident(p => ({ ...p, title: e.target.value }))}
+                                            placeholder="e.g. Database connection issues"
+                                            className="w-full px-4 py-2.5 rounded-xl text-sm outline-none" style={{ background: T.bg, color: T.textPrimary, border: `1px solid ${T.cardBorder}`, ...sans }} />
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] uppercase tracking-[1.5px] font-bold mb-1.5" style={{ color: T.textSecondary, ...mono }}>Description <span style={{ color: T.danger }}>*</span></div>
+                                        <textarea value={newIncident.description} onChange={e => setNewIncident(p => ({ ...p, description: e.target.value }))}
+                                            placeholder="Describe the issue and initial findings..."
+                                            rows={3} className="w-full px-4 py-2.5 rounded-xl text-sm outline-none resize-none" style={{ background: T.bg, color: T.textPrimary, border: `1px solid ${T.cardBorder}`, ...sans }} />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <div className="text-[10px] uppercase tracking-[1.5px] font-bold mb-1.5" style={{ color: T.textSecondary, ...mono }}>Severity</div>
+                                            <select value={newIncident.severity} onChange={e => setNewIncident(p => ({ ...p, severity: e.target.value }))}
+                                                className="w-full px-4 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer" style={{ background: T.bg, color: T.textPrimary, border: `1px solid ${T.cardBorder}`, ...mono }}>
+                                                <option value="minor">Minor</option>
+                                                <option value="major">Major</option>
+                                                <option value="critical">Critical</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <div className="text-[10px] uppercase tracking-[1.5px] font-bold mb-1.5" style={{ color: T.textSecondary, ...mono }}>Affected Services</div>
+                                            <div className="flex flex-col gap-1 max-h-[100px] overflow-y-auto">
+                                                {services.map(s => (
+                                                    <label key={s.id} className="flex items-center gap-2 cursor-pointer text-[11px]" style={{ color: T.textSecondary }}>
+                                                        <input type="checkbox" checked={newIncident.affectedServices.includes(s.name)}
+                                                            onChange={e => setNewIncident(p => ({ ...p, affectedServices: e.target.checked ? [...p.affectedServices, s.name] : p.affectedServices.filter(x => x !== s.name) }))}
+                                                            className="accent-cyan-400" />
+                                                        {s.name}
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-3 pt-2">
+                                        <button onClick={() => setShowNewIncident(false)} className="flex-1 py-3 rounded-xl text-[12px] font-bold border cursor-pointer" style={{ background: "transparent", borderColor: T.cardBorder, color: T.textSecondary, ...mono }}>Cancel</button>
+                                        <button onClick={handleCreateIncident} disabled={incidentLoading || !newIncident.title || !newIncident.description}
+                                            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[12px] font-bold border-none cursor-pointer transition-all disabled:opacity-40"
+                                            style={{ background: T.danger, color: "#fff", ...mono }}>
+                                            {incidentLoading ? <span className="inline-block w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: "#ffffff30", borderTopColor: "#fff" }} /> : I.shield()} Post Incident
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ══════════ UPDATE INCIDENT MODAL ══════════ */}
+                    {editIncidentId && (
+                        <div className="fixed inset-0 z-100 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
+                            <div className="w-full max-w-md rounded-2xl overflow-hidden" style={{ background: T.card, border: `1px solid ${T.admin}30`, boxShadow: `0 0 60px ${T.admin}10` }}>
+                                <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: T.cardBorder }}>
+                                    <h2 className="text-base font-bold" style={{ color: T.textPrimary, ...sans }}>Update Incident</h2>
+                                    <button onClick={() => setEditIncidentId(null)} className="w-8 h-8 rounded-lg flex items-center justify-center border-none cursor-pointer hover:bg-white/10" style={{ color: T.textSecondary, background: "transparent" }}>{I.x()}</button>
+                                </div>
+                                <div className="p-6 flex flex-col gap-4">
+                                    <div>
+                                        <div className="text-[10px] uppercase tracking-[1.5px] font-bold mb-1.5" style={{ color: T.textSecondary, ...mono }}>New Status</div>
+                                        <select value={incidentUpdate.status} onChange={e => setIncidentUpdate(p => ({ ...p, status: e.target.value }))}
+                                            className="w-full px-4 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer" style={{ background: T.bg, color: T.textPrimary, border: `1px solid ${T.cardBorder}`, ...mono }}>
+                                            <option value="investigating">Investigating</option>
+                                            <option value="identified">Identified</option>
+                                            <option value="monitoring">Monitoring</option>
+                                            <option value="resolved">Resolved</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] uppercase tracking-[1.5px] font-bold mb-1.5" style={{ color: T.textSecondary, ...mono }}>Update Message <span style={{ color: T.danger }}>*</span></div>
+                                        <textarea value={incidentUpdate.message} onChange={e => setIncidentUpdate(p => ({ ...p, message: e.target.value }))}
+                                            placeholder="Describe what has changed or what was found..."
+                                            rows={4} className="w-full px-4 py-2.5 rounded-xl text-sm outline-none resize-none" style={{ background: T.bg, color: T.textPrimary, border: `1px solid ${T.cardBorder}`, ...sans }} />
+                                    </div>
+                                    <div className="flex gap-3 pt-2">
+                                        <button onClick={() => setEditIncidentId(null)} className="flex-1 py-3 rounded-xl text-[12px] font-bold border cursor-pointer" style={{ background: "transparent", borderColor: T.cardBorder, color: T.textSecondary, ...mono }}>Cancel</button>
+                                        <button onClick={handleIncidentUpdate} disabled={incidentUpdateLoading || !incidentUpdate.message}
+                                            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[12px] font-bold border-none cursor-pointer disabled:opacity-40"
+                                            style={{ background: T.admin, color: "#0a1415", ...mono }}>
+                                            {incidentUpdateLoading ? <span className="inline-block w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: "#0a141530", borderTopColor: "#0a1415" }} /> : I.check()} Post Update
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ══════════ EDIT SERVICE MODAL ══════════ */}
+                    {editServiceId && (
+                        <div className="fixed inset-0 z-100 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
+                            <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: T.card, border: `1px solid ${T.admin}30`, boxShadow: `0 0 60px ${T.admin}10` }}>
+                                <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: T.cardBorder }}>
+                                    <h2 className="text-base font-bold" style={{ color: T.textPrimary, ...sans }}>Edit Service — {services.find(s => s.id === editServiceId)?.name}</h2>
+                                    <button onClick={() => setEditServiceId(null)} className="w-8 h-8 rounded-lg flex items-center justify-center border-none cursor-pointer hover:bg-white/10" style={{ color: T.textSecondary, background: "transparent" }}>{I.x()}</button>
+                                </div>
+                                <div className="p-6 flex flex-col gap-4">
+                                    <div>
+                                        <div className="text-[10px] uppercase tracking-[1.5px] font-bold mb-1.5" style={{ color: T.textSecondary, ...mono }}>Status</div>
+                                        <select value={editServiceData.status} onChange={e => setEditServiceData(p => ({ ...p, status: e.target.value }))}
+                                            className="w-full px-4 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer" style={{ background: T.bg, color: T.textPrimary, border: `1px solid ${T.cardBorder}`, ...mono }}>
+                                            <option value="operational">Operational</option>
+                                            <option value="degraded">Degraded</option>
+                                            <option value="outage">Outage</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] uppercase tracking-[1.5px] font-bold mb-1.5" style={{ color: T.textSecondary, ...mono }}>Uptime %</div>
+                                        <input type="number" min="0" max="100" step="0.01" value={editServiceData.uptime}
+                                            onChange={e => setEditServiceData(p => ({ ...p, uptime: e.target.value }))}
+                                            className="w-full px-4 py-2.5 rounded-xl text-sm outline-none" style={{ background: T.bg, color: T.textPrimary, border: `1px solid ${T.cardBorder}`, ...mono }} />
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] uppercase tracking-[1.5px] font-bold mb-1.5" style={{ color: T.textSecondary, ...mono }}>Latency (ms)</div>
+                                        <input type="number" min="0" value={editServiceData.latency}
+                                            onChange={e => setEditServiceData(p => ({ ...p, latency: e.target.value }))}
+                                            className="w-full px-4 py-2.5 rounded-xl text-sm outline-none" style={{ background: T.bg, color: T.textPrimary, border: `1px solid ${T.cardBorder}`, ...mono }} />
+                                    </div>
+                                    <div className="flex gap-3 pt-2">
+                                        <button onClick={() => setEditServiceId(null)} className="flex-1 py-3 rounded-xl text-[12px] font-bold border cursor-pointer" style={{ background: "transparent", borderColor: T.cardBorder, color: T.textSecondary, ...mono }}>Cancel</button>
+                                        <button onClick={handleServiceUpdate} disabled={serviceUpdateLoading}
+                                            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[12px] font-bold border-none cursor-pointer disabled:opacity-40"
+                                            style={{ background: T.admin, color: "#0a1415", ...mono }}>
+                                            {serviceUpdateLoading ? <span className="inline-block w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: "#0a141530", borderTopColor: "#0a1415" }} /> : I.check()} Save
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}

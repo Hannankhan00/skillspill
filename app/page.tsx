@@ -399,7 +399,7 @@ export default function Home() {
         <div className="flex flex-col md:flex-row justify-center gap-4 md:gap-8 mb-8">
           <a href="/privacy" className="text-[#555] no-underline text-xs hover:text-[#3CF91A] transition-colors">PRIVACY POLICY</a>
           <a href="/terms" className="text-[#555] no-underline text-xs hover:text-[#3CF91A] transition-colors">TERMS OF SERVICE</a>
-          <a href="#" className="text-[#555] no-underline text-xs hover:text-[#3CF91A] transition-colors">SYSTEM STATUS</a>
+          <a href="/status" className="text-[#555] no-underline text-xs hover:text-[#3CF91A] transition-colors">SYSTEM STATUS</a>
         </div>
         <div className="flex justify-center gap-3 mb-8">
           {[<IconShare key="s" />, <IconSettings key="st" />, <IconTerminal key="t" />].map((icon, i) => (

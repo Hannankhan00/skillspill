@@ -605,6 +605,55 @@ model Message {
 // GITHUB REPOSITORIES (per-talent scored repos)
 // ─────────────────────────────────────────────
 
+// ─────────────────────────────────────────────
+// SYSTEM STATUS
+// ─────────────────────────────────────────────
+
+model SystemService {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  status    String   @default("operational") // operational, degraded, outage
+  uptime    Float    @default(100)
+  latency   Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@map("system_services")
+}
+
+model StatusIncident {
+  id               String    @id @default(cuid())
+  title            String
+  description      String    @db.Text
+  severity         String    @default("minor") // minor, major, critical
+  status           String    @default("investigating") // investigating, identified, monitoring, resolved
+  affectedServices String?   @db.Text // JSON array of service names
+  resolvedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  updates IncidentUpdate[]
+
+  @@index([status])
+  @@map("status_incidents")
+}
+
+model IncidentUpdate {
+  id         String   @id @default(cuid())
+  incidentId String
+  message    String   @db.Text
+  status     String
+  createdAt  DateTime @default(now())
+
+  incident StatusIncident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@index([incidentId])
+  @@map("incident_updates")
+}
+
+// ─────────────────────────────────────────────
+// GITHUB REPOSITORIES (per-talent scored repos)
+// ─────────────────────────────────────────────
+
 model GithubRepository {
   id              Int       @id @default(autoincrement())
   userId          String
