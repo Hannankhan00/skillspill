@@ -414,7 +414,7 @@ export default function Home() {
             <p className="text-[#888] text-base md:text-lg max-w-xl mx-auto">SkillSpill is crafted as a Final Year Project at the University of Gujrat.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {([
               {
                 name: "Hannan Khan",
