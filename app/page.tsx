@@ -438,24 +438,26 @@ export default function Home() {
                 className="group relative rounded-2xl border border-white/10 bg-white/[0.03] p-6 hover:border-[#3CF91A]/40 hover:bg-[#3CF91A]/[0.04] transition-all duration-300"
               >
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#3CF91A]/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                <div className="relative z-10 flex items-start gap-4">
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#3CF91A]/20 to-[#3CF91A]/5 border border-[#3CF91A]/30 flex items-center justify-center text-[#3CF91A] font-black text-lg shrink-0" style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }}>
-                    {member.initials}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-white font-bold text-lg mb-0.5">{member.name}</h3>
-                    <p className="text-[#3CF91A]/70 text-sm font-mono mb-4">{member.role}</p>
-                    <div className="flex gap-2">
-                      <a href={member.github} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[#888] text-xs hover:bg-white/10 hover:text-white hover:border-white/30 transition-all no-underline">
-                        <IconGithub /> GitHub
-                      </a>
-                      <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[#888] text-xs hover:bg-[#0A66C2]/20 hover:text-[#0A66C2] hover:border-[#0A66C2]/40 transition-all no-underline">
-                        <IconLinkedIn /> LinkedIn
-                      </a>
-                      <a href={member.portfolio} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[#888] text-xs hover:bg-[#3CF91A]/10 hover:text-[#3CF91A] hover:border-[#3CF91A]/30 transition-all no-underline">
-                        <IconGlobe /> Portfolio
-                      </a>
+                <div className="relative z-10">
+                  <div className="flex items-center gap-4 mb-5">
+                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#3CF91A]/20 to-[#3CF91A]/5 border border-[#3CF91A]/30 flex items-center justify-center text-[#3CF91A] font-black text-lg shrink-0" style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }}>
+                      {member.initials}
                     </div>
+                    <div>
+                      <h3 className="text-white font-bold text-lg mb-0.5">{member.name}</h3>
+                      <p className="text-[#3CF91A]/70 text-sm font-mono">{member.role}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 pt-4 border-t border-white/5">
+                    <a href={member.github} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[#888] text-xs hover:bg-white/10 hover:text-white hover:border-white/30 transition-all no-underline">
+                      <IconGithub /> GitHub
+                    </a>
+                    <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[#888] text-xs hover:bg-[#0A66C2]/20 hover:text-[#0A66C2] hover:border-[#0A66C2]/40 transition-all no-underline">
+                      <IconLinkedIn /> LinkedIn
+                    </a>
+                    <a href={member.portfolio} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[#888] text-xs hover:bg-[#3CF91A]/10 hover:text-[#3CF91A] hover:border-[#3CF91A]/30 transition-all no-underline">
+                      <IconGlobe /> Portfolio
+                    </a>
                   </div>
                 </div>
               </div>
