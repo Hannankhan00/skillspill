@@ -55,6 +55,15 @@ const IconMenu = () => (
 const IconX = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
 );
+const IconLinkedIn = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+);
+const IconGlobe = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+);
+const IconActivity = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+);
 
 /* ───────────── Particles ───────────── */
 interface Particle { x: number; y: number; vx: number; vy: number; size: number; opacity: number; }
@@ -393,6 +402,80 @@ export default function Home() {
           <AnimatedStat target={50} label="Skills Tracked" suffix="+" />
         </div>
       </section>
+
+      {/* ───── TEAM / CREDITS ───── */}
+      <section className="py-16 md:py-24 px-6" id="team">
+        <div className="max-w-[1200px] mx-auto">
+          <div className="text-center mb-14">
+            <span className="inline-flex items-center gap-2 text-[#3CF91A] text-xs font-mono tracking-widest uppercase mb-4 px-3 py-1.5 rounded-full border border-[#3CF91A]/30 bg-[#3CF91A]/5">
+              <IconSparkle /> Built By
+            </span>
+            <h2 className="text-3xl md:text-5xl font-black text-white mt-4 mb-4">The Team</h2>
+            <p className="text-[#888] text-base md:text-lg max-w-xl mx-auto">SkillSpill is crafted as a Final Year Project at the University of Gujrat.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+            {([
+              {
+                name: "Hannan Khan",
+                role: "Full-Stack Developer",
+                initials: "HK",
+                github: "https://github.com/8hannankhan",
+                linkedin: "https://linkedin.com/in/hannankhan",
+                portfolio: "https://hannankhan.dev",
+              },
+              {
+                name: "Khadija Mansoor",
+                role: "UI/UX & Frontend Developer",
+                initials: "KM",
+                github: "https://github.com/khadijamansoor",
+                linkedin: "https://linkedin.com/in/khadijamansoor",
+                portfolio: "https://khadijamansoor.dev",
+              },
+            ] as { name: string; role: string; initials: string; github: string; linkedin: string; portfolio: string }[]).map((member) => (
+              <div
+                key={member.name}
+                className="group relative rounded-2xl border border-white/10 bg-white/[0.03] p-6 hover:border-[#3CF91A]/40 hover:bg-[#3CF91A]/[0.04] transition-all duration-300"
+              >
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#3CF91A]/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                <div className="relative z-10 flex items-start gap-4">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#3CF91A]/20 to-[#3CF91A]/5 border border-[#3CF91A]/30 flex items-center justify-center text-[#3CF91A] font-black text-lg shrink-0" style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }}>
+                    {member.initials}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-white font-bold text-lg mb-0.5">{member.name}</h3>
+                    <p className="text-[#3CF91A]/70 text-sm font-mono mb-4">{member.role}</p>
+                    <div className="flex gap-2">
+                      <a href={member.github} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[#888] text-xs hover:bg-white/10 hover:text-white hover:border-white/30 transition-all no-underline">
+                        <IconGithub /> GitHub
+                      </a>
+                      <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[#888] text-xs hover:bg-[#0A66C2]/20 hover:text-[#0A66C2] hover:border-[#0A66C2]/40 transition-all no-underline">
+                        <IconLinkedIn /> LinkedIn
+                      </a>
+                      <a href={member.portfolio} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[#888] text-xs hover:bg-[#3CF91A]/10 hover:text-[#3CF91A] hover:border-[#3CF91A]/30 transition-all no-underline">
+                        <IconGlobe /> Portfolio
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ───── STATUS BANNER ───── */}
+      <div className="border-t border-b border-[#3CF91A]/10 bg-[#3CF91A]/[0.02] py-4 px-6">
+        <div className="max-w-[1200px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-sm text-[#888]">
+            <span className="inline-block w-2 h-2 rounded-full bg-[#3CF91A] shadow-[0_0_6px_#3CF91A] animate-pulse" />
+            All systems operational
+          </div>
+          <a href="/status" className="flex items-center gap-1.5 text-[#3CF91A] text-sm font-mono no-underline hover:underline transition-colors">
+            <IconActivity /> View System Status →
+          </a>
+        </div>
+      </div>
 
       {/* ───── FOOTER ───── */}
       <footer className="py-12 md:py-16 px-6 text-center" id="footer">
