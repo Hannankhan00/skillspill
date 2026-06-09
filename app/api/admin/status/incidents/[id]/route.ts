@@ -4,12 +4,12 @@ import { getSession } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const session = await getSession();
     if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
 
     const { status, updateMessage, severity, affectedServices } = await req.json();
-    const { id } = params;
+    const { id } = await params;
 
     const data: Record<string, unknown> = {};
     if (severity) data.severity = severity;
@@ -32,10 +32,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ incident });
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const session = await getSession();
     if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
 
-    await prisma.statusIncident.delete({ where: { id: params.id } });
+    const { id } = await params;
+    await prisma.statusIncident.delete({ where: { id } });
     return NextResponse.json({ ok: true });
 }
