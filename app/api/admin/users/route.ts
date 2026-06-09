@@ -18,9 +18,11 @@ export async function GET(req: NextRequest) {
         const role = searchParams.get("role") || undefined;
         const search = searchParams.get("search") || undefined;
 
-        const where: Record<string, unknown> = {};
+        const where: Record<string, unknown> = {
+            role: { not: "ADMIN" },
+        };
 
-        if (role && ["TALENT", "RECRUITER", "ADMIN"].includes(role)) {
+        if (role && ["TALENT", "RECRUITER"].includes(role)) {
             where.role = role;
         }
 
@@ -45,6 +47,7 @@ export async function GET(req: NextRequest) {
                     emailVerified: true,
                     lastLoginAt: true,
                     createdAt: true,
+                    avatarUrl: true,
                 },
                 orderBy: { createdAt: "desc" },
                 skip: (page - 1) * limit,

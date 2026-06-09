@@ -56,7 +56,7 @@ const I = {
 /* ═══════════════════════════════════════════
    TYPES
    ═══════════════════════════════════════════ */
-interface User { id: string; email: string; username: string | null; fullName: string; role: "TALENT" | "RECRUITER" | "ADMIN"; isActive: boolean; emailVerified: boolean; lastLoginAt: string | null; createdAt: string; }
+interface User { id: string; email: string; username: string | null; fullName: string; role: "TALENT" | "RECRUITER" | "ADMIN"; isActive: boolean; emailVerified: boolean; lastLoginAt: string | null; createdAt: string; avatarUrl: string | null; }
 interface Pagination { total: number; page: number; limit: number; totalPages: number; }
 interface AppealUser { id: string; email: string; username: string | null; fullName: string; role: string; isActive: boolean; avatarUrl: string | null; createdAt: string; }
 interface Appeal { id: string; userId: string; reason: string; status: "PENDING" | "APPROVED" | "REJECTED"; adminResponse: string | null; reviewedAt: string | null; createdAt: string; updatedAt: string; user: AppealUser; }
@@ -531,8 +531,8 @@ export default function AdminPage() {
                                         {users.slice(0, 4).map((u) => (
                                             <div key={u.id} className="flex items-center justify-between px-5 py-3.5 transition-all hover:bg-white/[0.02]">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-9 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold text-white" style={{ background: roleColor(u.role), ...mono }}>
-                                                        {u.fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+                                                    <div className="w-9 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold text-white overflow-hidden shrink-0" style={{ background: roleColor(u.role), ...mono }}>
+                                                        {u.avatarUrl ? <img src={u.avatarUrl} alt={u.fullName} className="w-full h-full object-cover" /> : u.fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
                                                     </div>
                                                     <div>
                                                         <div className="text-[13px] font-medium" style={{ color: T.textPrimary, ...sans }}>{u.fullName}</div>
@@ -605,7 +605,7 @@ export default function AdminPage() {
                                             <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} id="admin-role-filter"
                                                 className="appearance-none rounded-lg px-4 py-2.5 pr-8 text-sm cursor-pointer outline-none"
                                                 style={{ background: T.bg, border: `1px solid ${T.cardBorder}`, color: T.textPrimary, ...mono }}>
-                                                <option value="">All Roles</option><option value="ADMIN">Admin</option><option value="TALENT">Talent</option><option value="RECRUITER">Company</option>
+                                                <option value="">All Roles</option><option value="TALENT">Talent</option><option value="RECRUITER">Company</option>
                                             </select>
                                             <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: T.textSecondary }}>{I.chevDown()}</span>
                                         </div>
@@ -613,7 +613,7 @@ export default function AdminPage() {
                                     </div>
                                 </div>
                                 <div className="flex gap-2 mt-3 flex-wrap">
-                                    {[{ l: "All", v: "", c: T.admin }, { l: "Admin", v: "ADMIN", c: T.admin }, { l: "Talent", v: "TALENT", c: T.talent }, { l: "Company", v: "RECRUITER", c: T.recruiter }].map((tag) => (
+                                    {[{ l: "All", v: "", c: T.admin }, { l: "Talent", v: "TALENT", c: T.talent }, { l: "Company", v: "RECRUITER", c: T.recruiter }].map((tag) => (
                                         <button key={tag.v} onClick={() => { setRoleFilter(tag.v); setTimeout(() => fetchUsers(), 0); }}
                                             className="px-3 py-1.5 rounded-md text-[11px] font-bold border-none cursor-pointer transition-all"
                                             style={roleFilter === tag.v ? { background: tag.c, color: "#0a1415", ...mono } : { background: T.cardBorder, color: T.textSecondary, ...mono }}>{tag.l}</button>
@@ -633,8 +633,8 @@ export default function AdminPage() {
                                             <tr key={u.id} className="group transition-all" style={{ borderBottom: `1px solid ${T.cardBorder}20` }}>
                                                 <td className="py-3.5 px-5 group-hover:bg-white/[0.02]">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-9 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{ background: roleColor(u.role), ...mono }}>
-                                                            {u.fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+                                                        <div className="w-9 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold text-white shrink-0 overflow-hidden" style={{ background: roleColor(u.role), ...mono }}>
+                                                            {u.avatarUrl ? <img src={u.avatarUrl} alt={u.fullName} className="w-full h-full object-cover" /> : u.fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
                                                         </div>
                                                         <div>
                                                             <div className="text-[13px] font-medium" style={{ color: T.textPrimary, ...sans }}>{u.fullName}</div>
