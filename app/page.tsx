@@ -394,7 +394,7 @@ export default function Home() {
       </section>
 
       {/* ───── STATS ───── */}
-      <section className="py-16 md:py-24 px-6 border-t border-b border-[#3CF91A]/10 bg-[#3CF91A]/[0.02]" id="stats">
+      <section className="py-16 md:py-24 px-6 border-t border-[#3CF91A]/10 bg-[#3CF91A]/[0.02]" id="stats">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-[1200px] mx-auto text-center">
           <AnimatedStat target={talentCount} label="Verified Devs" suffix="+" />
           <AnimatedStat target={recruiterCount} label="Companies" suffix="+" />
