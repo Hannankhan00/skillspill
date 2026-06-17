@@ -273,9 +273,6 @@ export default function Home() {
           <p className="text-[#888] text-lg leading-relaxed">
             Stop sifting through keyword-stuffed resumes. Our AI analyzes actual GitHub repositories to build a verified skill matrix. Discover developers who can truly build, not just talk about it.
           </p>
-          <a href="/signup/recruiter" className="inline-flex items-center gap-2 bg-primary/10 text-primary border border-primary/30 px-6 py-3 rounded-lg font-bold hover:bg-primary hover:text-black hover:shadow-neon-green transition-all no-underline mt-4">
-            Search Developers <IconArrowRight />
-          </a>
         </div>
         <div className="flex-1 w-full relative">
           <div className="absolute inset-0 bg-primary/5 rounded-2xl blur-2xl top-4 -z-10" />
@@ -314,9 +311,6 @@ export default function Home() {
           <p className="text-[#888] text-lg leading-relaxed">
             No more applying into the void. Our AI matches you to roles where your verified GitHub skills are exactly what companies need. Let your code speak — get discovered by the right team.
           </p>
-          <a href="/signup/talent" className="inline-flex items-center gap-2 bg-[#A855F7]/10 text-[#A855F7] border border-[#A855F7]/30 px-6 py-3 rounded-lg font-bold hover:bg-[#A855F7] hover:text-white hover:shadow-neon-purple transition-all no-underline mt-4 cursor-pointer">
-            Explore Matched Jobs <IconArrowRight />
-          </a>
         </div>
         <div className="flex-1 w-full relative">
           <div className="absolute inset-0 bg-[#A855F7]/5 rounded-2xl blur-2xl top-4 -z-10" />
