@@ -900,13 +900,18 @@ export default function RecruiterProfilePage() {
                     <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl z-10 custom-scrollbar">
                         <button 
                             onClick={() => setSelectedSpill(null)} 
-                            className="absolute top-4 right-4 z-70 w-8 h-8 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/80 text-white transition-colors border-none cursor-pointer shadow-md">
+                            className="absolute top-4 right-4 z-[70] w-8 h-8 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/80 text-white transition-colors border-none cursor-pointer shadow-md">
                             <X size={16} />
                         </button>
                         <PostCard
                             post={{ ...selectedSpill, user: { ...userData, role: "RECRUITER" } }}
                             currentUserId={userData.id}
                             currentUserRole="RECRUITER"
+                            onDeleted={(id) => {
+                                setUserData((prev: any) => ({ ...prev, spills: prev.spills.filter((s: any) => s.id !== id) }));
+                                setSelectedSpill(null);
+                            }}
+                            initialShowComments={true}
                         />
                     </div>
                 </div>

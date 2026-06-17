@@ -4,6 +4,7 @@ import Link from "next/link";
 import CommentThread from "./CommentThread";
 import FollowButton from "@/app/components/FollowButton";
 import ReportModal from "@/app/components/ReportModal";
+import ConfirmDialog from "@/app/components/ConfirmDialog";
 
 function timeAgo(dateStr: string) {
     const diff = Date.now() - new Date(dateStr).getTime();
@@ -124,6 +125,8 @@ export default function PostCard({ post, currentUserId, currentUserRole, onDelet
     const [showMenu, setShowMenu] = useState(false);
     const [expanded, setExpanded] = useState(false);
     const [toast, setToast] = useState("");
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const [reportModalData, setReportModalData] = useState<{isOpen: boolean, targetType: "POST" | "USER", targetId: string}>({ isOpen: false, targetType: "POST", targetId: "" });
 
     // In-flight guards prevent double-tap race conditions
@@ -231,8 +234,22 @@ export default function PostCard({ post, currentUserId, currentUserRole, onDelet
     };
 
     const handleDelete = async () => {
-        if (!confirm("Delete this post?")) return;
-        try { await fetch(`/api/spill/posts/${post.id}`, { method: "DELETE" }); onDeleted?.(post.id); } catch { alert("Failed to delete"); }
+        setDeleting(true);
+        try {
+            const res = await fetch(`/api/spill/posts/${post.id}`, { method: "DELETE" });
+            if (res.ok) {
+                onDeleted?.(post.id);
+            } else {
+                setToast("Failed to delete post");
+                setTimeout(() => setToast(""), 3000);
+            }
+        } catch {
+            setToast("Failed to delete post");
+            setTimeout(() => setToast(""), 3000);
+        } finally {
+            setDeleting(false);
+            setShowDeleteConfirm(false);
+        }
     };
 
     const handleReport = (targetType: "POST" | "USER", targetId: string) => {
@@ -287,7 +304,7 @@ export default function PostCard({ post, currentUserId, currentUserRole, onDelet
                                     <>
                                         <button onClick={handleShare} className="w-full px-4 py-2 text-left text-[12px] hover:bg-(--theme-input-bg) bg-transparent border-none cursor-pointer" style={{ color: "var(--theme-text-tertiary)" }}>Copy link</button>
                                         <button className="w-full px-4 py-2 text-left text-[12px] hover:bg-(--theme-input-bg) bg-transparent border-none cursor-pointer" style={{ color: "var(--theme-text-tertiary)" }}>Edit caption</button>
-                                        <button onClick={handleDelete} className="w-full px-4 py-2 text-left text-[12px] text-red-500 hover:bg-red-500/10 bg-transparent border-none cursor-pointer">Delete post</button>
+                                        <button onClick={() => { setShowMenu(false); setShowDeleteConfirm(true); }} className="w-full px-4 py-2 text-left text-[12px] text-red-500 hover:bg-red-500/10 bg-transparent border-none cursor-pointer">{deleting ? "Deleting..." : "Delete post"}</button>
                                     </>
                                 ) : (
                                     <>
@@ -377,6 +394,15 @@ export default function PostCard({ post, currentUserId, currentUserRole, onDelet
                 onClose={() => setReportModalData(prev => ({ ...prev, isOpen: false }))}
                 targetId={reportModalData.targetId}
                 targetType={reportModalData.targetType}
+            />
+
+            <ConfirmDialog
+                isOpen={showDeleteConfirm}
+                title="Delete Post"
+                message="Are you sure you want to delete this post? This action is permanent and cannot be undone."
+                confirmLabel={deleting ? "Deleting..." : "Delete Post"}
+                onConfirm={handleDelete}
+                onCancel={() => setShowDeleteConfirm(false)}
             />
         </article>
     );

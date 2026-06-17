@@ -13,6 +13,7 @@ import PostCard from "@/app/feed/components/PostCard";
 import { CoverBanner, CoverBannerSelector } from "@/app/components/CoverBanners";
 import GitHubScoreCard from "@/app/components/GitHubScoreCard";
 import FollowListModal from "@/app/components/FollowListModal";
+import ConfirmDialog from "@/app/components/ConfirmDialog";
 
 const accent = "#3CF91A";
 
@@ -198,6 +199,14 @@ export default function TalentProfilePage() {
     const [projectForm, setProjectForm] = useState(blankProject);
     const [projectSaving, setProjectSaving] = useState(false);
 
+    /* ── Confirm dialog ── */
+    const [confirmDialog, setConfirmDialog] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        onConfirm: () => void;
+    }>({ isOpen: false, title: "", message: "", onConfirm: () => {} });
+
     const showToast = (type: "success" | "error", text: string) => {
         setToastMessage({ type, text });
         setTimeout(() => setToastMessage(null), 4000);
@@ -239,9 +248,16 @@ export default function TalentProfilePage() {
         setExpSaving(false);
     };
     const deleteExp = async (id: string) => {
-        if (!confirm("Remove this experience?")) return;
-        const res = await fetch(`/api/talent/work-experience/${id}`, { method: "DELETE" });
-        if (res.ok) { setExperiences(prev => prev.filter(e => e.id !== id)); showToast("success", "Removed"); }
+        setConfirmDialog({
+            isOpen: true,
+            title: "Remove Experience",
+            message: "Are you sure you want to remove this work experience entry?",
+            onConfirm: async () => {
+                setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+                const res = await fetch(`/api/talent/work-experience/${id}`, { method: "DELETE" });
+                if (res.ok) { setExperiences(prev => prev.filter(e => e.id !== id)); showToast("success", "Removed"); }
+            },
+        });
     };
 
     /* ── Skills helpers ── */
@@ -283,11 +299,18 @@ export default function TalentProfilePage() {
         setProjectSaving(false);
     };
     const deleteProject = async (idx: number) => {
-        if (!confirm("Remove this project?")) return;
-        const next = projectsList.filter((_, i) => i !== idx);
-        await fetch("/api/user/profile", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ talentProfile: { projectLinks: next } }) });
-        setProjectsList(next);
-        showToast("success", "Removed");
+        setConfirmDialog({
+            isOpen: true,
+            title: "Remove Project",
+            message: "Are you sure you want to remove this project link?",
+            onConfirm: async () => {
+                setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+                const next = projectsList.filter((_, i) => i !== idx);
+                await fetch("/api/user/profile", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ talentProfile: { projectLinks: next } }) });
+                setProjectsList(next);
+                showToast("success", "Removed");
+            },
+        });
     };
 
     useEffect(() => {
@@ -1467,17 +1490,30 @@ export default function TalentProfilePage() {
                     <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl z-10 custom-scrollbar">
                         <button 
                             onClick={() => setSelectedSpill(null)} 
-                            className="absolute top-4 right-4 z-70 w-8 h-8 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/80 text-white transition-colors border-none cursor-pointer shadow-md">
+                            className="absolute top-4 right-4 z-[70] w-8 h-8 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/80 text-white transition-colors border-none cursor-pointer shadow-md">
                             <X size={16} />
                         </button>
                         <PostCard
                             post={{ ...selectedSpill, user: { ...userData, role: "TALENT" } }}
                             currentUserId={userData.id}
                             currentUserRole="TALENT"
+                            onDeleted={(id) => {
+                                setUserData((prev: any) => ({ ...prev, spills: prev.spills.filter((s: any) => s.id !== id) }));
+                                setSelectedSpill(null);
+                            }}
+                            initialShowComments={true}
                         />
                     </div>
                 </div>
             )}
+
+            <ConfirmDialog
+                isOpen={confirmDialog.isOpen}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
 
         {followModal && (
