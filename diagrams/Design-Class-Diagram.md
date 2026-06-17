@@ -1,6 +1,8 @@
 # SkillSpill Design Class Diagram
 
-This document presents the **Design Class Diagram** for the SkillSpill platform. Unlike the conceptual Domain Model, this diagram illustrates the actual software components representing the full-stack architecture. It has been customized to accurately reflect the **Next.js (App Router)** and **Prisma** architecture.
+Verified against the codebase. Optimised for **A4 landscape** printing.
+
+> **Print tip**: Paste into [mermaid.live](https://mermaid.live) → **File → Print → Landscape → A4 → Scale to fit**.
 
 ## Diagram (Mermaid)
 
@@ -9,138 +11,193 @@ This document presents the **Design Class Diagram** for the SkillSpill platform.
   'theme': 'base',
   'themeVariables': {
     'primaryColor': '#ffffff',
-    'primaryTextColor': '#1e293b',
-    'primaryBorderColor': '#e2e8f0',
-    'lineColor': '#64748b',
-    'fontFamily': 'inter, sans-serif'
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#000000',
+    'lineColor': '#000000',
+    'lineWidth': '2.5',
+    'fontFamily': 'Arial, sans-serif',
+    'fontSize': '13px'
   }
 }}%%
 classDiagram
-    direction TB
+    direction LR
 
-    %% Frontend Components (UI Layer)
-    class TalentDashboardPage {
-        <<React Server Component>>
-        +render()
-        -fetchTalentData()
+    %% ── UI LAYER ─────────────────────────────────────
+    class TalentPage {
+        <<RSC + Shell>>
     }
-    
-    class RecruiterDashboardPage {
-        <<React Server Component>>
-        +render()
-        -fetchRecruiterData()
+    class RecruiterPage {
+        <<RSC + Shell>>
+    }
+    class AdminPage {
+        <<RSC>>
     }
 
-    class BountyCardComponent {
-        <<Client Component>>
-        +props: BountyData
-        +render()
-        +onApplyClick()
+    %% ── API ROUTE HANDLERS ───────────────────────────
+    class AuthRoutes {
+        <<Route Handler>>
+    }
+    class SpillRoutes {
+        <<Route Handler>>
+    }
+    class JobRoutes {
+        <<Route Handler>>
+    }
+    class ApplicationRoutes {
+        <<Route Handler>>
+    }
+    class GitHubRoutes {
+        <<Route Handler>>
+    }
+    class MatchingRoutes {
+        <<Route Handler>>
+    }
+    class ConversationRoutes {
+        <<Route Handler>>
+    }
+    class ModerationRoutes {
+        <<Route Handler>>
+    }
+    class AdminRoutes {
+        <<Route Handler>>
     }
 
-    class ApplicationForm {
-        <<Client Component>>
-        +props: BountyId
-        +submitApplication(data)
-        +render()
-    }
-
-    %% Backend Controllers / Server Actions (Application Layer)
-    class BountyActions {
-        <<Server Actions>>
-        +getBounties(filters)
-        +createBounty(data)
-        +applyToBounty(bountyId, talentId, data)
-    }
-
-    class UserActions {
-        <<Server Actions>>
-        +registerUser(data)
-        +loginUser(credentials)
-        +getUserProfile(userId)
-    }
-
-    class ApplicationActions {
-        <<Server Actions>>
-        +getApplicationsForBounty(bountyId)
-        +updateApplicationStatus(appId, status)
-    }
-
-    %% Service / Business Logic Layer (Optional but good practice)
-    class AuthenticationService {
+    %% ── SERVICE LAYER ────────────────────────────────
+    class AuthService {
         <<Service>>
-        +hashPassword(password)
-        +verifyPassword(hash, password)
-        +generateSession(user)
+        hashPassword()
+        createSession()
     }
-
-    class GitHubService {
+    class GitHubScoringService {
         <<Service>>
-        +fetchUserRepos(username)
-        +calculateTotalStars(repos)
+        scoreRepo()
+        selectTopRepo()
+    }
+    class MatchingService {
+        <<Service>>
+        runMatching()
+        storeResults()
+    }
+    class NotifyService {
+        <<Service>>
+        send()
+        pushRealtime()
+    }
+    class StorageService {
+        <<Service>>
+        uploadBlob()
     }
 
-    %% Data Access Layer (Prisma ORM Models / Wrappers)
-    class PrismaUserRepository {
-        <<Prisma Client>>
-        +findUnique(args)
-        +create(args)
-        +update(args)
+    %% ── EXTERNAL MICROSERVICE ────────────────────────
+    class PythonMatcherService {
+        <<Flask Microservice>>
+        semanticScore : Float
+        skillOverlapScore : Float
     }
 
-    class PrismaBountyRepository {
-        <<Prisma Client>>
-        +findMany(args)
-        +create(args)
-        +update(args)
+    %% ── DATA ACCESS ──────────────────────────────────
+    class PrismaClient {
+        <<Singleton ORM>>
+        All DB delegates
     }
 
-    %% Relationships
-    TalentDashboardPage ..> BountyActions : calls
-    TalentDashboardPage ..> UserActions : calls
-    RecruiterDashboardPage ..> BountyActions : calls
-    RecruiterDashboardPage ..> ApplicationActions : calls
-    
-    TalentDashboardPage *-- BountyCardComponent : mounts
-    BountyCardComponent ..> ApplicationForm : triggers
-    ApplicationForm ..> BountyActions : invokes applyToBounty()
+    %% ── DATABASE ─────────────────────────────────────
+    class MySQLDatabase {
+        <<MySQL>>
+    }
 
-    UserActions ..> AuthenticationService : utilizes
-    UserActions ..> PrismaUserRepository : queries
-    
-    BountyActions ..> PrismaBountyRepository : queries
-    ApplicationActions ..> PrismaBountyRepository : queries
-    
-    UserActions ..> GitHubService : integrates (for setup)
+    %% ── RELATIONSHIPS ────────────────────────────────
 
-    %% Premium Color Styling
-    style TalentDashboardPage fill:#eff6ff,stroke:#3b82f6,stroke-width:2px,color:#1e40af
-    style RecruiterDashboardPage fill:#eff6ff,stroke:#3b82f6,stroke-width:2px,color:#1e40af
-    style BountyCardComponent fill:#eff6ff,stroke:#3b82f6,stroke-width:2px,color:#1e40af
-    style ApplicationForm fill:#eff6ff,stroke:#3b82f6,stroke-width:2px,color:#1e40af
+    TalentPage --> AuthRoutes : auth
+    TalentPage --> SpillRoutes : feed
+    TalentPage --> JobRoutes : bounties
+    TalentPage --> GitHubRoutes : repos
+    TalentPage --> ConversationRoutes : messages
 
-    style BountyActions fill:#f5f3ff,stroke:#8b5cf6,stroke-width:2px,color:#5b21b6
-    style UserActions fill:#f5f3ff,stroke:#8b5cf6,stroke-width:2px,color:#5b21b6
-    style ApplicationActions fill:#f5f3ff,stroke:#8b5cf6,stroke-width:2px,color:#5b21b6
+    RecruiterPage --> JobRoutes : manage
+    RecruiterPage --> ApplicationRoutes : applications
+    RecruiterPage --> MatchingRoutes : matches
+    RecruiterPage --> ConversationRoutes : messages
 
-    style AuthenticationService fill:#fefce8,stroke:#eab308,stroke-width:2px,color:#854d0e
-    style GitHubService fill:#fefce8,stroke:#eab308,stroke-width:2px,color:#854d0e
+    AdminPage --> AdminRoutes : admin
+    AdminPage --> ModerationRoutes : moderate
 
-    style PrismaUserRepository fill:#f0fdf4,stroke:#22c55e,stroke-width:2px,color:#166534
-    style PrismaBountyRepository fill:#f0fdf4,stroke:#22c55e,stroke-width:2px,color:#166534
+    AuthRoutes --> AuthService : delegates
+    AuthRoutes --> PrismaClient : persists
+
+    SpillRoutes --> PrismaClient : queries
+    SpillRoutes --> StorageService : upload
+    SpillRoutes --> NotifyService : notify
+
+    JobRoutes --> PrismaClient : queries
+    ApplicationRoutes --> PrismaClient : queries
+    ApplicationRoutes --> NotifyService : notify
+
+    GitHubRoutes --> GitHubScoringService : score
+    GitHubRoutes --> PrismaClient : persists
+
+    MatchingRoutes --> MatchingService : triggers
+    MatchingService --> PythonMatcherService : HTTP
+    MatchingService --> PrismaClient : stores
+
+    ConversationRoutes --> PrismaClient : queries
+    ConversationRoutes --> NotifyService : realtime
+
+    ModerationRoutes --> PrismaClient : queries
+    AdminRoutes --> PrismaClient : queries
+
+    PrismaClient --> MySQLDatabase : SQL
+
+    %% ── B&W PRINT STYLING ────────────────────────────
+
+    style TalentPage fill:#ffffff,stroke:#000000,stroke-width:3px,color:#000000
+    style RecruiterPage fill:#ffffff,stroke:#000000,stroke-width:3px,color:#000000
+    style AdminPage fill:#ffffff,stroke:#000000,stroke-width:3px,color:#000000
+
+    style AuthRoutes fill:#f0f0f0,stroke:#000000,stroke-width:2px,color:#000000
+    style SpillRoutes fill:#f0f0f0,stroke:#000000,stroke-width:2px,color:#000000
+    style JobRoutes fill:#f0f0f0,stroke:#000000,stroke-width:2px,color:#000000
+    style ApplicationRoutes fill:#f0f0f0,stroke:#000000,stroke-width:2px,color:#000000
+    style GitHubRoutes fill:#f0f0f0,stroke:#000000,stroke-width:2px,color:#000000
+    style MatchingRoutes fill:#f0f0f0,stroke:#000000,stroke-width:2px,color:#000000
+    style ConversationRoutes fill:#f0f0f0,stroke:#000000,stroke-width:2px,color:#000000
+    style ModerationRoutes fill:#f0f0f0,stroke:#000000,stroke-width:2px,color:#000000
+    style AdminRoutes fill:#f0f0f0,stroke:#000000,stroke-width:2px,color:#000000
+
+    style AuthService fill:#d9d9d9,stroke:#000000,stroke-width:2px,color:#000000
+    style GitHubScoringService fill:#d9d9d9,stroke:#000000,stroke-width:2px,color:#000000
+    style MatchingService fill:#d9d9d9,stroke:#000000,stroke-width:2px,color:#000000
+    style NotifyService fill:#d9d9d9,stroke:#000000,stroke-width:2px,color:#000000
+    style StorageService fill:#d9d9d9,stroke:#000000,stroke-width:2px,color:#000000
+
+    style PythonMatcherService fill:#a6a6a6,stroke:#000000,stroke-width:3px,color:#000000
+
+    style PrismaClient fill:#bfbfbf,stroke:#000000,stroke-width:3px,color:#000000
+
+    style MySQLDatabase fill:#8c8c8c,stroke:#000000,stroke-width:3px,color:#000000
 ```
+
+---
+
+## Layer Legend
+
+| Fill | Layer |
+|---|---|
+| White `#ffffff` | UI (Next.js Pages) |
+| Light grey `#f0f0f0` | API Route Handlers |
+| Medium grey `#d9d9d9` | Service Layer |
+| Dark grey `#a6a6a6` | External Microservice (Flask) |
+| Mid-dark `#bfbfbf` | Data Access (Prisma ORM) |
+| Darkest `#8c8c8c` | MySQL Database |
+
+> **Border key**: **3px** = critical/central · **2px** = primary
+
+---
 
 ## Layer Descriptions
 
-### 1. UI Layer (Next.js React Components) - <span style="color:#3b82f6">Blue</span>
-* **Pages (`TalentDashboardPage`, `RecruiterDashboardPage`):** The React Server Components (RSC) that users interact with. They fetch initial data securely on the server and render child components.
-* **Components (`BountyCardComponent`, `ApplicationForm`):** Reusable Client Components that handle interactivity and UI states (like clicking "Apply" and managing form inputs).
-
-### 2. Application Layer (Next.js Server Actions) - <span style="color:#8b5cf6">Purple</span>
-* **Actions (`BountyActions`, `UserActions`, `ApplicationActions`):** These act as the boundary between the frontend and the database in Next.js App Router. They validate incoming requests, check authorizations, mutate data, and coordinate business logic.
-
-### 3. Service Layer - <span style="color:#eab308">Yellow</span>
-* **Services (`AuthenticationService`, `GitHubService`):** Encapsulates complex or external business logic, such as integrating with the GitHub API for talent verification, or securely hashing passwords using `bcrypt`.
-
-### 4. Data Access Layer (Prisma) - <span style="color:#22c55e">Green</span>
-* **Repositories (`PrismaUserRepository`, `PrismaBountyRepository`):** Represents the generated Prisma Client abstraction. These execute direct database queries against the MySQL schema safely and with full TypeScript typing.
+1. **UI**: Server-rendered pages with embedded client shells for interactivity.
+2. **API Routes** (`/app/api/`): REST boundary — one class per route group.
+3. **Services** (`/lib/`): Auth, GitHub scoring pipeline, semantic matching, notifications, and blob storage.
+4. **Microservice** (`matching-service/`): Dockerised Python Flask — computes semantic + skill-overlap scores.
+5. **Data Access**: Single `PrismaClient` singleton querying MySQL via Prisma ORM.

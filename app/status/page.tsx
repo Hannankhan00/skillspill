@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 
 /* ─── types ─── */
 interface Service { id: string; name: string; status: string; uptime: number; latency: number; updatedAt: string; }
@@ -184,9 +185,9 @@ export default function StatusPage() {
         <div className="min-h-screen" style={{ background: "#050505", color: "#e5e5e5" }}>
             {/* Nav */}
             <nav className="border-b px-6 py-4 flex items-center justify-between sticky top-0 z-50" style={{ borderColor: "#ffffff0a", background: "#050505cc", backdropFilter: "blur(20px)" }}>
-                <a href="/" className="flex items-center gap-2 no-underline">
+                <Link href="/" className="flex items-center gap-2 no-underline">
                     <img src="/assets/logo 2.png" alt="SkillSpill" className="h-9" />
-                </a>
+                </Link>
                 <div className="flex items-center gap-2 text-xs" style={{ color: "#555", fontFamily: "monospace" }}>
                     {lastUpdated && (
                         <span className="flex items-center gap-1">
@@ -254,7 +255,7 @@ export default function StatusPage() {
 
             <footer className="border-t py-6 px-6 text-center" style={{ borderColor: "#ffffff08" }}>
                 <p className="text-xs" style={{ color: "#444", fontFamily: "monospace" }}>
-                    © 2026 SKILLSPILL INC. · <a href="/" className="no-underline hover:underline" style={{ color: "#555" }}>Back to Home</a>
+                    © 2026 SKILLSPILL INC. · <Link href="/" className="no-underline hover:underline" style={{ color: "#555" }}>Back to Home</Link>
                 </p>
             </footer>
         </div>

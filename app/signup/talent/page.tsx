@@ -556,7 +556,7 @@ export default function TalentSignup() {
             </button>
 
             <div className="text-center">
-                <p className="text-xs text-[#555] mb-2">Didn't receive the code?</p>
+                <p className="text-xs text-[#555] mb-2">Didn&apos;t receive the code?</p>
                 <button
                     onClick={handleResendOtp}
                     disabled={resendCooldown > 0 || resendLoading}

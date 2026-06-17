@@ -222,6 +222,12 @@ export default function PostComposer({ userData, onClose, onPostCreated }: PostC
                 images.forEach((f) => fd.append("files", f));
                 const r = await fetch("/api/spill/media/upload", { method: "POST", body: fd });
                 const d = await r.json();
+                if (!r.ok || d.error) {
+                    setUploading(false);
+                    setSubmitting(false);
+                    alert(d.error ?? "Failed to upload images. Please try again.");
+                    return;
+                }
                 if (d.urls) mediaUrls = d.urls;
                 setUploadProgress(100);
                 setUploading(false);
@@ -234,6 +240,12 @@ export default function PostComposer({ userData, onClose, onPostCreated }: PostC
                 fd.append("files", videoFile);
                 const r = await fetch("/api/spill/media/upload", { method: "POST", body: fd });
                 const d = await r.json();
+                if (!r.ok || d.error) {
+                    setUploading(false);
+                    setSubmitting(false);
+                    alert(d.error ?? "Failed to upload video. Please try again.");
+                    return;
+                }
                 if (d.urls?.[0]) videoUrl = d.urls[0];
                 setUploadProgress(100);
                 setUploading(false);

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 /* ───────────── Particles ───────────── */
 interface Particle { x: number; y: number; vx: number; vy: number; size: number; opacity: number; color: string; }
@@ -177,12 +178,12 @@ export default function SuspendedPage() {
 
             {/* Top bar */}
             <header className="relative z-10 flex items-center justify-between px-6 py-4">
-                <a href="/" className="flex items-center gap-2.5 cursor-pointer hover:opacity-90 transition-opacity" id="suspended-logo">
+                <Link href="/" className="flex items-center gap-2.5 cursor-pointer hover:opacity-90 transition-opacity" id="suspended-logo">
                     <div className="w-8 h-8 rounded-lg bg-[#E8294A] flex items-center justify-center text-white shadow-[0_0_16px_rgba(232,41,74,0.35)]">
                         <IconBolt />
                     </div>
                     <span className="text-[1.1rem] font-bold text-white tracking-tight">SkillSpill</span>
-                </a>
+                </Link>
                 <button onClick={handleLogout}
                     className="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] font-semibold border-none cursor-pointer transition-all hover:bg-white/5"
                     style={{ background: "transparent", color: "#666", ...mono }} id="suspended-logout">

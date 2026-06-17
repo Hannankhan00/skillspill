@@ -8,7 +8,7 @@ const mono = { fontFamily: "var(--font-jetbrains-mono, 'JetBrains Mono', monospa
 const Section = ({ id, title, children }: { id: string; title: string; children: React.ReactNode }) => (
   <section id={id} className="mb-12">
     <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-3" style={mono}>
-      <span className="text-[#3CF91A]">//</span> {title}
+      <span className="text-[#3CF91A]">{'//'}</span> {title}
     </h2>
     <div className="text-sm text-[#888] leading-7 space-y-3">{children}</div>
   </section>

@@ -22,13 +22,19 @@ export async function POST(req: NextRequest) {
         const urls: string[] = [];
 
         for (const file of files) {
-            const validation = validateUpload(file.type, file.size, "images");
+            // Determine whether this is a video or image to use the correct limits
+            const isVideo = file.type.startsWith("video/");
+            const category = isVideo ? "videos" : "images";
+            const folder = isVideo
+                ? `spill/videos/${session.userId}`
+                : `spill/images/${session.userId}`;
+
+            const validation = validateUpload(file.type, file.size, category);
             if (!validation.valid) {
                 return NextResponse.json({ error: validation.error }, { status: 400 });
             }
 
             const buffer = new Uint8Array(await file.arrayBuffer());
-            const folder = `spill/images/${session.userId}`;
             const result = await uploadToAzure(buffer, file.name, file.type, folder);
             urls.push(result.url);
         }

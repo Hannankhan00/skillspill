@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
 
 /* ───────────── Ripple Hook ───────────── */
 function useRipple() {
@@ -99,7 +100,7 @@ function SkillTag({ label, delay }: { label: string; delay: number }) {
   const [visible, setVisible] = useState(false);
   useEffect(() => { const t = setTimeout(() => setVisible(true), delay); return () => clearTimeout(t); }, [delay]);
   return (
-    <span className={`border border-[#3CF91A]/30 bg-[#3CF91A]/5 px-3 py-1.5 rounded text-sm text-[#3CF91A]/80 transition-all duration-500 hover:border-[#3CF91A] hover:text-[#3CF91A] hover:shadow-[0_0_10px_rgba(60,249,26,0.2)] cursor-default ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`} style={{ fontFamily: "var(--font-jetbrains-mono), monospace", transitionDelay: `${delay}ms` }}>
+    <span className={`border border-primary/30 bg-primary/5 px-3 py-1.5 rounded text-sm text-primary/80 transition-all duration-500 hover:border-primary hover:text-primary hover:shadow-[0_0_10px_rgba(60,249,26,0.2)] cursor-default ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`} style={{ fontFamily: "var(--font-jetbrains-mono), monospace", transitionDelay: `${delay}ms` }}>
       {label}
     </span>
   );
@@ -124,7 +125,7 @@ function AnimatedStat({ target, label, suffix = "" }: { target: number; label: s
   }, [target]);
   return (
     <div ref={ref} className="text-center">
-      <span className="block text-4xl sm:text-5xl font-extrabold text-[#3CF91A] mb-2 tabular-nums drop-shadow-[0_0_15px_rgba(60,249,26,0.4)]" style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }}>
+      <span className="block text-4xl sm:text-5xl font-extrabold text-primary mb-2 tabular-nums drop-shadow-[0_0_15px_rgba(60,249,26,0.4)]" style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }}>
         {count.toLocaleString()}{suffix}
       </span>
       <span className="text-[#888] uppercase tracking-[3px] text-xs">{label}</span>
@@ -153,45 +154,45 @@ export default function Home() {
   const skills = ["Python", "Rust", "React", "TypeScript", "Solidity", "Go", "Next.js"];
 
   return (
-    <div className="relative w-full min-h-screen overflow-hidden bg-[#050505] text-white">
+    <div className="relative w-full min-h-screen overflow-hidden bg-background text-white">
       {/* Ripple keyframe injected once */}
       <style>{`@keyframes ripple-expand { to { transform: scale(1); opacity: 0; } }`}</style>
       <ParticlesCanvas />
 
       {/* ───── NAVBAR ───── */}
-      <nav className={`fixed top-0 left-0 w-full h-20 z-50 flex items-center justify-center px-4 md:px-8 transition-all duration-300 ${scrolled ? "bg-[#050505]/90 backdrop-blur-xl border-b border-[#3CF91A]/10" : ""}`} id="main-nav">
-        <div className="w-full max-w-[1200px] flex items-center justify-between">
-          <a href="/" className="flex items-center no-underline" id="logo">
+      <nav className={`fixed top-0 left-0 w-full h-20 z-50 flex items-center justify-center px-4 md:px-8 transition-all duration-300 ${scrolled ? "bg-background/90 backdrop-blur-xl border-b border-primary/10" : ""}`} id="main-nav">
+        <div className="w-full max-w-300 flex items-center justify-between">
+          <Link href="/" className="flex items-center no-underline" id="logo">
             <img src="/assets/logo 2.png" alt="SkillSpill" className="h-12" />
-          </a>
+          </Link>
 
           <div className="hidden md:flex gap-8">
             {[["Find Talent", "find-talent"], ["Find Jobs", "find-jobs"], ["How it works", "how-it-works"]].map(([label, anchor]) => (
-              <a key={anchor} href={`#${anchor}`} className="text-[#888] no-underline text-sm font-semibold uppercase tracking-wide hover:text-[#3CF91A] transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-[#3CF91A] after:transition-all hover:after:w-full">{label}</a>
+              <a key={anchor} href={`#${anchor}`} className="text-[#888] no-underline text-sm font-semibold uppercase tracking-wide hover:text-primary transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all hover:after:w-full">{label}</a>
             ))}
           </div>
 
           <div className="hidden md:flex items-center gap-4">
-            <a href="/login" className="text-white no-underline font-semibold text-sm border border-white/10 px-4 py-2 rounded-lg hover:border-[#3CF91A]/50 hover:text-[#3CF91A] transition-all">Log In</a>
-            <button onClick={ripple} className="bg-[#3CF91A] text-black px-5 py-2.5 rounded-lg no-underline font-bold text-sm hover:-translate-y-0.5 shadow-neon-green hover:shadow-neon-green-strong transition-all border-none cursor-pointer">
+            <a href="/login" className="text-white no-underline font-semibold text-sm border border-white/10 px-4 py-2 rounded-lg hover:border-primary/50 hover:text-primary transition-all">Log In</a>
+            <button onClick={ripple} className="bg-primary text-black px-5 py-2.5 rounded-lg no-underline font-bold text-sm hover:-translate-y-0.5 shadow-neon-green hover:shadow-neon-green-strong transition-all border-none cursor-pointer">
               <a href="#path" className="no-underline text-black">Sign Up</a>
             </button>
           </div>
 
-          <button className="md:hidden bg-transparent border border-[#3CF91A]/30 rounded-lg p-1.5 text-[#3CF91A] cursor-pointer z-60" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} aria-label="Toggle menu">
+          <button className="md:hidden bg-transparent border border-primary/30 rounded-lg p-1.5 text-primary cursor-pointer z-60" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} aria-label="Toggle menu">
             {isMobileMenuOpen ? <IconX /> : <IconMenu />}
           </button>
         </div>
 
         {/* Mobile Menu */}
-        <div className={`mobile-menu-overlay fixed inset-0 bg-[#050505]/95 backdrop-blur-2xl z-55 flex flex-col justify-center items-center ${isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
+        <div className={`mobile-menu-overlay fixed inset-0 bg-background/95 backdrop-blur-2xl z-55 flex flex-col justify-center items-center ${isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
           <div className="flex flex-col items-center gap-8">
             {[["Find Talent", "find-talent"], ["Find Jobs", "find-jobs"], ["How it works", "how-it-works"]].map(([label, anchor]) => (
-              <a key={anchor} href={`#${anchor}`} className="text-2xl font-bold text-[#888] no-underline hover:text-[#3CF91A] transition-colors" onClick={() => setIsMobileMenuOpen(false)}>{label}</a>
+              <a key={anchor} href={`#${anchor}`} className="text-2xl font-bold text-[#888] no-underline hover:text-primary transition-colors" onClick={() => setIsMobileMenuOpen(false)}>{label}</a>
             ))}
-            <div className="w-12 h-px bg-[#3CF91A]/20 my-4" />
-            <a href="/login" className="text-2xl font-bold text-[#888] no-underline hover:text-[#3CF91A] transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Log In</a>
-            <button onClick={(e) => { ripple(e); setIsMobileMenuOpen(false); }} className="bg-[#3CF91A] text-black px-8 py-3 rounded-lg font-bold text-lg border-none cursor-pointer shadow-neon-green mt-4">
+            <div className="w-12 h-px bg-primary/20 my-4" />
+            <a href="/login" className="text-2xl font-bold text-[#888] no-underline hover:text-primary transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Log In</a>
+            <button onClick={(e) => { ripple(e); setIsMobileMenuOpen(false); }} className="bg-primary text-black px-8 py-3 rounded-lg font-bold text-lg border-none cursor-pointer shadow-neon-green mt-4">
               <a href="#path" className="text-black no-underline">Sign Up</a>
             </button>
           </div>
@@ -200,10 +201,10 @@ export default function Home() {
 
       {/* ───── HERO ───── */}
       <section className="relative min-h-screen flex flex-col items-center justify-center text-center pt-20 px-4 z-10 box-border" id="hero">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(60,249,26,0.12)_0%,transparent_70%)] pointer-events-none -z-10" />
-        <div className="absolute top-[20%] right-[20%] w-[400px] h-[400px] bg-[radial-gradient(circle,rgba(168,85,247,0.08)_0%,transparent_70%)] pointer-events-none -z-10" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-[radial-gradient(circle,rgba(60,249,26,0.12)_0%,transparent_70%)] pointer-events-none -z-10" />
+        <div className="absolute top-[20%] right-[20%] w-100 h-100 bg-[radial-gradient(circle,rgba(168,85,247,0.08)_0%,transparent_70%)] pointer-events-none -z-10" />
 
-        <div className="w-full max-w-[800px] flex flex-col items-center box-border">
+        <div className="w-full max-w-200 flex flex-col items-center box-border">
           {/* Small badge */}
 
 
@@ -214,7 +215,7 @@ export default function Home() {
             <span className="text-gradient-hero animate-shine">Spill Your Skills.</span>
           </h1>
 
-          <p className="text-lg md:text-xl text-[#999] max-w-[800px] mb-8 leading-relaxed" id="hero-subtitle">
+          <p className="text-lg md:text-xl text-[#999] max-w-200 mb-8 leading-relaxed" id="hero-subtitle">
             The first talent marketplace powered 100% by <span className="text-white/80">GitHub code analysis</span>.
             <br />
             We verify actual <span className="text-white/80">coding capability</span>, not resume keywords.
@@ -223,12 +224,12 @@ export default function Home() {
 
 
           {/* Skill Tags */}
-          <div className="flex gap-2 flex-wrap justify-center max-w-[700px]" id="skill-tags">
+          <div className="flex gap-2 flex-wrap justify-center max-w-175" id="skill-tags">
             {skills.map((s, i) => <SkillTag key={s} label={s} delay={2200 + i * 120} />)}
           </div>
         </div>
 
-        <div className="absolute bottom-8 flex flex-col items-center gap-2 text-[#3CF91A]/40 text-xs uppercase tracking-widest animate-bounce-soft">
+        <div className="absolute bottom-8 flex flex-col items-center gap-2 text-primary/40 text-xs uppercase tracking-widest animate-bounce-soft">
           <span>Explore</span><IconChevronDown />
         </div>
       </section>
@@ -240,19 +241,19 @@ export default function Home() {
 
         <div className="flex justify-center gap-6 flex-wrap" id="path-cards">
           {/* Talent Card */}
-          <div className="glass-card rounded-2xl p-8 md:p-12 w-full max-w-[400px] text-center flex flex-col items-center transition-all duration-300 hover:-translate-y-2.5 hover:border-[#3CF91A]/50 hover:shadow-neon-green group" id="card-talent">
-            <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6 bg-[#3CF91A]/10 text-[#3CF91A] border border-[#3CF91A]/20 group-hover:shadow-[0_0_20px_rgba(60,249,26,0.3)] transition-all">
+          <div className="glass-card rounded-2xl p-8 md:p-12 w-full max-w-100 text-center flex flex-col items-center transition-all duration-300 hover:-translate-y-2.5 hover:border-primary/50 hover:shadow-neon-green group" id="card-talent">
+            <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6 bg-primary/10 text-primary border border-primary/20 group-hover:shadow-[0_0_20px_rgba(60,249,26,0.3)] transition-all">
               <IconCode />
             </div>
-            <h3 className="text-xl font-bold mb-3 text-[#3CF91A]">Talent</h3>
+            <h3 className="text-xl font-bold mb-3 text-primary">Talent</h3>
             <p className="text-[#999] mb-6 leading-relaxed flex-grow">Master your craft, build your legacy, and connect with visionary projects.</p>
-            <a href="/signup/talent" onClick={(e) => ripple(e as unknown as React.MouseEvent<HTMLElement>)} className="bg-[#3CF91A] text-black px-6 py-3 rounded-lg font-bold flex items-center gap-2 cursor-pointer hover:shadow-neon-green-strong transition-all no-underline">
+            <a href="/signup/talent" onClick={(e) => ripple(e as unknown as React.MouseEvent<HTMLElement>)} className="bg-primary text-black px-6 py-3 rounded-lg font-bold flex items-center gap-2 cursor-pointer hover:shadow-neon-green-strong transition-all no-underline">
               I&apos;m Talent <IconArrowRight />
             </a>
           </div>
 
           {/* Company Card */}
-          <div className="glass-card-purple rounded-2xl p-8 md:p-12 w-full max-w-[400px] text-center flex flex-col items-center transition-all duration-300 hover:-translate-y-2.5 hover:border-[#A855F7]/50 hover:shadow-neon-purple group" id="card-recruiter">
+          <div className="glass-card-purple rounded-2xl p-8 md:p-12 w-full max-w-100 text-center flex flex-col items-center transition-all duration-300 hover:-translate-y-2.5 hover:border-secondary/50 hover:shadow-neon-purple group" id="card-recruiter">
             <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6 bg-[#A855F7]/10 text-[#A855F7] border border-[#A855F7]/20 group-hover:shadow-[0_0_20px_rgba(168,85,247,0.3)] transition-all">
               <IconBriefcase />
             </div>
@@ -266,26 +267,26 @@ export default function Home() {
       </section>
 
       {/* ───── FIND TALENT ───── */}
-      <section className="min-h-screen py-20 md:py-32 px-6 max-w-[1200px] mx-auto flex flex-col md:flex-row items-center justify-center gap-12 scroll-mt-20" id="find-talent">
+      <section className="min-h-screen py-20 md:py-32 px-6 max-w-300 mx-auto flex flex-col md:flex-row items-center justify-center gap-12 scroll-mt-20" id="find-talent">
         <div className="flex-1 space-y-6">
-          <h2 className="text-3xl md:text-5xl font-bold">Find <span className="text-[#3CF91A]">Top Talent</span></h2>
+          <h2 className="text-3xl md:text-5xl font-bold">Find <span className="text-primary">Top Talent</span></h2>
           <p className="text-[#888] text-lg leading-relaxed">
             Stop sifting through keyword-stuffed resumes. Our AI analyzes actual GitHub repositories to build a verified skill matrix. Discover developers who can truly build, not just talk about it.
           </p>
-          <a href="/signup/recruiter" className="inline-flex items-center gap-2 bg-[#3CF91A]/10 text-[#3CF91A] border border-[#3CF91A]/30 px-6 py-3 rounded-lg font-bold hover:bg-[#3CF91A] hover:text-black hover:shadow-neon-green transition-all no-underline mt-4">
+          <a href="/signup/recruiter" className="inline-flex items-center gap-2 bg-primary/10 text-primary border border-primary/30 px-6 py-3 rounded-lg font-bold hover:bg-primary hover:text-black hover:shadow-neon-green transition-all no-underline mt-4">
             Search Developers <IconArrowRight />
           </a>
         </div>
         <div className="flex-1 w-full relative">
-          <div className="absolute inset-0 bg-[#3CF91A]/5 rounded-2xl blur-2xl top-4 -z-10" />
-          <div className="glass-card rounded-2xl p-8 border border-[#3CF91A]/20">
+          <div className="absolute inset-0 bg-primary/5 rounded-2xl blur-2xl top-4 -z-10" />
+          <div className="glass-card rounded-2xl p-8 border border-primary/20">
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-12 h-12 rounded-full bg-black/50 flex items-center justify-center border border-[#3CF91A]/20 text-[#3CF91A]">
+              <div className="w-12 h-12 rounded-full bg-black/50 flex items-center justify-center border border-primary/20 text-primary">
                 <IconCode />
               </div>
               <div>
                 <h4 className="font-bold text-white text-lg">Alex Developer</h4>
-                <p className="text-[#3CF91A] text-sm font-mono">Verified System Architect</p>
+                <p className="text-primary text-sm font-mono">Verified System Architect</p>
               </div>
             </div>
             <div className="space-y-3">
@@ -307,7 +308,7 @@ export default function Home() {
       </section>
 
       {/* ───── FIND JOBS ───── */}
-      <section className="min-h-screen py-20 md:py-32 px-6 max-w-[1200px] mx-auto flex flex-col md:flex-row-reverse items-center justify-center gap-12 scroll-mt-20" id="find-jobs">
+      <section className="min-h-screen py-20 md:py-32 px-6 max-w-300 mx-auto flex flex-col md:flex-row-reverse items-center justify-center gap-12 scroll-mt-20" id="find-jobs">
         <div className="flex-1 space-y-6">
           <h2 className="text-3xl md:text-5xl font-bold">Find Jobs Based on <span className="text-[#A855F7]">Your Skills</span></h2>
           <p className="text-[#888] text-lg leading-relaxed">
@@ -361,7 +362,7 @@ export default function Home() {
       </section>
 
       {/* ───── HOW IT WORKS ───── */}
-      <section className="min-h-screen py-20 md:py-32 px-6 max-w-[1200px] mx-auto flex flex-col justify-center scroll-mt-20" id="how-it-works">
+      <section className="min-h-screen py-20 md:py-32 px-6 max-w-300 mx-auto flex flex-col justify-center scroll-mt-20" id="how-it-works">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-bold mb-6">How It <span className="text-white/80">Works</span></h2>
           <p className="text-[#888] max-w-2xl mx-auto text-lg leading-relaxed">Three steps to the future of hiring. No resumes, just code.</p>
@@ -373,19 +374,19 @@ export default function Home() {
             { num: "02", icon: <IconSparkle />, title: "AI Skill Matrix", desc: "We generate a verified skill matrix from real code — no self-assessed ratings, no keyword stuffing." },
             { num: "03", icon: <IconTerminal />, title: "Get Matched", desc: "Companies find talent by actual capability. Developers get matched to roles that fit their real skills." },
           ].map((step) => (
-            <div key={step.num} className="bg-white/5 border border-white/10 p-8 rounded-2xl relative overflow-hidden group hover:border-[#3CF91A]/50 hover:bg-white/[0.07] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(60,249,26,0.1)]">
+            <div key={step.num} className="bg-white/5 border border-white/10 p-8 rounded-2xl relative overflow-hidden group hover:border-primary/50 hover:bg-white/[0.07] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(60,249,26,0.1)]">
               {/* Background Accent */}
-              <div className="absolute top-0 right-0 w-24 h-24 bg-[#3CF91A]/5 rounded-bl-[80px] -mr-4 -mt-4 transition-all group-hover:bg-[#3CF91A]/10 pointer-events-none" />
+              <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-[80px] -mr-4 -mt-4 transition-all group-hover:bg-primary/10 pointer-events-none" />
 
               <div className="relative z-10 flex flex-col h-full">
                 <div className="flex justify-between items-start mb-6">
-                  <div className="w-14 h-14 rounded-xl bg-black/40 border border-[#3CF91A]/20 flex items-center justify-center text-[#3CF91A] group-hover:scale-110 group-hover:border-[#3CF91A] transition-all duration-300 shadow-[0_0_15px_rgba(60,249,26,0.1)]">
+                  <div className="w-14 h-14 rounded-xl bg-black/40 border border-primary/20 flex items-center justify-center text-primary group-hover:scale-110 group-hover:border-primary transition-all duration-300 shadow-[0_0_15px_rgba(60,249,26,0.1)]">
                     {step.icon}
                   </div>
-                  <span className="text-4xl font-bold text-white/5 font-mono group-hover:text-[#3CF91A]/20 transition-colors cursor-default" style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }}>{step.num}</span>
+                  <span className="text-4xl font-bold text-white/5 font-mono group-hover:text-primary/20 transition-colors cursor-default" style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }}>{step.num}</span>
                 </div>
 
-                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-[#3CF91A] transition-colors">{step.title}</h3>
+                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-primary transition-colors">{step.title}</h3>
                 <p className="text-[#999] text-sm leading-relaxed">{step.desc}</p>
               </div>
             </div>
@@ -394,8 +395,8 @@ export default function Home() {
       </section>
 
       {/* ───── STATS ───── */}
-      <section className="py-16 md:py-24 px-6 border-t border-[#3CF91A]/10 bg-[#3CF91A]/[0.02]" id="stats">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-[1200px] mx-auto text-center">
+      <section className="py-16 md:py-24 px-6 border-t border-primary/10 bg-primary/2" id="stats">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-300 mx-auto text-center">
           <AnimatedStat target={talentCount} label="Verified Devs" suffix="+" />
           <AnimatedStat target={recruiterCount} label="Companies" suffix="+" />
           <AnimatedStat target={98} label="Match Accuracy" suffix="%" />
@@ -405,9 +406,9 @@ export default function Home() {
 
       {/* ───── TEAM / CREDITS ───── */}
       <section className="py-16 md:py-24 px-6" id="team">
-        <div className="max-w-[1200px] mx-auto">
+        <div className="max-w-300 mx-auto">
           <div className="text-center mb-14">
-            <span className="inline-flex items-center gap-2 text-[#3CF91A] text-xs font-mono tracking-widest uppercase mb-4 px-3 py-1.5 rounded-full border border-[#3CF91A]/30 bg-[#3CF91A]/5">
+            <span className="inline-flex items-center gap-2 text-primary text-xs font-mono tracking-widest uppercase mb-4 px-3 py-1.5 rounded-full border border-primary/30 bg-primary/5">
               <IconSparkle /> Built By
             </span>
             <h2 className="text-3xl md:text-5xl font-black text-white mt-4 mb-4">The Team</h2>
@@ -435,17 +436,17 @@ export default function Home() {
             ] as { name: string; role: string; initials: string; github: string; linkedin: string; portfolio: string }[]).map((member) => (
               <div
                 key={member.name}
-                className="group relative rounded-2xl border border-white/10 bg-white/[0.03] p-6 hover:border-[#3CF91A]/40 hover:bg-[#3CF91A]/[0.04] transition-all duration-300"
+                className="group relative rounded-2xl border border-white/10 bg-white/[0.03] p-6 hover:border-primary/40 hover:bg-primary/4 transition-all duration-300"
               >
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#3CF91A]/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                 <div className="relative z-10">
                   <div className="flex items-center gap-4 mb-5">
-                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#3CF91A]/20 to-[#3CF91A]/5 border border-[#3CF91A]/30 flex items-center justify-center text-[#3CF91A] font-black text-lg shrink-0" style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }}>
+                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 flex items-center justify-center text-primary font-black text-lg shrink-0" style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }}>
                       {member.initials}
                     </div>
                     <div>
                       <h3 className="text-white font-bold text-lg mb-0.5">{member.name}</h3>
-                      <p className="text-[#3CF91A]/70 text-sm font-mono">{member.role}</p>
+                      <p className="text-primary/70 text-sm font-mono">{member.role}</p>
                     </div>
                   </div>
                   <div className="flex gap-2 pt-4 border-t border-white/5">
@@ -455,7 +456,7 @@ export default function Home() {
                     <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[#888] text-xs hover:bg-[#0A66C2]/20 hover:text-[#0A66C2] hover:border-[#0A66C2]/40 transition-all no-underline">
                       <IconLinkedIn /> LinkedIn
                     </a>
-                    <a href={member.portfolio} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[#888] text-xs hover:bg-[#3CF91A]/10 hover:text-[#3CF91A] hover:border-[#3CF91A]/30 transition-all no-underline">
+                    <a href={member.portfolio} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[#888] text-xs hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all no-underline">
                       <IconGlobe /> Portfolio
                     </a>
                   </div>
@@ -467,13 +468,13 @@ export default function Home() {
       </section>
 
       {/* ───── STATUS BANNER ───── */}
-      <div className="border-t border-b border-[#3CF91A]/10 bg-[#3CF91A]/[0.02] py-4 px-6">
-        <div className="max-w-[1200px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="border-t border-b border-primary/10 bg-primary/2 py-4 px-6">
+        <div className="max-w-300 mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-sm text-[#888]">
-            <span className="inline-block w-2 h-2 rounded-full bg-[#3CF91A] shadow-[0_0_6px_#3CF91A] animate-pulse" />
+            <span className="inline-block w-2 h-2 rounded-full bg-primary shadow-[0_0_6px_#3CF91A] animate-pulse" />
             All systems operational
           </div>
-          <a href="/status" className="flex items-center gap-1.5 text-[#3CF91A] text-sm font-mono no-underline hover:underline transition-colors">
+          <a href="/status" className="flex items-center gap-1.5 text-primary text-sm font-mono no-underline hover:underline transition-colors">
             <IconActivity /> View System Status →
           </a>
         </div>
@@ -481,7 +482,7 @@ export default function Home() {
 
       {/* ───── FOOTER ───── */}
       <footer className="border-t border-white/5 bg-[#030303] px-6 pt-16 pb-8" id="footer">
-        <div className="max-w-[1200px] mx-auto">
+        <div className="max-w-300 mx-auto">
 
           {/* Top grid */}
           <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr] gap-12 mb-14">
@@ -495,7 +496,7 @@ export default function Home() {
                 The AI-powered career marketplace where verified code speaks louder than résumés. Built for the next generation of developers and companies.
               </p>
               <div className="flex gap-2">
-                <a href="https://github.com/Hannankhan00" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[#666] hover:bg-[#3CF91A] hover:text-black hover:border-[#3CF91A] transition-all">
+                <a href="https://github.com/Hannankhan00" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[#666] hover:bg-primary hover:text-black hover:border-primary transition-all">
                   <IconGithub />
                 </a>
                 <a href="https://www.linkedin.com/in/muhammadhannankhan" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[#666] hover:bg-[#0A66C2] hover:text-white hover:border-[#0A66C2] transition-all">
@@ -506,7 +507,7 @@ export default function Home() {
 
             {/* Company column */}
             <div>
-              <p className="text-[#3CF91A] text-xs font-mono tracking-widest uppercase mb-5">Company</p>
+              <p className="text-primary text-xs font-mono tracking-widest uppercase mb-5">Company</p>
               <ul className="space-y-3 list-none p-0 m-0">
                 {[
                   { label: "About", href: "#hero" },
@@ -519,7 +520,7 @@ export default function Home() {
 
             {/* Status column */}
             <div>
-              <p className="text-[#3CF91A] text-xs font-mono tracking-widest uppercase mb-5">System</p>
+              <p className="text-primary text-xs font-mono tracking-widest uppercase mb-5">System</p>
               <ul className="space-y-3 list-none p-0 m-0">
                 {[
                   { label: "Status Page", href: "/status" },
@@ -529,9 +530,9 @@ export default function Home() {
                   <li key={l.label}><a href={l.href} className="text-[#666] text-sm no-underline hover:text-white transition-colors">{l.label}</a></li>
                 ))}
               </ul>
-              <div className="mt-6 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#3CF91A]/10 border border-[#3CF91A]/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#3CF91A] animate-pulse" />
-                <span className="text-[#3CF91A] text-xs font-mono">All systems up</span>
+              <div className="mt-6 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                <span className="text-primary text-xs font-mono">All systems up</span>
               </div>
             </div>
           </div>
